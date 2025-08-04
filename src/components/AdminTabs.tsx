@@ -10,7 +10,7 @@ export async function AdminTabs() {
 
   return (
     <Tabs defaultValue="orders" className="w-full">
-      <TabsList className="grid w-full grid-cols-3">
+      <TabsList className="h-auto flex-wrap justify-center">
         <TabsTrigger value="orders">Order Management</TabsTrigger>
         <TabsTrigger value="uploader">Note Uploader</TabsTrigger>
         <TabsTrigger value="manager">Note Manager</TabsTrigger>
