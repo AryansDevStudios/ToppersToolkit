@@ -2,7 +2,7 @@
 'use client';
 
 import { useFormStatus } from 'react-dom';
-import { useEffect, useState, useRef, useActionState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -23,8 +23,8 @@ const NoteFormSchema = z.object({
   chapterName: z.string().min(1, 'Chapter name is required'),
   noteType: z.string().min(1, 'Please select a note type'),
   description: z.string().min(1, 'Description is required'),
-  imageUrl: z.string().url({ message: 'Please enter a valid URL.' }).optional().or(z.literal('')),
-  price: z.coerce.number().min(0, 'Price must be a positive number.'),
+  imageUrl: z.string().url({ message: 'Please enter a valid image URL.' }).optional().or(z.literal('')),
+  price: z.coerce.number().min(0, 'Price cannot be negative.'),
 });
 
 type NoteFormInputs = z.infer<typeof NoteFormSchema>;
@@ -41,23 +41,20 @@ const subjectsData: Subject[] = [
     { id: 'english', name: 'English', subcategories: [{id: 'literature', name: 'Literature'}, {id: 'grammar', name: 'Grammar'}] },
 ];
 
-function SubmitButton({ isEditing }: { isEditing: boolean }) {
-  const { pending } = useFormStatus();
+function SubmitButton({ isEditing, isSubmitting }: { isEditing: boolean, isSubmitting: boolean }) {
   return (
-    <Button type="submit" disabled={pending} className="w-full">
-      {pending ? (isEditing ? 'Updating Note...' : 'Adding Note...') : (isEditing ? 'Update Note' : 'Add Note')}
+    <Button type="submit" disabled={isSubmitting} className="w-full">
+      {isSubmitting ? (isEditing ? 'Updating Note...' : 'Adding Note...') : (isEditing ? 'Update Note' : 'Add Note')}
     </Button>
   );
 }
 
 export function NoteForm({ note, onSuccess }: NoteFormProps) {
   const isEditing = !!note;
-  const action = isEditing ? updateNoteAction : addNoteAction;
-  const [state, formAction] = useActionState(action, { success: false, message: '' });
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
 
-  const { register, watch, setValue, reset, formState: { errors } } = useForm<NoteFormInputs>({
+  const { register, watch, setValue, reset, handleSubmit, formState: { errors, isSubmitting } } = useForm<NoteFormInputs>({
     resolver: zodResolver(NoteFormSchema),
     defaultValues: {
       subject: note ? JSON.stringify({ id: note.subjectId, name: note.subjectName, subcategories: subjectsData.find(s => s.id === note.subjectId)?.subcategories }) : '',
@@ -78,7 +75,7 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
         try {
             const selectedSubject = JSON.parse(selectedSubjectJSON) as Subject;
             setSubcategories(selectedSubject.subcategories || []);
-            if (note?.subjectId !== selectedSubject.id) {
+            if (!isEditing || (note?.subjectId !== selectedSubject.id)) {
                 setValue('subcategory', '');
             }
         } catch (e) {
@@ -87,29 +84,39 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
     } else {
         setSubcategories([]);
     }
-  }, [selectedSubjectJSON, setValue, note]);
-
-  useEffect(() => {
-    if (state.message) {
-      if (state.success) {
-        toast({ title: 'Success!', description: state.message });
-        if (!isEditing) {
-          reset();
-          formRef.current?.reset();
-          setSubcategories([]);
-        }
-        onSuccess?.();
-      } else {
-        toast({ title: 'Error', description: state.message, variant: 'destructive' });
-      }
-    }
-  }, [state, toast, reset, isEditing, onSuccess]);
+  }, [selectedSubjectJSON, setValue, note, isEditing]);
 
   const noteTypes = ['Notes', 'Question Bank', 'Important Dates', 'Summary'];
+  
+  const processForm = async (data: NoteFormInputs) => {
+    const action = isEditing ? updateNoteAction : addNoteAction;
+    
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+        formData.append(key, String(value));
+    });
+
+    if (isEditing && note) {
+      formData.append('noteId', note.id);
+    }
+    
+    const result = await action(null, formData);
+
+    if (result.success) {
+      toast({ title: 'Success!', description: result.message });
+      if (!isEditing) {
+        reset();
+        formRef.current?.reset();
+        setSubcategories([]);
+      }
+      onSuccess?.();
+    } else {
+      toast({ title: 'Error', description: result.message, variant: 'destructive' });
+    }
+  };
 
   return (
-    <form ref={formRef} action={formAction} className="space-y-4">
-       {isEditing && <input type="hidden" name="noteId" value={note.id} />}
+    <form ref={formRef} onSubmit={handleSubmit(processForm)} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label>Subject</Label>
@@ -183,7 +190,7 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
         <Input id="imageUrl" {...register('imageUrl')} placeholder="https://..." />
         {errors.imageUrl && <p className="text-sm text-destructive mt-1">{errors.imageUrl.message}</p>}
       </div>
-      <SubmitButton isEditing={isEditing} />
+      <SubmitButton isEditing={isEditing} isSubmitting={isSubmitting} />
     </form>
   );
 }
