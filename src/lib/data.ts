@@ -132,14 +132,18 @@ export async function deleteNoteMaterial(noteId: string) {
 }
 
 export async function getPassphrase(): Promise<string> {
-    const settingsRef = doc(db, 'settings', 'admin');
-    const docSnap = await getDoc(settingsRef);
+    try {
+        const settingsRef = doc(db, 'settings', 'admin');
+        const docSnap = await getDoc(settingsRef);
 
-    if (docSnap.exists() && docSnap.data().passphrase) {
-        return docSnap.data().passphrase;
-    } else {
-        // Fallback for when it's not set in Firestore
-        console.log("Passphrase not found in Firestore, using fallback. Please set 'passphrase' in 'settings/admin' document.");
-        return "CreditNahiDiyeKuldeep";
+        if (docSnap.exists() && docSnap.data().passphrase) {
+            return docSnap.data().passphrase;
+        }
+    } catch (error) {
+        console.error("Error fetching passphrase from Firestore:", error);
     }
+    
+    // Fallback for when it's not set in Firestore or there's an error
+    console.log("Passphrase not found in Firestore at 'settings/admin'. Using fallback. See README.md for setup instructions.");
+    return "CreditNahiDiyeKuldeep";
 }
