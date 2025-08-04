@@ -46,6 +46,14 @@ export function NoteUploader() {
 
   const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<NoteUploaderInputs>({
     resolver: zodResolver(NoteUploaderSchema),
+    defaultValues: {
+      subject: '',
+      subcategory: '',
+      chapterName: '',
+      noteType: '',
+      description: '',
+      imageUrl: '',
+    }
   });
   
   useEffect(() => {
@@ -58,6 +66,9 @@ export function NoteUploader() {
 
   const [subcategories, setSubcategories] = useState<SubCategory[]>([]);
   const selectedSubjectJSON = watch('subject');
+  const selectedSubcategoryJSON = watch('subcategory');
+  const selectedNoteType = watch('noteType');
+
 
   useEffect(() => {
     if (selectedSubjectJSON) {
@@ -106,7 +117,10 @@ export function NoteUploader() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>Subject</Label>
-              <Select onValueChange={(value) => setValue('subject', value, { shouldValidate: true })}>
+              <Select 
+                value={selectedSubjectJSON}
+                onValueChange={(value) => setValue('subject', value, { shouldValidate: true })}
+              >
                 <SelectTrigger><SelectValue placeholder="Select a subject" /></SelectTrigger>
                 <SelectContent>
                   {subjects.map((s) => (
@@ -119,7 +133,11 @@ export function NoteUploader() {
             </div>
             <div>
               <Label>Subcategory</Label>
-              <Select onValueChange={(value) => setValue('subcategory', value, { shouldValidate: true })} disabled={!selectedSubjectJSON}>
+              <Select 
+                value={selectedSubcategoryJSON}
+                onValueChange={(value) => setValue('subcategory', value, { shouldValidate: true })} 
+                disabled={!selectedSubjectJSON}
+              >
                 <SelectTrigger><SelectValue placeholder="Select a subcategory" /></SelectTrigger>
                 <SelectContent>
                   {subcategories.map((sc) => (
@@ -138,7 +156,10 @@ export function NoteUploader() {
           </div>
           <div>
             <Label>Note Type</Label>
-            <Select onValueChange={(value) => setValue('noteType', value, { shouldValidate: true })}>
+            <Select 
+              value={selectedNoteType}
+              onValueChange={(value) => setValue('noteType', value, { shouldValidate: true })}
+            >
               <SelectTrigger><SelectValue placeholder="Select a note type" /></SelectTrigger>
               <SelectContent>
                 {noteTypes.map((type) => (
