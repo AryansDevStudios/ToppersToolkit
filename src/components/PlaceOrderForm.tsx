@@ -1,7 +1,7 @@
 'use client';
 
 import { useFormStatus } from 'react-dom';
-import { useEffect, useActionState } from 'react';
+import { useEffect, useActionState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -38,6 +38,7 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
   const [state, formAction] = useActionState(placeOrderAction, { success: false, message: '' });
   const { clearCart } = useCart();
   const { toast } = useToast();
+  const formRef = useRef<HTMLFormElement>(null);
 
   const { register, handleSubmit, formState: { errors } } = useForm<OrderFormInputs>({
     resolver: zodResolver(OrderFormSchema),
@@ -50,6 +51,7 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
         description: state.message,
       });
       clearCart();
+      formRef.current?.reset();
     } else if (state.message) {
       toast({
         title: 'Error',
@@ -77,7 +79,11 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
             <CardDescription>Provide your details for hand-to-hand delivery.</CardDescription>
         </CardHeader>
         <CardContent>
-            <form action={formAction} className="space-y-4">
+            <form ref={formRef} action={formAction} onSubmit={handleSubmit(() => {
+                const formData = new FormData(formRef.current!);
+                formData.append('cartItems', JSON.stringify(cartItems));
+                formAction(formData);
+            })} className="space-y-4">
                 <div>
                     <Label htmlFor="name">Name</Label>
                     <Input id="name" {...register('name')} />

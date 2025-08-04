@@ -1,7 +1,8 @@
 'use client';
 
 import { useFormStatus } from 'react-dom';
-import { useEffect, useState, useRef, useActionState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { useActionState } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -28,7 +29,7 @@ const NoteUploaderSchema = z.object({
 
 type NoteUploaderInputs = z.infer<typeof NoteUploaderSchema>;
 
-const subjects: Subject[] = [
+const subjectsData: Subject[] = [
     { id: 'science', name: 'Science', subcategories: [{id: 'physics', name: 'Physics'}, {id: 'chemistry', name: 'Chemistry'}, {id: 'biology', name: 'Biology'}] },
     { id: 'sst', name: 'SST', subcategories: [{id: 'history', name: 'History'}, {id: 'civics', name: 'Civics'}, {id: 'geography', name: 'Geography'}, {id: 'economics', name: 'Economics'}] },
     { id: 'maths', name: 'Maths', subcategories: [{id: 'maths', name: 'Maths'}] },
@@ -86,6 +87,7 @@ export function NoteUploader() {
         description: state.message,
       });
       reset();
+      formRef.current?.reset();
       setSubcategories([]);
     } else if (state.message) {
       toast({
@@ -105,8 +107,13 @@ export function NoteUploader() {
         <CardDescription>Fill out the form to add a new note to the catalog.</CardDescription>
       </CardHeader>
       <CardContent>
-        <form ref={formRef} onSubmit={handleSubmit(() => {
-            const formData = new FormData(formRef.current!);
+        <form ref={formRef} action={formAction} onSubmit={handleSubmit((data) => {
+            const formData = new FormData();
+            Object.entries(data).forEach(([key, value]) => {
+                if(value) {
+                    formData.append(key, value);
+                }
+            });
             formAction(formData);
         })} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -115,15 +122,15 @@ export function NoteUploader() {
               <Select 
                 value={watch('subject')}
                 onValueChange={(value) => setValue('subject', value, { shouldValidate: true })}
+                name="subject"
               >
                 <SelectTrigger><SelectValue placeholder="Select a subject" /></SelectTrigger>
                 <SelectContent>
-                  {subjects.map((s) => (
+                  {subjectsData.map((s) => (
                     <SelectItem key={s.id} value={JSON.stringify(s)}>{s.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-               <input type="hidden" {...register('subject')} name="subject" />
                {errors.subject && <p className="text-sm text-destructive mt-1">{errors.subject.message}</p>}
             </div>
             <div>
@@ -132,6 +139,7 @@ export function NoteUploader() {
                 value={watch('subcategory')}
                 onValueChange={(value) => setValue('subcategory', value, { shouldValidate: true })} 
                 disabled={!selectedSubjectJSON}
+                name="subcategory"
               >
                 <SelectTrigger><SelectValue placeholder="Select a subcategory" /></SelectTrigger>
                 <SelectContent>
@@ -140,13 +148,12 @@ export function NoteUploader() {
                   ))}
                 </SelectContent>
               </Select>
-              <input type="hidden" {...register('subcategory')} name="subcategory" />
               {errors.subcategory && <p className="text-sm text-destructive mt-1">{errors.subcategory.message}</p>}
             </div>
           </div>
           <div>
             <Label htmlFor="chapterName">Chapter Name</Label>
-            <Input id="chapterName" {...register('chapterName')} name="chapterName"/>
+            <Input id="chapterName" {...register('chapterName')} />
             {errors.chapterName && <p className="text-sm text-destructive mt-1">{errors.chapterName.message}</p>}
           </div>
           <div>
@@ -154,6 +161,7 @@ export function NoteUploader() {
             <Select 
               value={watch('noteType')}
               onValueChange={(value) => setValue('noteType', value, { shouldValidate: true })}
+              name="noteType"
             >
               <SelectTrigger><SelectValue placeholder="Select a note type" /></SelectTrigger>
               <SelectContent>
@@ -162,17 +170,16 @@ export function NoteUploader() {
                 ))}
               </SelectContent>
             </Select>
-            <input type="hidden" {...register('noteType')} name="noteType" />
             {errors.noteType && <p className="text-sm text-destructive mt-1">{errors.noteType.message}</p>}
           </div>
           <div>
             <Label htmlFor="description">Description</Label>
-            <Textarea id="description" {...register('description')} name="description" />
+            <Textarea id="description" {...register('description')} />
             {errors.description && <p className="text-sm text-destructive mt-1">{errors.description.message}</p>}
           </div>
           <div>
             <Label htmlFor="imageUrl">Image URL (Optional)</Label>
-            <Input id="imageUrl" {...register('imageUrl')} name="imageUrl" placeholder="https://..." />
+            <Input id="imageUrl" {...register('imageUrl')} placeholder="https://..." />
             {errors.imageUrl && <p className="text-sm text-destructive mt-1">{errors.imageUrl.message}</p>}
           </div>
           <SubmitButton />
