@@ -82,7 +82,7 @@ export async function addNoteAction(prevState: any, formData: FormData) {
         await saveNoteMaterial(newNote);
         
         revalidatePath(`/subjects/${subject.id}/${subcategory.id}`);
-        revalidatePath('/'); // for featured notes if logic changes
+        revalidatePath('/'); // for recent notes
         return { success: true, message: 'Note added successfully!' };
 
     } catch (error) {
