@@ -148,6 +148,5 @@ export async function getPassphrase(): Promise<string> {
         return process.env.ADMIN_PASSPHRASE;
     }
 
-    console.log("Passphrase not found in Firestore at 'settings/admin' or in environment variables. Using fallback. See README.md for setup instructions.");
-    return "CreditNahiDiyeKuldeep";
+    throw new Error("ADMIN_PASSPHRASE is not set. Please set it in your .env file or in Firestore at 'settings/admin'.");
 }
