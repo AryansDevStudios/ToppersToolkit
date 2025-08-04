@@ -1,6 +1,6 @@
-# Toppar's Toolkit
+# Topper's Toolkit
 
-This is a Next.js starter project for Toppar's Toolkit, an online platform for quality school notes.
+This is a Next.js starter project for Topper's Toolkit, an online platform for quality school notes.
 
 To get started, take a look at `src/app/page.tsx`.
 
@@ -19,3 +19,4 @@ The admin portal is located at `/admin` and is protected by a passphrase. To set
 6.  **Save** the document.
 
 The application will now use this passphrase to authenticate access to the admin portal.
+

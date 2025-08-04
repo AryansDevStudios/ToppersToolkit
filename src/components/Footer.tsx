@@ -7,7 +7,7 @@ export function Footer() {
       <div className="container py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 className="text-lg font-black font-headline mb-2">Toppar's Toolkit</h3>
+            <h3 className="text-lg font-black font-headline mb-2">Topper's Toolkit</h3>
             <p className="text-muted-foreground">High-quality resources for academic success.</p>
           </div>
           <div>
@@ -44,7 +44,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-8 border-t pt-4 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Toppar's Toolkit. All rights reserved. Built with passion.
+          © {new Date().getFullYear()} Topper's Toolkit. All rights reserved. Built with passion.
         </div>
       </div>
     </footer>
