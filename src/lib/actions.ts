@@ -2,8 +2,8 @@
 
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
-import { CartItem, Subject, SubCategory } from '@/types';
-import { saveOrder, saveNoteMaterial, updateOrderStatus, deleteNoteMaterial } from './data';
+import { CartItem, Subject, SubCategory, NoteMaterial } from '@/types';
+import { saveOrder, saveNoteMaterial, updateOrderStatus, deleteNoteMaterial, updateNoteMaterial } from './data';
 import { Timestamp } from 'firebase/firestore';
 
 const placeOrderSchema = z.object({
@@ -67,7 +67,7 @@ export async function addNoteAction(prevState: any, formData: FormData) {
         const subject: Subject = JSON.parse(parsed.subject);
         const subcategory: SubCategory = JSON.parse(parsed.subcategory);
 
-        const newNote = {
+        const newNote: Omit<NoteMaterial, 'id' | 'createdAt'> = {
             subjectId: subject.id,
             subjectName: subject.name,
             subcategoryId: subcategory.id,
@@ -76,8 +76,7 @@ export async function addNoteAction(prevState: any, formData: FormData) {
             type: parsed.noteType as any,
             description: parsed.description,
             imageUrl: parsed.imageUrl || 'https://placehold.co/600x400',
-            isFeatured: false,
-            createdAt: Timestamp.now(),
+            status: 'published',
         };
 
         await saveNoteMaterial(newNote);
@@ -93,6 +92,52 @@ export async function addNoteAction(prevState: any, formData: FormData) {
         return { success: false, message };
     }
 }
+
+const updateNoteSchema = addNoteSchema.extend({
+    noteId: z.string().min(1),
+});
+
+export async function updateNoteAction(prevState: any, formData: FormData) {
+    try {
+        const parsed = updateNoteSchema.parse({
+            noteId: formData.get('noteId'),
+            subject: formData.get('subject'),
+            subcategory: formData.get('subcategory'),
+            chapterName: formData.get('chapterName'),
+            noteType: formData.get('noteType'),
+            description: formData.get('description'),
+            imageUrl: formData.get('imageUrl'),
+        });
+
+        const subject: Subject = JSON.parse(parsed.subject);
+        const subcategory: SubCategory = JSON.parse(parsed.subcategory);
+
+        const updatedData: Partial<NoteMaterial> = {
+            subjectId: subject.id,
+            subjectName: subject.name,
+            subcategoryId: subcategory.id,
+            subcategoryName: subcategory.name,
+            chapter: parsed.chapterName,
+            type: parsed.noteType as any,
+            description: parsed.description,
+            imageUrl: parsed.imageUrl || 'https://placehold.co/600x400',
+        };
+
+        await updateNoteMaterial(parsed.noteId, updatedData);
+        
+        revalidatePath('/admin');
+        revalidatePath('/');
+        revalidatePath(`/subjects/${subject.id}/${subcategory.id}`);
+        
+        return { success: true, message: 'Note updated successfully!' };
+
+    } catch (error) {
+        console.error(error);
+        const message = error instanceof Error ? error.message : 'Failed to update note.';
+        return { success: false, message };
+    }
+}
+
 
 export async function completeOrderAction(orderId: string) {
     try {
@@ -112,5 +157,17 @@ export async function deleteNoteAction(noteId: string) {
         return { success: true, message: 'Note deleted.' };
     } catch (error) {
         return { success: false, message: 'Failed to delete note.' };
+    }
+}
+
+export async function toggleNoteStatusAction(noteId: string, currentStatus: 'published' | 'hidden') {
+    try {
+        const newStatus = currentStatus === 'published' ? 'hidden' : 'published';
+        await updateNoteMaterial(noteId, { status: newStatus });
+        revalidatePath('/admin');
+        revalidatePath('/');
+        return { success: true, message: `Note status updated to ${newStatus}.` };
+    } catch (error) {
+        return { success: false, message: 'Failed to update note status.' };
     }
 }

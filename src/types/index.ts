@@ -21,7 +21,7 @@ export type NoteMaterial = {
   type: 'Notes' | 'Question Bank' | 'Important Dates' | 'Summary';
   description: string;
   imageUrl?: string;
-  isFeatured?: boolean;
+  status: 'published' | 'hidden';
   createdAt: Timestamp;
 };
 
@@ -33,7 +33,7 @@ export type CartItem = {
 };
 
 export type Order = {
-  id: string;
+  id:string;
   name: string;
   userClass: string;
   instructions?: string;

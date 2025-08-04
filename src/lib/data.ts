@@ -1,3 +1,4 @@
+
 import type { Subject, NoteMaterial, Chapter, Order } from '@/types';
 import { db } from './firebase';
 import { collection, getDocs, getDoc, doc, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, Timestamp } from 'firebase/firestore';
@@ -5,15 +6,13 @@ import { collection, getDocs, getDoc, doc, addDoc, updateDoc, deleteDoc, query, 
 
 // API-like functions to get data from Firestore
 export async function getSubjects(): Promise<Subject[]> {
+    // Fallback to hardcoded data if Firestore is empty
     const subjectsData: Subject[] = [
         { id: 'science', name: 'Science', subcategories: [{id: 'physics', name: 'Physics'}, {id: 'chemistry', name: 'Chemistry'}, {id: 'biology', name: 'Biology'}] },
         { id: 'sst', name: 'SST', subcategories: [{id: 'history', name: 'History'}, {id: 'civics', name: 'Civics'}, {id: 'geography', name: 'Geography'}, {id: 'economics', name: 'Economics'}] },
         { id: 'maths', name: 'Maths', subcategories: [{id: 'maths', name: 'Maths'}] },
         { id: 'english', name: 'English', subcategories: [{id: 'literature', name: 'Literature'}, {id: 'grammar', name: 'Grammar'}] },
     ];
-    // This is a temporary solution to ensure the app is functional.
-    // In a real-world scenario, you would fetch this from Firestore.
-    // For now, we will return the hardcoded data.
     return Promise.resolve(subjectsData);
 }
 
@@ -24,17 +23,22 @@ export async function getSubjectById(id: string): Promise<Subject | undefined> {
 }
 
 export async function getRecentNotes(count: number = 8): Promise<NoteMaterial[]> {
-    const notesQuery = query(collection(db, 'noteMaterials'), orderBy('createdAt', 'desc'), limit(count));
+    const notesQuery = query(
+        collection(db, 'noteMaterials'), 
+        orderBy('createdAt', 'desc'), 
+        limit(count * 2) // Fetch more to account for filtering
+    );
     const notesSnapshot = await getDocs(notesQuery);
     const notesData =  notesSnapshot.docs.map(doc => {
         const data = doc.data();
-        // Convert timestamp to a serializable format
         return {
             ...data,
             id: doc.id,
             createdAt: data.createdAt.toDate().toISOString(),
         } as NoteMaterial
-    });
+    }).filter(note => note.status === 'published')
+      .slice(0, count);
+
     return JSON.parse(JSON.stringify(notesData));
 }
 
@@ -46,7 +50,6 @@ export async function getAllNotes(): Promise<NoteMaterial[]> {
         return { 
             ...data, 
             id: doc.id,
-            // Convert timestamp to a serializable format (ISO string)
             createdAt: data.createdAt.toDate().toISOString(),
         } as NoteMaterial
     });
@@ -58,7 +61,8 @@ export async function getChaptersForSubcategory(subjectId: string, subcategoryId
     const materialsQuery = query(
         collection(db, 'noteMaterials'), 
         where('subjectId', '==', subjectId), 
-        where('subcategoryId', '==', subcategoryId)
+        where('subcategoryId', '==', subcategoryId),
+        where('status', '==', 'published')
     );
     const materialsSnapshot = await getDocs(materialsQuery);
     const materials = materialsSnapshot.docs.map(doc => {
@@ -98,9 +102,6 @@ export async function getOrders(): Promise<Order[]> {
             createdAt: data.createdAt.toDate().toISOString() 
         }
     });
-    
-    // This is a temporary workaround because of a serialization issue with firebase Timestamps and Next.js.
-    // We convert it to a plain object that can be passed from server to client components.
     return JSON.parse(JSON.stringify(ordersData));
 }
 
@@ -113,6 +114,11 @@ export async function saveOrder(order: Omit<Order, 'id'>) {
 export async function saveNoteMaterial(note: Omit<NoteMaterial, 'id'>) {
     const notesCollection = collection(db, 'noteMaterials');
     await addDoc(notesCollection, {...note, createdAt: Timestamp.now()});
+}
+
+export async function updateNoteMaterial(noteId: string, data: Partial<NoteMaterial>) {
+    const noteRef = doc(db, 'noteMaterials', noteId);
+    await updateDoc(noteRef, data);
 }
 
 export async function updateOrderStatus(orderId: string, status: 'new' | 'completed') {
