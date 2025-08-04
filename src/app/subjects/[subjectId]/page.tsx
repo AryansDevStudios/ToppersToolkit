@@ -28,7 +28,7 @@ export default async function SubjectPage({ params }: SubjectPageProps) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {subject.subcategories.map((subcategory) => (
-          <Link key={subcategory.id} href={`/subjects/${subject.id}/${subcategory.id}`} className="group block">
+          <Link key={subcategory.id || subcategory.name} href={`/subjects/${subject.id}/${subcategory.id}`} className="group block">
             <Card className="h-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-primary">
               <CardHeader>
                 <CardTitle>{subcategory.name}</CardTitle>
