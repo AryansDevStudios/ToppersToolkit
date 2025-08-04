@@ -9,7 +9,7 @@ export async function login(prevState: any, formData: FormData) {
 
   if (passphrase === correctPassphrase) {
     const cookieStore = cookies();
-    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
     cookieStore.set('auth', 'true', { httpOnly: true, secure: true, expires });
     return { success: true, message: 'Login successful' };
   } else {
