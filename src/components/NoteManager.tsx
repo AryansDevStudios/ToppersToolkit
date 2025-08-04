@@ -2,7 +2,6 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import Image from 'next/image';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { deleteNoteAction, toggleNoteStatusAction } from '@/lib/actions';
@@ -59,17 +58,6 @@ export function NoteManager({ notes }: NoteManagerProps) {
     });
   };
   
-  const isAllowedUrl = (url: string) => {
-    try {
-        const urlObj = new URL(url);
-        // We can only allow specific hostnames that are configured in next.config.js
-        // For now, we only allow placehold.co
-        return urlObj.hostname === 'placehold.co';
-    } catch (e) {
-        return false;
-    }
-  }
-
   if (notes.length === 0) {
     return (
       <Card>
@@ -83,103 +71,118 @@ export function NoteManager({ notes }: NoteManagerProps) {
 
   return (
     <div className="space-y-4">
-      {notes.map((note) => (
-        <Card key={note.id} className={note.status === 'hidden' ? 'bg-muted/50' : ''}>
-          <CardHeader>
-            <div className="flex items-start gap-4">
-              <div className="relative w-24 h-24 flex-shrink-0 rounded-md overflow-hidden bg-muted flex items-center justify-center">
-                  {note.imageUrl && isAllowedUrl(note.imageUrl) ? (
-                    <Image
-                      src={note.imageUrl}
-                      alt={note.chapter}
-                      fill
-                      className="object-cover"
-                      data-ai-hint="note education"
-                    />
-                  ) : (
-                    <ImageOff className="h-10 w-10 text-muted-foreground" />
-                  )}
+      {notes.map((note) => {
+        const validImageUrl = note.imageUrl || '';
+        return (
+          <Card key={note.id} className={note.status === 'hidden' ? 'bg-muted/50' : ''}>
+            <CardHeader>
+              <div className="flex items-start gap-4">
+                <div className="relative w-24 h-24 flex-shrink-0 rounded-md overflow-hidden bg-muted flex items-center justify-center">
+                    {note.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={validImageUrl}
+                        alt={note.chapter}
+                        className="h-full w-full object-cover"
+                        data-ai-hint="note education"
+                        onError={(e) => { 
+                            const target = e.target as HTMLImageElement;
+                            target.onerror = null; 
+                            target.src = 'https://placehold.co/400x300';
+                            const parent = target.parentElement;
+                            if(parent) {
+                                const placeholder = document.createElement('div');
+                                placeholder.className = 'h-full w-full flex items-center justify-center';
+                                placeholder.appendChild(new ImageOff());
+                                parent.replaceChild(placeholder, target);
+                            }
+                        }}
+                      />
+                    ) : (
+                      <ImageOff className="h-10 w-10 text-muted-foreground" />
+                    )}
+                  </div>
+                <div className="flex-grow">
+                  <CardTitle className="text-xl">{note.chapter}</CardTitle>
+                  <CardDescription>
+                    <Badge variant="outline">{note.subjectName} / {note.subcategoryName}</Badge>
+                    <span className="mx-2 text-muted-foreground">|</span>
+                    <Badge variant="secondary">{note.type}</Badge>
+                  </CardDescription>
+                  <p className="text-sm text-muted-foreground mt-2">{note.description}</p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Uploaded on: {format(new Date(note.createdAt as any), 'PPP p')}
+                  </p>
+                   <p className="font-semibold text-lg flex items-center mt-2">
+                    <IndianRupee className="h-4 w-4 mr-1" />
+                    {note.price.toFixed(2)}
+                  </p>
                 </div>
-              <div className="flex-grow">
-                <CardTitle className="text-xl">{note.chapter}</CardTitle>
-                <CardDescription>
-                  <Badge variant="outline">{note.subjectName} / {note.subcategoryName}</Badge>
-                  <span className="mx-2 text-muted-foreground">|</span>
-                  <Badge variant="secondary">{note.type}</Badge>
-                </CardDescription>
-                <p className="text-sm text-muted-foreground mt-2">{note.description}</p>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Uploaded on: {format(new Date(note.createdAt as any), 'PPP p')}
-                </p>
-                 <p className="font-semibold text-lg flex items-center mt-2">
-                  <IndianRupee className="h-4 w-4 mr-1" />
-                  {note.price.toFixed(2)}
-                </p>
               </div>
-            </div>
-          </CardHeader>
-          <CardFooter className="flex justify-between items-center">
-             <div className="flex items-center space-x-2">
-                <Switch 
-                    id={`status-${note.id}`} 
-                    checked={note.status === 'published'}
-                    onCheckedChange={() => handleToggleStatus(note.id, note.status)}
-                    disabled={isPending}
-                    aria-label="Toggle note visibility"
-                />
-                <Label htmlFor={`status-${note.id}`} className="flex items-center gap-1 text-sm">
-                    {note.status === 'published' ? <><Eye className="h-4 w-4"/> Published</> : <><EyeOff className="h-4 w-4"/> Hidden</>}
-                </Label>
-             </div>
-            <div className="flex gap-2">
-                <Dialog open={activeDialog === note.id} onOpenChange={(open) => setActiveDialog(open ? note.id : null)}>
-                    <DialogTrigger asChild>
-                        <Button variant="outline" size="sm">
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-3xl">
-                        <DialogHeader>
-                            <DialogTitle>Edit Note</DialogTitle>
-                        </DialogHeader>
-                        <NoteForm 
-                            note={note} 
-                            onSuccess={() => setActiveDialog(null)}
-                        />
-                    </DialogContent>
-                </Dialog>
-
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" size="sm">
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete the note from your database.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() => handleDelete(note.id)}
+            </CardHeader>
+            <CardFooter className="flex justify-between items-center">
+               <div className="flex items-center space-x-2">
+                  <Switch 
+                      id={`status-${note.id}`} 
+                      checked={note.status === 'published'}
+                      onCheckedChange={() => handleToggleStatus(note.id, note.status)}
                       disabled={isPending}
-                      className="bg-destructive hover:bg-destructive/90"
-                    >
-                      {isPending ? 'Deleting...' : 'Yes, delete it'}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-          </CardFooter>
-        </Card>
-      ))}
+                      aria-label="Toggle note visibility"
+                  />
+                  <Label htmlFor={`status-${note.id}`} className="flex items-center gap-1 text-sm">
+                      {note.status === 'published' ? <><Eye className="h-4 w-4"/> Published</> : <><EyeOff className="h-4 w-4"/> Hidden</>}
+                  </Label>
+               </div>
+              <div className="flex gap-2">
+                  <Dialog open={activeDialog === note.id} onOpenChange={(open) => setActiveDialog(open ? note.id : null)}>
+                      <DialogTrigger asChild>
+                          <Button variant="outline" size="sm">
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit
+                          </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-3xl">
+                          <DialogHeader>
+                              <DialogTitle>Edit Note</DialogTitle>
+                          </DialogHeader>
+                          <NoteForm 
+                              note={note} 
+                              onSuccess={() => setActiveDialog(null)}
+                          />
+                      </DialogContent>
+                  </Dialog>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm">
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete the note from your database.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => handleDelete(note.id)}
+                        disabled={isPending}
+                        className="bg-destructive hover:bg-destructive/90"
+                      >
+                        {isPending ? 'Deleting...' : 'Yes, delete it'}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </CardFooter>
+          </Card>
+        )
+      })}
     </div>
   );
 }

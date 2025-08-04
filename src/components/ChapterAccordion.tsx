@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import {
   Accordion,
   AccordionContent,
@@ -55,16 +54,18 @@ export function ChapterAccordion({ chapters }: ChapterAccordionProps) {
             <div className="space-y-6">
               {chapter.materials.map((material) => {
                 const isInCart = items.some(item => item.id === material.id);
+                const validImageUrl = material.imageUrl || 'https://placehold.co/600x400';
                 return (
                   <div key={material.id} className="flex flex-col md:flex-row gap-4 p-4 rounded-lg border bg-card/50">
                     {material.imageUrl && (
                       <div className="relative w-full md:w-48 h-32 flex-shrink-0 rounded-md overflow-hidden">
-                        <Image
-                          src={material.imageUrl}
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={validImageUrl}
                           alt={material.type}
-                          fill
-                          className="object-cover"
+                          className="w-full h-full object-cover"
                           data-ai-hint="notes study"
+                          onError={(e) => { e.currentTarget.src = 'https://placehold.co/400x300'; }}
                         />
                       </div>
                     )}
