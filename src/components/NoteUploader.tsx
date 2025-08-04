@@ -1,6 +1,6 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react-dom';
 import { useEffect, useState, useRef } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -38,7 +38,7 @@ function SubmitButton() {
 }
 
 export function NoteUploader({ subjects }: { subjects: Subject[] }) {
-  const [state, formAction] = useFormState(addNoteAction, { success: false, message: '' });
+  const [state, formAction] = useActionState(addNoteAction, { success: false, message: '' });
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react-dom';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -35,7 +35,7 @@ function SubmitButton() {
 }
 
 export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
-  const [state, formAction] = useFormState(placeOrderAction, { success: false, message: '' });
+  const [state, formAction] = useActionState(placeOrderAction, { success: false, message: '' });
   const { clearCart } = useCart();
   const { toast } = useToast();
 
