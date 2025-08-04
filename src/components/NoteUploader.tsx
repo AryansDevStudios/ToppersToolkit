@@ -107,14 +107,16 @@ export function NoteUploader() {
         <CardDescription>Fill out the form to add a new note to the catalog.</CardDescription>
       </CardHeader>
       <CardContent>
-        <form ref={formRef} action={formAction} onSubmit={handleSubmit((data) => {
-            const formData = new FormData();
-            Object.entries(data).forEach(([key, value]) => {
-                if(value) {
-                    formData.append(key, value);
+        <form ref={formRef} action={formAction} onSubmit={handleSubmit(() => {
+            const form = formRef.current;
+            if (form) {
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+                 const validation = NoteUploaderSchema.safeParse(data);
+                if (validation.success) {
+                    form.requestSubmit();
                 }
-            });
-            formAction(formData);
+            }
         })} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

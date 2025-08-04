@@ -80,9 +80,15 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
         </CardHeader>
         <CardContent>
             <form ref={formRef} action={formAction} onSubmit={handleSubmit(() => {
-                const formData = new FormData(formRef.current!);
-                formData.append('cartItems', JSON.stringify(cartItems));
-                formAction(formData);
+                const form = formRef.current;
+                if(form) {
+                    const formData = new FormData(form);
+                    const data = Object.fromEntries(formData.entries());
+                    const validation = OrderFormSchema.safeParse(data);
+                    if (validation.success) {
+                        form.requestSubmit();
+                    }
+                }
             })} className="space-y-4">
                 <div>
                     <Label htmlFor="name">Name</Label>
