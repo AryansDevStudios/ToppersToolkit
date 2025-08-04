@@ -42,7 +42,7 @@ export function NoteUploader({ subjects }: { subjects: Subject[] }) {
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
 
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<NoteUploaderInputs>({
+  const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<NoteUploaderInputs>({
     resolver: zodResolver(NoteUploaderSchema),
   });
 
@@ -51,9 +51,13 @@ export function NoteUploader({ subjects }: { subjects: Subject[] }) {
 
   useEffect(() => {
     if (selectedSubjectJSON) {
-      const selectedSubject = JSON.parse(selectedSubjectJSON) as Subject;
-      setSubcategories(selectedSubject.subcategories || []);
-      setValue('subcategory', '');
+      try {
+        const selectedSubject = JSON.parse(selectedSubjectJSON) as Subject;
+        setSubcategories(selectedSubject.subcategories || []);
+        setValue('subcategory', '');
+      } catch (e) {
+        setSubcategories([]);
+      }
     } else {
       setSubcategories([]);
     }
@@ -65,7 +69,7 @@ export function NoteUploader({ subjects }: { subjects: Subject[] }) {
         title: 'Success!',
         description: state.message,
       });
-      formRef.current?.reset();
+      reset();
       setSubcategories([]);
     } else if (state.message) {
       toast({
@@ -74,7 +78,7 @@ export function NoteUploader({ subjects }: { subjects: Subject[] }) {
         variant: 'destructive',
       });
     }
-  }, [state, toast]);
+  }, [state, toast, reset]);
 
   const noteTypes = ['Notes', 'Question Bank', 'Important Dates', 'Summary'];
 
@@ -85,11 +89,14 @@ export function NoteUploader({ subjects }: { subjects: Subject[] }) {
         <CardDescription>Fill out the form to add a new note to the catalog.</CardDescription>
       </CardHeader>
       <CardContent>
-        <form ref={formRef} action={formAction} className="space-y-4">
+        <form ref={formRef} action={handleSubmit(() => {
+            const formData = new FormData(formRef.current!);
+            formAction(formData);
+        })} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>Subject</Label>
-              <Select onValueChange={(value) => setValue('subject', value)}>
+              <Select onValueChange={(value) => setValue('subject', value, { shouldValidate: true })}>
                 <SelectTrigger><SelectValue placeholder="Select a subject" /></SelectTrigger>
                 <SelectContent>
                   {subjects.map((s) => (
@@ -97,12 +104,12 @@ export function NoteUploader({ subjects }: { subjects: Subject[] }) {
                   ))}
                 </SelectContent>
               </Select>
-               <input type="hidden" {...register('subject')} />
+               <input type="hidden" {...register('subject')} name="subject" />
                {errors.subject && <p className="text-sm text-destructive mt-1">{errors.subject.message}</p>}
             </div>
             <div>
               <Label>Subcategory</Label>
-              <Select onValueChange={(value) => setValue('subcategory', value)} disabled={!selectedSubjectJSON}>
+              <Select onValueChange={(value) => setValue('subcategory', value, { shouldValidate: true })} disabled={!selectedSubjectJSON}>
                 <SelectTrigger><SelectValue placeholder="Select a subcategory" /></SelectTrigger>
                 <SelectContent>
                   {subcategories.map((sc) => (
@@ -110,18 +117,18 @@ export function NoteUploader({ subjects }: { subjects: Subject[] }) {
                   ))}
                 </SelectContent>
               </Select>
-              <input type="hidden" {...register('subcategory')} />
+              <input type="hidden" {...register('subcategory')} name="subcategory" />
               {errors.subcategory && <p className="text-sm text-destructive mt-1">{errors.subcategory.message}</p>}
             </div>
           </div>
           <div>
             <Label htmlFor="chapterName">Chapter Name</Label>
-            <Input id="chapterName" {...register('chapterName')} />
+            <Input id="chapterName" {...register('chapterName')} name="chapterName"/>
             {errors.chapterName && <p className="text-sm text-destructive mt-1">{errors.chapterName.message}</p>}
           </div>
           <div>
             <Label>Note Type</Label>
-            <Select onValueChange={(value) => setValue('noteType', value)}>
+            <Select onValueChange={(value) => setValue('noteType', value, { shouldValidate: true })}>
               <SelectTrigger><SelectValue placeholder="Select a note type" /></SelectTrigger>
               <SelectContent>
                 {noteTypes.map((type) => (
@@ -129,17 +136,17 @@ export function NoteUploader({ subjects }: { subjects: Subject[] }) {
                 ))}
               </SelectContent>
             </Select>
-            <input type="hidden" {...register('noteType')} />
+            <input type="hidden" {...register('noteType')} name="noteType" />
             {errors.noteType && <p className="text-sm text-destructive mt-1">{errors.noteType.message}</p>}
           </div>
           <div>
             <Label htmlFor="description">Description</Label>
-            <Textarea id="description" {...register('description')} />
+            <Textarea id="description" {...register('description')} name="description" />
             {errors.description && <p className="text-sm text-destructive mt-1">{errors.description.message}</p>}
           </div>
           <div>
             <Label htmlFor="imageUrl">Image URL (Optional)</Label>
-            <Input id="imageUrl" {...register('imageUrl')} placeholder="https://..." />
+            <Input id="imageUrl" {...register('imageUrl')} name="imageUrl" placeholder="https://..." />
             {errors.imageUrl && <p className="text-sm text-destructive mt-1">{errors.imageUrl.message}</p>}
           </div>
           <SubmitButton />

@@ -55,8 +55,13 @@ export async function getChaptersForSubcategory(subjectId: string, subcategoryId
 export async function getOrders(): Promise<Order[]> {
     const ordersQuery = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
     const ordersSnapshot = await getDocs(ordersQuery);
-    return ordersSnapshot.docs.map(doc => ({...doc.data(), id: doc.id } as Order));
+    const ordersData = ordersSnapshot.docs.map(doc => ({...(doc.data() as Omit<Order, 'id'>), id: doc.id, createdAt: doc.data().createdAt.toDate() }));
+    
+    // This is a temporary workaround because of a serialization issue with firebase Timestamps and Next.js.
+    // We convert it to a plain object that can be passed from server to client components.
+    return JSON.parse(JSON.stringify(ordersData));
 }
+
 
 export async function saveOrder(order: Omit<Order, 'id'>) {
     const ordersCollection = collection(db, 'orders');
