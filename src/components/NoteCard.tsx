@@ -10,13 +10,27 @@ type NoteCardProps = {
 };
 
 export function NoteCard({ note }: NoteCardProps) {
+  const isAllowedHostname = (url: string) => {
+    try {
+      const { hostname } = new URL(url);
+      // Add other allowed hostnames from next.config.js here
+      return hostname === 'placehold.co' || hostname === 'www.gstatic.com';
+    } catch {
+      return false;
+    }
+  };
+
+  const validImageUrl = note.imageUrl && isAllowedHostname(note.imageUrl) 
+    ? note.imageUrl 
+    : 'https://placehold.co/600x400';
+
   return (
     <Link href={`/subjects/${note.subjectId}/${note.subcategoryId}`} className="group block">
       <Card className="overflow-hidden h-full flex flex-col transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-primary">
         <CardHeader className="p-0">
           <div className="relative h-48 w-full">
             <Image
-              src={note.imageUrl || 'https://placehold.co/600x400'}
+              src={validImageUrl}
               alt={note.chapter}
               fill
               className="object-cover"

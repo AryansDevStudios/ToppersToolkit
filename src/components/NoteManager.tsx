@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useTransition } from 'react';
@@ -8,10 +9,10 @@ import { deleteNoteAction, toggleNoteStatusAction } from '@/lib/actions';
 import type { NoteMaterial } from '@/types';
 import { NoteForm } from '@/components/NoteForm';
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Edit, Eye, EyeOff, IndianRupee } from 'lucide-react';
+import { Trash2, Edit, Eye, EyeOff, IndianRupee, ImageOff } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import {
@@ -57,6 +58,17 @@ export function NoteManager({ notes }: NoteManagerProps) {
       }
     });
   };
+  
+  const isAllowedUrl = (url: string) => {
+    try {
+        const urlObj = new URL(url);
+        // We can only allow specific hostnames that are configured in next.config.js
+        // For now, we only allow placehold.co
+        return urlObj.hostname === 'placehold.co';
+    } catch (e) {
+        return false;
+    }
+  }
 
   if (notes.length === 0) {
     return (
@@ -75,17 +87,19 @@ export function NoteManager({ notes }: NoteManagerProps) {
         <Card key={note.id} className={note.status === 'hidden' ? 'bg-muted/50' : ''}>
           <CardHeader>
             <div className="flex items-start gap-4">
-              {note.imageUrl && (
-                <div className="relative w-24 h-24 flex-shrink-0 rounded-md overflow-hidden">
-                  <Image
-                    src={note.imageUrl}
-                    alt={note.chapter}
-                    fill
-                    className="object-cover"
-                    data-ai-hint="note education"
-                  />
+              <div className="relative w-24 h-24 flex-shrink-0 rounded-md overflow-hidden bg-muted flex items-center justify-center">
+                  {note.imageUrl && isAllowedUrl(note.imageUrl) ? (
+                    <Image
+                      src={note.imageUrl}
+                      alt={note.chapter}
+                      fill
+                      className="object-cover"
+                      data-ai-hint="note education"
+                    />
+                  ) : (
+                    <ImageOff className="h-10 w-10 text-muted-foreground" />
+                  )}
                 </div>
-              )}
               <div className="flex-grow">
                 <CardTitle className="text-xl">{note.chapter}</CardTitle>
                 <CardDescription>

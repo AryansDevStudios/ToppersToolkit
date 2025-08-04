@@ -1,18 +1,6 @@
 import { AdminTabs } from "@/components/AdminTabs";
 import { Suspense } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
-
-function AdminPageSkeleton() {
-    return (
-        <div className="w-full">
-            <div className="grid w-full grid-cols-2 p-1 bg-muted rounded-md mb-4">
-                <Skeleton className="h-9" />
-                <Skeleton className="h-9" />
-            </div>
-            <Skeleton className="h-96 w-full" />
-        </div>
-    )
-}
+import { AdminPageSkeleton } from "@/components/AdminPageSkeleton";
 
 export default function AdminPage() {
   return (
