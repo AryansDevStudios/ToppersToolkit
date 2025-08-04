@@ -8,7 +8,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 
 import { addNoteAction } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
-import { getSubjects } from '@/lib/data';
 import type { Subject, SubCategory } from '@/types';
 
 import { Button } from '@/components/ui/button';
@@ -29,6 +28,13 @@ const NoteUploaderSchema = z.object({
 
 type NoteUploaderInputs = z.infer<typeof NoteUploaderSchema>;
 
+const subjects: Subject[] = [
+    { id: 'science', name: 'Science', subcategories: [{id: 'physics', name: 'Physics'}, {id: 'chemistry', name: 'Chemistry'}, {id: 'biology', name: 'Biology'}] },
+    { id: 'sst', name: 'SST', subcategories: [{id: 'history', name: 'History'}, {id: 'civics', name: 'Civics'}, {id: 'geography', name: 'Geography'}, {id: 'economics', name: 'Economics'}] },
+    { id: 'maths', name: 'Maths', subcategories: [{id: 'maths', name: 'Maths'}] },
+    { id: 'english', name: 'English', subcategories: [{id: 'literature', name: 'Literature'}, {id: 'grammar', name: 'Grammar'}] },
+];
+
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
@@ -42,7 +48,6 @@ export function NoteUploader() {
   const [state, formAction] = useActionState(addNoteAction, { success: false, message: '' });
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
 
   const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<NoteUploaderInputs>({
     resolver: zodResolver(NoteUploaderSchema),
@@ -56,18 +61,8 @@ export function NoteUploader() {
     }
   });
   
-  useEffect(() => {
-    async function fetchSubjects() {
-        const fetchedSubjects = await getSubjects();
-        setSubjects(fetchedSubjects);
-    }
-    fetchSubjects();
-  }, []);
-
   const [subcategories, setSubcategories] = useState<SubCategory[]>([]);
   const selectedSubjectJSON = watch('subject');
-  const selectedSubcategoryJSON = watch('subcategory');
-  const selectedNoteType = watch('noteType');
 
 
   useEffect(() => {
@@ -118,7 +113,7 @@ export function NoteUploader() {
             <div>
               <Label>Subject</Label>
               <Select 
-                value={selectedSubjectJSON}
+                value={watch('subject')}
                 onValueChange={(value) => setValue('subject', value, { shouldValidate: true })}
               >
                 <SelectTrigger><SelectValue placeholder="Select a subject" /></SelectTrigger>
@@ -134,7 +129,7 @@ export function NoteUploader() {
             <div>
               <Label>Subcategory</Label>
               <Select 
-                value={selectedSubcategoryJSON}
+                value={watch('subcategory')}
                 onValueChange={(value) => setValue('subcategory', value, { shouldValidate: true })} 
                 disabled={!selectedSubjectJSON}
               >
@@ -157,7 +152,7 @@ export function NoteUploader() {
           <div>
             <Label>Note Type</Label>
             <Select 
-              value={selectedNoteType}
+              value={watch('noteType')}
               onValueChange={(value) => setValue('noteType', value, { shouldValidate: true })}
             >
               <SelectTrigger><SelectValue placeholder="Select a note type" /></SelectTrigger>
