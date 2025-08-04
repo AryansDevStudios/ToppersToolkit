@@ -11,7 +11,7 @@ export async function login(prevState: any, formData: FormData) {
   if (passphrase === correctPassphrase) {
     const cookieStore = cookies();
     const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
-    cookieStore.set('auth', 'true', { httpOnly: true, secure: true, expires });
+    cookieStore.set('auth', 'true', { httpOnly: true, secure: true, expires, sameSite: 'none' });
     return { success: true, message: 'Login successful' };
   } else {
     return { success: false, message: 'Incorrect passphrase.' };
