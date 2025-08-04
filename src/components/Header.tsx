@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useCart } from '@/hooks/use-cart';
 import { getSubjects } from '@/lib/data';
 import { useEffect, useState } from 'react';
@@ -69,12 +69,16 @@ export function Header() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-[300px] sm:w-[400px]">
+                <SheetHeader>
+                  <SheetTitle>
+                    <Link href="/" className="mr-6 flex items-center space-x-2">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src="https://raw.githubusercontent.com/AryansDevStudios/ToppersToolkit/refs/heads/main/icon/icon_app_128x128.png" alt="Topper's Toolkit Logo" className="h-8 w-8 rounded-lg" />
+                      <span className="font-bold font-headline">Topper's Toolkit</span>
+                    </Link>
+                  </SheetTitle>
+                </SheetHeader>
                 <nav className="flex flex-col gap-4 mt-8">
-                  <Link href="/" className="mr-6 flex items-center space-x-2">
-                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="https://raw.githubusercontent.com/AryansDevStudios/ToppersToolkit/refs/heads/main/icon/icon_app_128x128.png" alt="Topper's Toolkit Logo" className="h-8 w-8 rounded-lg" />
-                    <span className="font-bold font-headline">Topper's Toolkit</span>
-                  </Link>
                   {navLinks}
                 </nav>
               </SheetContent>
