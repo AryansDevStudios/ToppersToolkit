@@ -8,8 +8,11 @@ import { Inter } from 'next/font/google';
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
-  title: 'QuickNotes - Quality School Notes',
+  title: "Toppar's Toolkit - Quality School Notes",
   description: 'Your one-stop shop for chapter-wise school notes.',
+  icons: {
+    icon: 'https://raw.githubusercontent.com/AryansDevStudios/ToppersToolkit/refs/heads/main/icon/icon_app_512x512.png',
+  }
 };
 
 export default function RootLayout({

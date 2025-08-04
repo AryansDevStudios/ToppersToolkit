@@ -41,9 +41,6 @@ export function Header() {
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
-      <Link href="/admin" className="text-muted-foreground transition-colors hover:text-foreground">
-        Admin Portal
-      </Link>
     </>
   );
 
@@ -53,7 +50,7 @@ export function Header() {
         <div className="mr-4 hidden md:flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
             <Book className="h-6 w-6 text-primary" />
-            <span className="font-black text-lg font-headline">QuickNotes</span>
+            <span className="font-black text-lg font-headline">Toppar's Toolkit</span>
           </Link>
           <nav className="flex items-center space-x-6 text-sm font-medium">
             {navLinks}
@@ -73,7 +70,7 @@ export function Header() {
                 <nav className="flex flex-col gap-4 mt-8">
                   <Link href="/" className="mr-6 flex items-center space-x-2">
                     <Book className="h-6 w-6 text-primary" />
-                    <span className="font-bold font-headline">QuickNotes</span>
+                    <span className="font-bold font-headline">Toppar's Toolkit</span>
                   </Link>
                   {navLinks}
                 </nav>
