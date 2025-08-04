@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 
 import { addNoteAction } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
+import { getSubjects } from '@/lib/data';
 import type { Subject, SubCategory } from '@/types';
 
 import { Button } from '@/components/ui/button';
@@ -37,14 +38,23 @@ function SubmitButton() {
   );
 }
 
-export function NoteUploader({ subjects }: { subjects: Subject[] }) {
+export function NoteUploader() {
   const [state, formAction] = useActionState(addNoteAction, { success: false, message: '' });
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
 
   const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<NoteUploaderInputs>({
     resolver: zodResolver(NoteUploaderSchema),
   });
+  
+  useEffect(() => {
+    async function fetchSubjects() {
+        const fetchedSubjects = await getSubjects();
+        setSubjects(fetchedSubjects);
+    }
+    fetchSubjects();
+  }, []);
 
   const [subcategories, setSubcategories] = useState<SubCategory[]>([]);
   const selectedSubjectJSON = watch('subject');
@@ -89,7 +99,7 @@ export function NoteUploader({ subjects }: { subjects: Subject[] }) {
         <CardDescription>Fill out the form to add a new note to the catalog.</CardDescription>
       </CardHeader>
       <CardContent>
-        <form ref={formRef} action={handleSubmit(() => {
+        <form ref={formRef} onSubmit={handleSubmit(() => {
             const formData = new FormData(formRef.current!);
             formAction(formData);
         })} className="space-y-4">

@@ -1,11 +1,10 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { OrderList } from '@/components/OrderList';
 import { NoteUploader } from '@/components/NoteUploader';
-import { getOrders, getSubjects } from '@/lib/data';
+import { getOrders } from '@/lib/data';
 
 export async function AdminTabs() {
   const orders = await getOrders();
-  const subjects = await getSubjects();
 
   return (
     <Tabs defaultValue="orders" className="w-full">
@@ -17,7 +16,7 @@ export async function AdminTabs() {
         <OrderList orders={orders} />
       </TabsContent>
       <TabsContent value="uploader">
-        <NoteUploader subjects={subjects} />
+        <NoteUploader />
       </TabsContent>
     </Tabs>
   );
