@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Menu, ShoppingCart } from 'lucide-react';
+import { Menu, ShoppingCart, UserCog } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -42,6 +42,9 @@ export function Header() {
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
+      <Link href="/admin" className="text-muted-foreground transition-colors hover:text-foreground">
+        Admin
+      </Link>
     </>
   );
 
@@ -70,7 +73,7 @@ export function Header() {
               </SheetTrigger>
               <SheetContent side="left" className="w-[300px] sm:w-[400px]">
                 <SheetHeader>
-                  <SheetTitle>
+                   <SheetTitle>
                     <Link href="/" className="mr-6 flex items-center space-x-2">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src="https://raw.githubusercontent.com/AryansDevStudios/ToppersToolkit/refs/heads/main/icon/icon_app_128x128.png" alt="Topper's Toolkit Logo" className="h-8 w-8 rounded-lg" />
