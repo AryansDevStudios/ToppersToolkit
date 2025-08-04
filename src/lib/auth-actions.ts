@@ -2,6 +2,7 @@
 
 import { cookies } from 'next/headers';
 import { getPassphrase } from './data';
+import { redirect } from 'next/navigation';
 
 export async function login(prevState: any, formData: FormData) {
   const passphrase = formData.get('passphrase');
@@ -15,4 +16,9 @@ export async function login(prevState: any, formData: FormData) {
   } else {
     return { success: false, message: 'Incorrect passphrase.' };
   }
+}
+
+export async function logout() {
+    cookies().delete('auth');
+    redirect('/auth');
 }
