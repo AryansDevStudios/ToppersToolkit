@@ -22,7 +22,7 @@ export type NoteMaterial = {
   description: string;
   imageUrl?: string;
   isFeatured?: boolean;
-  createdAt?: Timestamp;
+  createdAt: Timestamp;
 };
 
 export type CartItem = {
@@ -39,6 +39,7 @@ export type Order = {
   instructions?: string;
   items: CartItem[];
   createdAt: Timestamp;
+  status: 'new' | 'completed';
 };
 
 export type Chapter = {

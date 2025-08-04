@@ -3,7 +3,7 @@
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { CartItem, Subject, SubCategory } from '@/types';
-import { saveOrder, saveNoteMaterial } from './data';
+import { saveOrder, saveNoteMaterial, updateOrderStatus, deleteNoteMaterial } from './data';
 import { Timestamp } from 'firebase/firestore';
 
 const placeOrderSchema = z.object({
@@ -30,6 +30,7 @@ export async function placeOrderAction(prevState: any, formData: FormData) {
         instructions: parsed.instructions,
         items: cartItems,
         createdAt: Timestamp.now(),
+        status: 'new' as const,
     };
     
     await saveOrder(newOrder);
@@ -83,11 +84,33 @@ export async function addNoteAction(prevState: any, formData: FormData) {
         
         revalidatePath(`/subjects/${subject.id}/${subcategory.id}`);
         revalidatePath('/'); // for recent notes
+        revalidatePath('/admin'); // for note manager
         return { success: true, message: 'Note added successfully!' };
 
     } catch (error) {
         console.error(error);
         const message = error instanceof Error ? error.message : 'Failed to add note.';
         return { success: false, message };
+    }
+}
+
+export async function completeOrderAction(orderId: string) {
+    try {
+        await updateOrderStatus(orderId, 'completed');
+        revalidatePath('/admin');
+        return { success: true, message: 'Order marked as complete.' };
+    } catch (error) {
+        return { success: false, message: 'Failed to update order.' };
+    }
+}
+
+export async function deleteNoteAction(noteId: string) {
+    try {
+        await deleteNoteMaterial(noteId);
+        revalidatePath('/admin');
+        revalidatePath('/');
+        return { success: true, message: 'Note deleted.' };
+    } catch (error) {
+        return { success: false, message: 'Failed to delete note.' };
     }
 }

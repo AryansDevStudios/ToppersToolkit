@@ -1,19 +1,41 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+'use client';
+
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { Order } from '@/types';
 import { format } from 'date-fns';
+import { Button } from './ui/button';
+import { completeOrderAction } from '@/lib/actions';
+import { useTransition } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 type OrderListProps = {
   orders: Order[];
 };
 
 export function OrderList({ orders }: OrderListProps) {
-    if (orders.length === 0) {
+    const [isPending, startTransition] = useTransition();
+    const { toast } = useToast();
+
+    const handleCompleteOrder = (orderId: string) => {
+        startTransition(async () => {
+            const result = await completeOrderAction(orderId);
+            if (result.success) {
+                toast({ title: 'Success', description: result.message });
+            } else {
+                toast({ title: 'Error', description: result.message, variant: 'destructive' });
+            }
+        });
+    };
+
+    const activeOrders = orders.filter(order => order.status !== 'completed');
+
+    if (activeOrders.length === 0) {
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle>No Orders Yet</CardTitle>
-                    <CardDescription>New orders will appear here as they are placed.</CardDescription>
+                    <CardTitle>No Active Orders</CardTitle>
+                    <CardDescription>New orders will appear here. Completed orders are hidden.</CardDescription>
                 </CardHeader>
             </Card>
         )
@@ -21,7 +43,7 @@ export function OrderList({ orders }: OrderListProps) {
 
   return (
     <div className="space-y-4">
-      {orders.map((order) => (
+      {activeOrders.map((order) => (
         <Card key={order.id}>
           <CardHeader>
             <div className="flex justify-between items-start">
@@ -29,8 +51,9 @@ export function OrderList({ orders }: OrderListProps) {
                 <CardTitle>{order.name}</CardTitle>
                 <CardDescription>Class: {order.userClass}</CardDescription>
               </div>
-              <Badge variant="outline">{format(new Date(order.createdAt), 'PPP')}</Badge>
+              <Badge variant={order.status === 'new' ? 'destructive' : 'secondary'}>{order.status}</Badge>
             </div>
+             <p className="text-sm text-muted-foreground pt-2">{format(new Date(order.createdAt), 'PPP')}</p>
           </CardHeader>
           <CardContent>
             <div>
@@ -50,6 +73,14 @@ export function OrderList({ orders }: OrderListProps) {
               </div>
             )}
           </CardContent>
+          <CardFooter className="flex justify-end">
+            <Button 
+                onClick={() => handleCompleteOrder(order.id)}
+                disabled={isPending}
+            >
+                {isPending ? 'Completing...' : 'Mark as Completed'}
+            </Button>
+          </CardFooter>
         </Card>
       ))}
     </div>

@@ -1,6 +1,6 @@
 import type { Subject, NoteMaterial, Chapter, Order } from '@/types';
 import { db } from './firebase';
-import { collection, getDocs, getDoc, doc, addDoc, query, where, orderBy, limit } from 'firebase/firestore';
+import { collection, getDocs, getDoc, doc, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, Timestamp } from 'firebase/firestore';
 
 
 // API-like functions to get data from Firestore
@@ -26,8 +26,17 @@ export async function getSubjectById(id: string): Promise<Subject | undefined> {
 export async function getRecentNotes(count: number = 8): Promise<NoteMaterial[]> {
     const notesQuery = query(collection(db, 'noteMaterials'), orderBy('createdAt', 'desc'), limit(count));
     const notesSnapshot = await getDocs(notesQuery);
-    return notesSnapshot.docs.map(doc => ({...doc.data(), id: doc.id} as NoteMaterial));
+    const notesData =  notesSnapshot.docs.map(doc => ({...doc.data(), id: doc.id} as NoteMaterial));
+    return JSON.parse(JSON.stringify(notesData));
 }
+
+export async function getAllNotes(): Promise<NoteMaterial[]> {
+    const notesQuery = query(collection(db, 'noteMaterials'), orderBy('createdAt', 'desc'));
+    const notesSnapshot = await getDocs(notesQuery);
+    const notesData = notesSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as NoteMaterial));
+    return JSON.parse(JSON.stringify(notesData));
+}
+
 
 export async function getChaptersForSubcategory(subjectId: string, subcategoryId: string): Promise<Chapter[]> {
     const materialsQuery = query(
@@ -73,5 +82,15 @@ export async function saveOrder(order: Omit<Order, 'id'>) {
 
 export async function saveNoteMaterial(note: Omit<NoteMaterial, 'id'>) {
     const notesCollection = collection(db, 'noteMaterials');
-    await addDoc(notesCollection, {...note, createdAt: new Date()});
+    await addDoc(notesCollection, {...note, createdAt: Timestamp.now()});
+}
+
+export async function updateOrderStatus(orderId: string, status: 'new' | 'completed') {
+    const orderRef = doc(db, 'orders', orderId);
+    await updateDoc(orderRef, { status });
+}
+
+export async function deleteNoteMaterial(noteId: string) {
+    const noteRef = doc(db, 'noteMaterials', noteId);
+    await deleteDoc(noteRef);
 }
