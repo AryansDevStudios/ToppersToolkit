@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -6,7 +7,7 @@ import type { Order } from '@/types';
 import { format } from 'date-fns';
 import { Button } from './ui/button';
 import { completeOrderAction } from '@/lib/actions';
-import { useTransition } from 'react';
+import { useTransition, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { IndianRupee } from 'lucide-react';
 
@@ -17,6 +18,12 @@ type OrderListProps = {
 export function OrderList({ orders }: OrderListProps) {
     const [isPending, startTransition] = useTransition();
     const { toast } = useToast();
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
+
 
     const handleCompleteOrder = (orderId: string) => {
         startTransition(async () => {
@@ -51,7 +58,7 @@ export function OrderList({ orders }: OrderListProps) {
               <div>
                 <CardTitle>{order.name}</CardTitle>
                 <CardDescription>Class: {order.userClass}</CardDescription>
-                 <p className="text-sm text-muted-foreground pt-2">{format(new Date(order.createdAt), 'PPP')}</p>
+                 <p className="text-sm text-muted-foreground pt-2">{isClient ? format(new Date(order.createdAt), 'PPP') : ''}</p>
               </div>
                <div className="text-right">
                 <Badge variant={order.status === 'new' ? 'destructive' : 'secondary'}>{order.status}</Badge>
