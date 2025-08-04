@@ -1,10 +1,10 @@
-import { getSubjects, getFeaturedNotes } from '@/lib/data';
+import { getSubjects, getRecentNotes } from '@/lib/data';
 import { SubjectCard } from '@/components/SubjectCard';
 import { NoteCard } from '@/components/NoteCard';
 
 export default async function Home() {
   const subjects = await getSubjects();
-  const featuredNotes = await getFeaturedNotes();
+  const recentNotes = await getRecentNotes(8);
 
   return (
     <div>
@@ -34,14 +34,14 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Featured Notes Section */}
+      {/* Recent Notes Section */}
       <section className="py-12 md:py-16 bg-muted/20">
         <div className="container">
           <h2 className="text-3xl font-bold text-center font-headline mb-8">
-            Featured Notes
+            Recently Added Notes
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {featuredNotes.map((note) => (
+            {recentNotes.map((note) => (
               <NoteCard key={note.id} note={note} />
             ))}
           </div>

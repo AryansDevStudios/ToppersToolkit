@@ -1,6 +1,6 @@
 import type { Subject, NoteMaterial, Chapter, Order } from '@/types';
 import { db } from './firebase';
-import { collection, getDocs, getDoc, doc, addDoc, query, where, orderBy } from 'firebase/firestore';
+import { collection, getDocs, getDoc, doc, addDoc, query, where, orderBy, limit } from 'firebase/firestore';
 
 
 // API-like functions to get data from Firestore
@@ -20,8 +20,9 @@ export async function getSubjectById(id: string): Promise<Subject | undefined> {
   return undefined;
 }
 
-export async function getFeaturedNotes(): Promise<NoteMaterial[]> {
-    const notesQuery = query(collection(db, 'noteMaterials'), where('isFeatured', '==', true));
+export async function getRecentNotes(count: number = 8): Promise<NoteMaterial[]> {
+    // This function will now get the most recent notes, not just featured ones.
+    const notesQuery = query(collection(db, 'noteMaterials'), orderBy('chapter'), limit(count));
     const notesSnapshot = await getDocs(notesQuery);
     return notesSnapshot.docs.map(doc => ({...doc.data(), id: doc.id} as NoteMaterial));
 }
