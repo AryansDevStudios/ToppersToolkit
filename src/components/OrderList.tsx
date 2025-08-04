@@ -29,7 +29,7 @@ export function OrderList({ orders }: OrderListProps) {
                 <CardTitle>{order.name}</CardTitle>
                 <CardDescription>Class: {order.userClass}</CardDescription>
               </div>
-              <Badge variant="outline">{format(new Date(order.createdAt.seconds * 1000), 'PPP')}</Badge>
+              <Badge variant="outline">{format(order.createdAt.toDate(), 'PPP')}</Badge>
             </div>
           </CardHeader>
           <CardContent>

@@ -3,6 +3,8 @@
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { CartItem, Subject, SubCategory } from '@/types';
+import { saveOrder, saveNoteMaterial } from './data';
+import { Timestamp } from 'firebase/firestore';
 
 const placeOrderSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -22,20 +24,22 @@ export async function placeOrderAction(prevState: any, formData: FormData) {
 
     const cartItems: CartItem[] = JSON.parse(parsed.cartItems);
 
-    console.log('New Order Placed:');
-    console.log('Name:', parsed.name);
-    console.log('Class:', parsed.userClass);
-    console.log('Instructions:', parsed.instructions);
-    console.log('Items:', cartItems);
+    const newOrder = {
+        name: parsed.name,
+        userClass: parsed.userClass,
+        instructions: parsed.instructions,
+        items: cartItems,
+        createdAt: Timestamp.now(),
+    };
     
-    // Here you would typically save the order to Firestore.
-    // e.g., await db.collection('orders').add({ ... });
+    await saveOrder(newOrder);
 
     revalidatePath('/admin');
     return { success: true, message: 'Order placed successfully!' };
   } catch (error) {
     console.error(error);
-    return { success: false, message: 'Failed to place order.' };
+    const message = error instanceof Error ? error.message : 'Failed to place order.';
+    return { success: false, message };
   }
 }
 
@@ -68,22 +72,21 @@ export async function addNoteAction(prevState: any, formData: FormData) {
             subcategoryId: subcategory.id,
             subcategoryName: subcategory.name,
             chapter: parsed.chapterName,
-            type: parsed.noteType,
+            type: parsed.noteType as any,
             description: parsed.description,
-            imageUrl: parsed.imageUrl,
-            id: crypto.randomUUID(), // For demo purposes
+            imageUrl: parsed.imageUrl || 'https://placehold.co/600x400',
+            isFeatured: false,
         };
 
-        console.log('New Note Added:', newNote);
-
-        // Here you would save the new note to Firestore
-        // e.g., await db.collection('notes').add(newNote);
+        await saveNoteMaterial(newNote);
         
         revalidatePath(`/subjects/${subject.id}/${subcategory.id}`);
+        revalidatePath('/'); // for featured notes if logic changes
         return { success: true, message: 'Note added successfully!' };
 
     } catch (error) {
         console.error(error);
-        return { success: false, message: 'Failed to add note.' };
+        const message = error instanceof Error ? error.message : 'Failed to add note.';
+        return { success: false, message };
     }
 }

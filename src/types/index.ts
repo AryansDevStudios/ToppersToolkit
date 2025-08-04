@@ -1,3 +1,5 @@
+import { Timestamp } from 'firebase/firestore';
+
 export type Subject = {
   id: string;
   name: string;
@@ -35,10 +37,7 @@ export type Order = {
   userClass: string;
   instructions?: string;
   items: CartItem[];
-  createdAt: {
-    seconds: number;
-    nanoseconds: number;
-  };
+  createdAt: Timestamp;
 };
 
 export type Chapter = {
