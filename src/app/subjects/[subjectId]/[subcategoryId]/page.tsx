@@ -21,7 +21,7 @@ export default async function SubcategoryPage({ params }: SubcategoryPageProps) 
   }
 
   return (
-    <div className="container py-12">
+    <div key={`${params.subjectId}-${params.subcategoryId}`} className="container py-12">
         <div className="flex items-center text-sm text-muted-foreground mb-4">
             <Link href="/" className="hover:text-primary">Home</Link>
             <ChevronRight className="h-4 w-4 mx-1" />
