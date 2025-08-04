@@ -3,12 +3,12 @@ import Link from 'next/link';
 
 export function Footer() {
   return (
-    <footer className="bg-muted/40 mt-12">
+    <footer className="bg-card mt-12 border-t">
       <div className="container py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 className="text-lg font-semibold font-headline mb-2">QuickNotes 📘</h3>
-            <p className="text-muted-foreground">Your one-stop shop for quality school notes.</p>
+            <h3 className="text-lg font-black font-headline mb-2">QuickNotes</h3>
+            <p className="text-muted-foreground">High-quality resources for academic success.</p>
           </div>
           <div>
             <h3 className="text-lg font-semibold font-headline mb-2">Contact Us</h3>
@@ -44,7 +44,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-8 border-t pt-4 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} QuickNotes. All rights reserved.
+          © {new Date().getFullYear()} QuickNotes. All rights reserved. Built with passion.
         </div>
       </div>
     </footer>
