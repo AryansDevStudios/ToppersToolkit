@@ -72,7 +72,7 @@ export function NoteManager({ notes }: NoteManagerProps) {
   return (
     <div className="space-y-4">
       {notes.map((note) => {
-        const validImageUrl = note.imageUrl || '';
+        const validImageUrl = note.imageUrl || 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true';
         return (
           <Card key={note.id} className={note.status === 'hidden' ? 'bg-muted/50' : ''}>
             <CardHeader>
@@ -88,7 +88,7 @@ export function NoteManager({ notes }: NoteManagerProps) {
                         onError={(e) => { 
                             const target = e.target as HTMLImageElement;
                             target.onerror = null; 
-                            target.src = 'https://placehold.co/400x300';
+                            target.src = 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true';
                             const parent = target.parentElement;
                             if(parent) {
                                 const placeholder = document.createElement('div');

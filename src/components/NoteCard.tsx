@@ -9,7 +9,7 @@ type NoteCardProps = {
 };
 
 export function NoteCard({ note }: NoteCardProps) {
-  const validImageUrl = note.imageUrl || 'https://placehold.co/600x400';
+  const validImageUrl = note.imageUrl || 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true';
 
   return (
     <Link href={`/subjects/${note.subjectId}/${note.subcategoryId}`} className="group block">
@@ -22,6 +22,7 @@ export function NoteCard({ note }: NoteCardProps) {
               alt={note.chapter}
               className="w-full h-full object-cover"
               data-ai-hint="notebook education"
+              onError={(e) => { e.currentTarget.src = 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true'; }}
             />
              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
           </div>

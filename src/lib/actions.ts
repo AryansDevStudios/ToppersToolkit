@@ -1,3 +1,4 @@
+
 'use server';
 
 import { z } from 'zod';
@@ -80,7 +81,7 @@ export async function addNoteAction(prevState: any, formData: FormData) {
             chapter: parsed.chapterName,
             type: parsed.noteType as any,
             description: parsed.description,
-            imageUrl: parsed.imageUrl || 'https://placehold.co/600x400',
+            imageUrl: parsed.imageUrl || 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true',
             status: 'published',
             price: parsed.price,
         };
@@ -127,7 +128,7 @@ export async function updateNoteAction(prevState: any, formData: FormData) {
             chapter: parsed.chapterName,
             type: parsed.noteType as any,
             description: parsed.description,
-            imageUrl: parsed.imageUrl || 'https://placehold.co/600x400',
+            imageUrl: parsed.imageUrl || 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true',
             price: parsed.price,
         };
 

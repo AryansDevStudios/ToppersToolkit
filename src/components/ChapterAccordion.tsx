@@ -54,7 +54,7 @@ export function ChapterAccordion({ chapters }: ChapterAccordionProps) {
             <div className="space-y-6">
               {chapter.materials.map((material) => {
                 const isInCart = items.some(item => item.id === material.id);
-                const validImageUrl = material.imageUrl || 'https://placehold.co/600x400';
+                const validImageUrl = material.imageUrl || 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true';
                 return (
                   <div key={material.id} className="flex flex-col md:flex-row gap-4 p-4 rounded-lg border bg-card/50">
                     {material.imageUrl && (
@@ -65,7 +65,7 @@ export function ChapterAccordion({ chapters }: ChapterAccordionProps) {
                           alt={material.type}
                           className="w-full h-full object-cover"
                           data-ai-hint="notes study"
-                          onError={(e) => { e.currentTarget.src = 'https://placehold.co/400x300'; }}
+                          onError={(e) => { e.currentTarget.src = 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true'; }}
                         />
                       </div>
                     )}
