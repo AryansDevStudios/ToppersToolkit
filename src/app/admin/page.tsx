@@ -16,7 +16,7 @@ export default async function AdminPage() {
   }
 
   return (
-    <div className="container py-12">
+    <div key="admin-page" className="container py-12">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-4xl font-bold font-headline">Admin Portal</h1>
         <form action={logout}>

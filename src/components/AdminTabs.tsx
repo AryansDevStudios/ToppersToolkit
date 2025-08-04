@@ -10,11 +10,13 @@ export async function AdminTabs() {
 
   return (
     <Tabs defaultValue="orders" className="w-full">
-      <TabsList className="h-auto flex-wrap justify-center">
-        <TabsTrigger value="orders">Order Management</TabsTrigger>
-        <TabsTrigger value="uploader">Note Uploader</TabsTrigger>
-        <TabsTrigger value="manager">Note Manager</TabsTrigger>
-      </TabsList>
+      <div className="flex justify-center">
+        <TabsList className="h-auto flex-wrap justify-center">
+          <TabsTrigger value="orders">Order Management</TabsTrigger>
+          <TabsTrigger value="uploader">Note Uploader</TabsTrigger>
+          <TabsTrigger value="manager">Note Manager</TabsTrigger>
+        </TabsList>
+      </div>
       <TabsContent value="orders">
         <OrderList orders={orders} />
       </TabsContent>
