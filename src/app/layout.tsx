@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   title: "Topper's Toolkit - Quality School Notes",
   description: 'Your one-stop shop for chapter-wise school notes.',
   icons: {
-    icon: 'https://raw.githubusercontent.com/AryansDevStudios/ToppersToolkit/refs/heads/main/icon/icon_app_512x512.png',
+    icon: 'https://raw.githubusercontent.com/AryansDevStudios/ToppersToolkit/refs/heads/main/icon/icon_app_128x128.png',
   }
 };
 

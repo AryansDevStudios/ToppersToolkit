@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Book, Menu, ShoppingCart } from 'lucide-react';
+import { Menu, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -15,6 +15,7 @@ import { getSubjects } from '@/lib/data';
 import { useEffect, useState } from 'react';
 import type { Subject } from '@/types';
 import { Badge } from './ui/badge';
+import Image from 'next/image';
 
 export function Header() {
   const { itemCount } = useCart();
@@ -49,7 +50,8 @@ export function Header() {
       <div className="container flex h-16 items-center">
         <div className="mr-4 hidden md:flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <Book className="h-6 w-6 text-primary" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="https://raw.githubusercontent.com/AryansDevStudios/ToppersToolkit/refs/heads/main/icon/icon_app_128x128.png" alt="Topper's Toolkit Logo" className="h-8 w-8 rounded-lg" />
             <span className="font-black text-lg font-headline">Topper's Toolkit</span>
           </Link>
           <nav className="flex items-center space-x-6 text-sm font-medium">
@@ -69,7 +71,8 @@ export function Header() {
               <SheetContent side="left" className="w-[300px] sm:w-[400px]">
                 <nav className="flex flex-col gap-4 mt-8">
                   <Link href="/" className="mr-6 flex items-center space-x-2">
-                    <Book className="h-6 w-6 text-primary" />
+                     {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="https://raw.githubusercontent.com/AryansDevStudios/ToppersToolkit/refs/heads/main/icon/icon_app_128x128.png" alt="Topper's Toolkit Logo" className="h-8 w-8 rounded-lg" />
                     <span className="font-bold font-headline">Topper's Toolkit</span>
                   </Link>
                   {navLinks}
