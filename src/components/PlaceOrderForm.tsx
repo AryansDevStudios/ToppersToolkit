@@ -79,17 +79,7 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
             <CardDescription>Provide your details for hand-to-hand delivery.</CardDescription>
         </CardHeader>
         <CardContent>
-            <form ref={formRef} action={formAction} onSubmit={handleSubmit(() => {
-                const form = formRef.current;
-                if(form) {
-                    const formData = new FormData(form);
-                    const data = Object.fromEntries(formData.entries());
-                    const validation = OrderFormSchema.safeParse(data);
-                    if (validation.success) {
-                        form.requestSubmit();
-                    }
-                }
-            })} className="space-y-4">
+            <form ref={formRef} action={formAction} className="space-y-4">
                 <div>
                     <Label htmlFor="name">Name</Label>
                     <Input id="name" {...register('name')} />

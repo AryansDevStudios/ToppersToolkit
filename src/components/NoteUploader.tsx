@@ -1,8 +1,7 @@
 'use client';
 
 import { useFormStatus } from 'react-dom';
-import { useEffect, useState, useRef } from 'react';
-import { useActionState } from 'react';
+import { useEffect, useState, useRef, useActionState } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -107,17 +106,7 @@ export function NoteUploader() {
         <CardDescription>Fill out the form to add a new note to the catalog.</CardDescription>
       </CardHeader>
       <CardContent>
-        <form ref={formRef} action={formAction} onSubmit={handleSubmit(() => {
-            const form = formRef.current;
-            if (form) {
-                const formData = new FormData(form);
-                const data = Object.fromEntries(formData.entries());
-                 const validation = NoteUploaderSchema.safeParse(data);
-                if (validation.success) {
-                    form.requestSubmit();
-                }
-            }
-        })} className="space-y-4">
+        <form ref={formRef} action={formAction} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>Subject</Label>
