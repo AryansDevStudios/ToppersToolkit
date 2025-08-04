@@ -56,7 +56,7 @@ export function ChapterAccordion({ chapters }: ChapterAccordionProps) {
                 const isInCart = items.some(item => item.id === material.id);
                 const validImageUrl = material.imageUrl || 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true';
                 return (
-                  <div key={material.id} className="flex flex-col md:flex-row gap-4 p-4 rounded-lg border bg-card/50">
+                  <div key={material.id} className="flex flex-col md:flex-row flex-wrap gap-4 p-4 rounded-lg border bg-card/50">
                     {material.imageUrl && (
                       <div className="relative w-full md:w-48 h-32 flex-shrink-0 rounded-md overflow-hidden">
                         {/* eslint-disable-next-line @next/next/no-img-element */}

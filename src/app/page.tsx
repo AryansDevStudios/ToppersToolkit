@@ -20,7 +20,7 @@ export default async function Home() {
           <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
             High-quality, chapter-wise notes for Science, SST, Maths, and more. Curated for clarity, designed for success.
           </p>
-           <div className="mt-8 flex justify-center gap-4">
+           <div className="mt-8 flex justify-center gap-4 flex-wrap">
             <Button asChild size="lg">
               <Link href="#subjects">
                 Browse Subjects <ArrowRight />

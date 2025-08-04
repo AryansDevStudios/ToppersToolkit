@@ -76,7 +76,7 @@ export function NoteManager({ notes }: NoteManagerProps) {
         return (
           <Card key={note.id} className={note.status === 'hidden' ? 'bg-muted/50' : ''}>
             <CardHeader>
-              <div className="flex items-start gap-4">
+              <div className="flex items-start gap-4 flex-wrap">
                 <div className="relative w-24 h-24 flex-shrink-0 rounded-md overflow-hidden bg-muted flex items-center justify-center">
                     {note.imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -120,7 +120,7 @@ export function NoteManager({ notes }: NoteManagerProps) {
                 </div>
               </div>
             </CardHeader>
-            <CardFooter className="flex justify-between items-center">
+            <CardFooter className="flex flex-wrap justify-between items-center gap-2">
                <div className="flex items-center space-x-2">
                   <Switch 
                       id={`status-${note.id}`} 
