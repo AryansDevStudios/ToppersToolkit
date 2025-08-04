@@ -143,7 +143,11 @@ export async function getPassphrase(): Promise<string> {
         console.error("Error fetching passphrase from Firestore:", error);
     }
     
-    // Fallback for when it's not set in Firestore or there's an error
-    console.log("Passphrase not found in Firestore at 'settings/admin'. Using fallback. See README.md for setup instructions.");
+    // Fallback to environment variable if not in Firestore
+    if (process.env.ADMIN_PASSPHRASE) {
+        return process.env.ADMIN_PASSPHRASE;
+    }
+
+    console.log("Passphrase not found in Firestore at 'settings/admin' or in environment variables. Using fallback. See README.md for setup instructions.");
     return "CreditNahiDiyeKuldeep";
 }
