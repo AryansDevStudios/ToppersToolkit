@@ -76,6 +76,7 @@ export async function addNoteAction(prevState: any, formData: FormData) {
             description: parsed.description,
             imageUrl: parsed.imageUrl || 'https://placehold.co/600x400',
             isFeatured: false,
+            createdAt: Timestamp.now(),
         };
 
         await saveNoteMaterial(newNote);

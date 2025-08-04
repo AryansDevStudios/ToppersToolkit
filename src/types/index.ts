@@ -22,6 +22,7 @@ export type NoteMaterial = {
   description: string;
   imageUrl?: string;
   isFeatured?: boolean;
+  createdAt?: Timestamp;
 };
 
 export type CartItem = {

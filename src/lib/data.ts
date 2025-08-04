@@ -18,18 +18,13 @@ export async function getSubjects(): Promise<Subject[]> {
 }
 
 export async function getSubjectById(id: string): Promise<Subject | undefined> {
-  const subjectRef = doc(db, 'subjects', id);
-  const subjectSnap = await getDoc(subjectRef);
-  if (subjectSnap.exists()) {
-    return { ...subjectSnap.data(), id: subjectSnap.id } as Subject;
-  }
   // Fallback to hardcoded data if not found in DB
   const subjects = await getSubjects();
   return subjects.find(s => s.id === id);
 }
 
 export async function getRecentNotes(count: number = 8): Promise<NoteMaterial[]> {
-    const notesQuery = query(collection(db, 'noteMaterials'), orderBy('chapter'), limit(count));
+    const notesQuery = query(collection(db, 'noteMaterials'), orderBy('createdAt', 'desc'), limit(count));
     const notesSnapshot = await getDocs(notesQuery);
     return notesSnapshot.docs.map(doc => ({...doc.data(), id: doc.id} as NoteMaterial));
 }
@@ -78,5 +73,5 @@ export async function saveOrder(order: Omit<Order, 'id'>) {
 
 export async function saveNoteMaterial(note: Omit<NoteMaterial, 'id'>) {
     const notesCollection = collection(db, 'noteMaterials');
-    await addDoc(notesCollection, note);
+    await addDoc(notesCollection, {...note, createdAt: new Date()});
 }
