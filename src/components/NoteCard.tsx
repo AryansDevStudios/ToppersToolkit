@@ -22,7 +22,6 @@ export function NoteCard({ note }: NoteCardProps) {
               alt={note.chapter}
               className="w-full h-full object-cover"
               data-ai-hint="notebook education"
-              onError={(e) => { e.currentTarget.src = 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true'; }}
             />
              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
           </div>
