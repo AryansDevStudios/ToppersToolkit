@@ -26,14 +26,30 @@ export async function getSubjectById(id: string): Promise<Subject | undefined> {
 export async function getRecentNotes(count: number = 8): Promise<NoteMaterial[]> {
     const notesQuery = query(collection(db, 'noteMaterials'), orderBy('createdAt', 'desc'), limit(count));
     const notesSnapshot = await getDocs(notesQuery);
-    const notesData =  notesSnapshot.docs.map(doc => ({...doc.data(), id: doc.id} as NoteMaterial));
+    const notesData =  notesSnapshot.docs.map(doc => {
+        const data = doc.data();
+        // Convert timestamp to a serializable format
+        return {
+            ...data,
+            id: doc.id,
+            createdAt: data.createdAt.toDate().toISOString(),
+        } as NoteMaterial
+    });
     return JSON.parse(JSON.stringify(notesData));
 }
 
 export async function getAllNotes(): Promise<NoteMaterial[]> {
     const notesQuery = query(collection(db, 'noteMaterials'), orderBy('createdAt', 'desc'));
     const notesSnapshot = await getDocs(notesQuery);
-    const notesData = notesSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as NoteMaterial));
+    const notesData = notesSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return { 
+            ...data, 
+            id: doc.id,
+            // Convert timestamp to a serializable format (ISO string)
+            createdAt: data.createdAt.toDate().toISOString(),
+        } as NoteMaterial
+    });
     return JSON.parse(JSON.stringify(notesData));
 }
 
@@ -67,7 +83,14 @@ export async function getChaptersForSubcategory(subjectId: string, subcategoryId
 export async function getOrders(): Promise<Order[]> {
     const ordersQuery = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
     const ordersSnapshot = await getDocs(ordersQuery);
-    const ordersData = ordersSnapshot.docs.map(doc => ({...(doc.data() as Omit<Order, 'id'>), id: doc.id, createdAt: doc.data().createdAt.toDate() }));
+    const ordersData = ordersSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            ...(data as Omit<Order, 'id'>), 
+            id: doc.id, 
+            createdAt: data.createdAt.toDate().toISOString() 
+        }
+    });
     
     // This is a temporary workaround because of a serialization issue with firebase Timestamps and Next.js.
     // We convert it to a plain object that can be passed from server to client components.
