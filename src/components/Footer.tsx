@@ -29,8 +29,8 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-8 border-t pt-4 text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} Topper's Toolkit. All rights reserved. Built with passion.</p>
-          <p className="mt-2">Sold by Kuldeep Singh (AryansDevStudios)</p>
+          <p>© {new Date().getFullYear()} Topper's Toolkit. All rights reserved. Built by AryansDevStudios.</p>
+          <p className="mt-2">Sold by Kuldeep Singh</p>
         </div>
       </div>
     </footer>
