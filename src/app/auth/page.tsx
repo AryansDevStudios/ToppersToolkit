@@ -1,6 +1,7 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { login } from '@/lib/auth-actions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -22,7 +23,7 @@ function SubmitButton() {
 
 export default function AuthPage() {
   const router = useRouter();
-  const [state, formAction] = useFormState(login, { success: false, message: '' });
+  const [state, formAction] = useActionState(login, { success: false, message: '' });
 
   useEffect(() => {
     if (state.success) {
