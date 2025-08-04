@@ -24,6 +24,7 @@ const NoteFormSchema = z.object({
   noteType: z.string().min(1, 'Please select a note type'),
   description: z.string().min(1, 'Description is required'),
   imageUrl: z.string().url({ message: 'Please enter a valid URL.' }).optional().or(z.literal('')),
+  price: z.coerce.number().min(0, 'Price must be a positive number.'),
 });
 
 type NoteFormInputs = z.infer<typeof NoteFormSchema>;
@@ -65,6 +66,7 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
       noteType: note?.type || '',
       description: note?.description || '',
       imageUrl: note?.imageUrl || '',
+      price: note?.price || 0,
     }
   });
   
@@ -148,22 +150,29 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
         <Input id="chapterName" {...register('chapterName')} />
         {errors.chapterName && <p className="text-sm text-destructive mt-1">{errors.chapterName.message}</p>}
       </div>
-      <div>
-        <Label>Note Type</Label>
-        <Select 
-          value={watch('noteType')}
-          onValueChange={(value) => setValue('noteType', value, { shouldValidate: true })}
-          name="noteType"
-        >
-          <SelectTrigger><SelectValue placeholder="Select a note type" /></SelectTrigger>
-          <SelectContent>
-            {noteTypes.map((type) => (
-              <SelectItem key={type} value={type}>{type}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {errors.noteType && <p className="text-sm text-destructive mt-1">{errors.noteType.message}</p>}
-      </div>
+       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <Label>Note Type</Label>
+            <Select 
+            value={watch('noteType')}
+            onValueChange={(value) => setValue('noteType', value, { shouldValidate: true })}
+            name="noteType"
+            >
+            <SelectTrigger><SelectValue placeholder="Select a note type" /></SelectTrigger>
+            <SelectContent>
+                {noteTypes.map((type) => (
+                <SelectItem key={type} value={type}>{type}</SelectItem>
+                ))}
+            </SelectContent>
+            </Select>
+            {errors.noteType && <p className="text-sm text-destructive mt-1">{errors.noteType.message}</p>}
+        </div>
+        <div>
+            <Label htmlFor="price">Price (₹)</Label>
+            <Input id="price" type="number" {...register('price')} />
+            {errors.price && <p className="text-sm text-destructive mt-1">{errors.price.message}</p>}
+        </div>
+       </div>
       <div>
         <Label htmlFor="description">Description</Label>
         <Textarea id="description" {...register('description')} />

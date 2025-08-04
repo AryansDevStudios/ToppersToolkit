@@ -23,6 +23,7 @@ export type NoteMaterial = {
   imageUrl?: string;
   status: 'published' | 'hidden';
   createdAt: Timestamp;
+  price: number;
 };
 
 export type CartItem = {
@@ -30,6 +31,7 @@ export type CartItem = {
   subjectName: string;
   chapter: string;
   type: string;
+  price: number;
 };
 
 export type Order = {
@@ -40,6 +42,7 @@ export type Order = {
   items: CartItem[];
   createdAt: Timestamp;
   status: 'new' | 'completed';
+  totalPrice: number;
 };
 
 export type Chapter = {

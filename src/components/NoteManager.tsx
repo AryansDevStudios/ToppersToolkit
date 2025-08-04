@@ -11,7 +11,7 @@ import { NoteForm } from '@/components/NoteForm';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Edit, Eye, EyeOff } from 'lucide-react';
+import { Trash2, Edit, Eye, EyeOff, IndianRupee } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import {
@@ -96,6 +96,10 @@ export function NoteManager({ notes }: NoteManagerProps) {
                 <p className="text-sm text-muted-foreground mt-2">{note.description}</p>
                 <p className="text-xs text-muted-foreground mt-2">
                   Uploaded on: {format(new Date(note.createdAt as any), 'PPP p')}
+                </p>
+                 <p className="font-semibold text-lg flex items-center mt-2">
+                  <IndianRupee className="h-4 w-4 mr-1" />
+                  {note.price.toFixed(2)}
                 </p>
               </div>
             </div>

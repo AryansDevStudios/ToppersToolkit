@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import type { NoteMaterial } from '@/types';
 import { Badge } from './ui/badge';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, IndianRupee } from 'lucide-react';
 
 type NoteCardProps = {
   note: NoteMaterial;
@@ -29,7 +29,11 @@ export function NoteCard({ note }: NoteCardProps) {
           <CardTitle className="text-lg font-medium leading-tight">{note.chapter}</CardTitle>
           <p className="text-sm text-muted-foreground mt-1">{note.description}</p>
         </CardContent>
-        <CardFooter className="p-4 pt-0">
+        <CardFooter className="p-4 pt-0 flex justify-between items-center">
+            <p className="font-semibold text-lg flex items-center">
+                <IndianRupee className="h-4 w-4 mr-1" />
+                {note.price.toFixed(2)}
+            </p>
            <div className="flex items-center text-sm font-semibold text-primary">
             <span>Explore Notes</span>
             <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />

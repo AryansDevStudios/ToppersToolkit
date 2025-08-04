@@ -8,6 +8,7 @@ import { Button } from './ui/button';
 import { completeOrderAction } from '@/lib/actions';
 import { useTransition } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { IndianRupee } from 'lucide-react';
 
 type OrderListProps = {
   orders: Order[];
@@ -50,10 +51,16 @@ export function OrderList({ orders }: OrderListProps) {
               <div>
                 <CardTitle>{order.name}</CardTitle>
                 <CardDescription>Class: {order.userClass}</CardDescription>
+                 <p className="text-sm text-muted-foreground pt-2">{format(new Date(order.createdAt), 'PPP')}</p>
               </div>
-              <Badge variant={order.status === 'new' ? 'destructive' : 'secondary'}>{order.status}</Badge>
+               <div className="text-right">
+                <Badge variant={order.status === 'new' ? 'destructive' : 'secondary'}>{order.status}</Badge>
+                 <p className="font-semibold text-xl flex items-center justify-end mt-2">
+                  <IndianRupee className="h-5 w-5 mr-1" />
+                  {order.totalPrice.toFixed(2)}
+                </p>
+              </div>
             </div>
-             <p className="text-sm text-muted-foreground pt-2">{format(new Date(order.createdAt), 'PPP')}</p>
           </CardHeader>
           <CardContent>
             <div>
@@ -61,7 +68,7 @@ export function OrderList({ orders }: OrderListProps) {
               <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
                 {order.items.map((item, index) => (
                   <li key={index}>
-                    {item.subjectName} - {item.chapter} ({item.type})
+                    {item.subjectName} - {item.chapter} ({item.type}) - ₹{item.price.toFixed(2)}
                   </li>
                 ))}
               </ul>

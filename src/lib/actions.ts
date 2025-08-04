@@ -23,6 +23,8 @@ export async function placeOrderAction(prevState: any, formData: FormData) {
     });
 
     const cartItems: CartItem[] = JSON.parse(parsed.cartItems);
+    const totalPrice = cartItems.reduce((sum, item) => sum + item.price, 0);
+
 
     const newOrder = {
         name: parsed.name,
@@ -31,6 +33,7 @@ export async function placeOrderAction(prevState: any, formData: FormData) {
         items: cartItems,
         createdAt: Timestamp.now(),
         status: 'new' as const,
+        totalPrice,
     };
     
     await saveOrder(newOrder);
@@ -51,6 +54,7 @@ const addNoteSchema = z.object({
     noteType: z.string().min(1, 'Note type is required'),
     description: z.string().min(1, 'Description is required'),
     imageUrl: z.string().url().optional().or(z.literal('')),
+    price: z.coerce.number().min(0, 'Price must be a positive number'),
 });
 
 export async function addNoteAction(prevState: any, formData: FormData) {
@@ -62,6 +66,7 @@ export async function addNoteAction(prevState: any, formData: FormData) {
             noteType: formData.get('noteType'),
             description: formData.get('description'),
             imageUrl: formData.get('imageUrl'),
+            price: formData.get('price'),
         });
 
         const subject: Subject = JSON.parse(parsed.subject);
@@ -77,6 +82,7 @@ export async function addNoteAction(prevState: any, formData: FormData) {
             description: parsed.description,
             imageUrl: parsed.imageUrl || 'https://placehold.co/600x400',
             status: 'published',
+            price: parsed.price,
         };
 
         await saveNoteMaterial(newNote);
@@ -107,6 +113,7 @@ export async function updateNoteAction(prevState: any, formData: FormData) {
             noteType: formData.get('noteType'),
             description: formData.get('description'),
             imageUrl: formData.get('imageUrl'),
+            price: formData.get('price'),
         });
 
         const subject: Subject = JSON.parse(parsed.subject);
@@ -121,6 +128,7 @@ export async function updateNoteAction(prevState: any, formData: FormData) {
             type: parsed.noteType as any,
             description: parsed.description,
             imageUrl: parsed.imageUrl || 'https://placehold.co/600x400',
+            price: parsed.price,
         };
 
         await updateNoteMaterial(parsed.noteId, updatedData);

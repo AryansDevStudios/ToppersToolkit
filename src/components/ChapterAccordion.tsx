@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useCart } from '@/hooks/use-cart';
 import type { Chapter, NoteMaterial } from '@/types';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, IndianRupee } from 'lucide-react';
 
 type ChapterAccordionProps = {
   chapters: Chapter[];
@@ -27,6 +27,7 @@ export function ChapterAccordion({ chapters }: ChapterAccordionProps) {
       subjectName: material.subjectName,
       chapter: material.chapter,
       type: material.type,
+      price: material.price,
     };
     addToCart(cartItem);
     toast({
@@ -70,8 +71,12 @@ export function ChapterAccordion({ chapters }: ChapterAccordionProps) {
                     <div className="flex-grow">
                       <h4 className="font-semibold text-lg">{material.type}</h4>
                       <p className="text-muted-foreground text-sm mt-1">{material.description}</p>
+                       <p className="font-semibold text-lg flex items-center mt-2">
+                        <IndianRupee className="h-4 w-4 mr-1" />
+                        {material.price.toFixed(2)}
+                      </p>
                     </div>
-                    <div className="flex-shrink-0">
+                    <div className="flex-shrink-0 flex flex-col justify-center items-center">
                       <Button onClick={() => handleAddToCart(material)} disabled={isInCart} className="w-full md:w-auto">
                         <ShoppingCart className="mr-2 h-4 w-4" />
                         {isInCart ? 'Added' : 'Add to Cart'}
