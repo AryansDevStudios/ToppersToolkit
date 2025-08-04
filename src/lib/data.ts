@@ -61,7 +61,14 @@ export async function getChaptersForSubcategory(subjectId: string, subcategoryId
         where('subcategoryId', '==', subcategoryId)
     );
     const materialsSnapshot = await getDocs(materialsQuery);
-    const materials = materialsSnapshot.docs.map(doc => ({...doc.data(), id: doc.id} as NoteMaterial));
+    const materials = materialsSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            ...data,
+            id: doc.id,
+            createdAt: data.createdAt.toDate().toISOString(),
+        } as NoteMaterial
+    });
 
     const chaptersMap: { [key: string]: NoteMaterial[] } = {};
 
@@ -77,7 +84,7 @@ export async function getChaptersForSubcategory(subjectId: string, subcategoryId
         materials,
     }));
 
-    return chapters;
+    return JSON.parse(JSON.stringify(chapters));
 }
 
 export async function getOrders(): Promise<Order[]> {
