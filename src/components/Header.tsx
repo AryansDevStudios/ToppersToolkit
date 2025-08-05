@@ -55,7 +55,7 @@ export function Header() {
         <div className="mr-4 hidden md:flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="https://raw.githubusercontent.com/AryansDevStudios/ToppersToolkit/refs/heads/main/icon/icon_app_128x128.png" alt="Topper's Toolkit Logo" className="h-8 w-8 rounded-lg" />
+            <img src="https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/icon_app_128x128.png?raw=true" alt="Topper's Toolkit Logo" className="h-8 w-8 rounded-lg" />
             <span className="font-black text-lg font-headline">Topper's Toolkit</span>
           </Link>
           <nav className="flex items-center space-x-6 text-sm font-medium">
@@ -77,7 +77,7 @@ export function Header() {
                    <SheetTitle>
                     <Link href="/" className="mr-6 flex items-center space-x-2">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src="https://raw.githubusercontent.com/AryansDevStudios/ToppersToolkit/refs/heads/main/icon/icon_app_128x128.png" alt="Topper's Toolkit Logo" className="h-8 w-8 rounded-lg" />
+                      <img src="https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/icon_app_128x128.png?raw=true" alt="Topper's Toolkit Logo" className="h-8 w-8 rounded-lg" />
                       <span className="font-bold font-headline">Topper's Toolkit</span>
                     </Link>
                   </SheetTitle>
