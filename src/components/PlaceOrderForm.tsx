@@ -41,22 +41,23 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
 
-  const { register, handleSubmit, formState: { errors } } = useForm<OrderFormInputs>({
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<OrderFormInputs>({
     resolver: zodResolver(OrderFormSchema),
   });
 
   useEffect(() => {
     if (state.success) {
       clearCart();
+      reset();
       formRef.current?.reset();
-    } else if (state.message) {
+    } else if (state.message && !state.success) {
       toast({
         title: 'Error',
         description: state.message,
         variant: 'destructive',
       });
     }
-  }, [state, clearCart, toast]);
+  }, [state, clearCart, toast, reset]);
 
   if (state.success) {
       return (
@@ -79,7 +80,15 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
             <CardDescription>Provide your details for hand-to-hand delivery.</CardDescription>
         </CardHeader>
         <CardContent>
-            <form ref={formRef} action={formAction} className="space-y-4">
+            <form 
+              ref={formRef} 
+              action={formAction} 
+              onSubmit={handleSubmit(() => {
+                const formData = new FormData(formRef.current!);
+                formAction(formData);
+              })}
+              className="space-y-4"
+            >
                 <div>
                     <Label htmlFor="name">Name</Label>
                     <Input id="name" {...register('name')} />
