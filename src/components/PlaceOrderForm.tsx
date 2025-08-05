@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { CheckCircle2 } from 'lucide-react';
 
 const OrderFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -46,10 +47,6 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
 
   useEffect(() => {
     if (state.success) {
-      toast({
-        title: 'Order Placed!',
-        description: state.message,
-      });
       clearCart();
       formRef.current?.reset();
     } else if (state.message) {
@@ -63,12 +60,15 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
 
   if (state.success) {
       return (
-          <Card className="w-full max-w-lg mx-auto">
-              <CardHeader>
-                  <CardTitle>Thank You!</CardTitle>
-                  <CardDescription>Your order has been placed successfully. We will contact you shortly.</CardDescription>
-              </CardHeader>
-          </Card>
+        <Card className="w-full max-w-lg mx-auto bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
+            <CardHeader className="text-center">
+                <CheckCircle2 className="mx-auto h-16 w-16 text-green-500 mb-4" />
+                <CardTitle className="text-2xl text-green-900 dark:text-green-200">Order Placed Successfully!</CardTitle>
+                <CardDescription className="text-green-700 dark:text-green-400">
+                    Thank you for your purchase. We will contact you shortly to confirm the details.
+                </CardDescription>
+            </CardHeader>
+        </Card>
       )
   }
 
