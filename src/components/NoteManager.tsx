@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { deleteNoteAction, toggleNoteStatusAction } from '@/lib/actions';
@@ -34,6 +35,7 @@ type NoteManagerProps = {
 
 export function NoteManager({ notes }: NoteManagerProps) {
   const { toast } = useToast();
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [activeDialog, setActiveDialog] = useState<string | null>(null);
 
@@ -42,6 +44,7 @@ export function NoteManager({ notes }: NoteManagerProps) {
       const result = await deleteNoteAction(noteId);
       if (result.success) {
         toast({ title: 'Success', description: result.message });
+        router.refresh();
       } else {
         toast({ title: 'Error', description: result.message, variant: 'destructive' });
       }
@@ -53,6 +56,7 @@ export function NoteManager({ notes }: NoteManagerProps) {
       const result = await toggleNoteStatusAction(noteId, currentStatus);
       if (result.success) {
         toast({ title: 'Success', description: result.message });
+        router.refresh();
       } else {
         toast({ title: 'Error', description: result.message, variant: 'destructive' });
       }
@@ -118,7 +122,7 @@ export function NoteManager({ notes }: NoteManagerProps) {
               <div className="flex gap-2">
                   <Dialog open={activeDialog === note.id} onOpenChange={(open) => setActiveDialog(open ? note.id : null)}>
                       <DialogTrigger asChild>
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" disabled={isPending}>
                               <Edit className="mr-2 h-4 w-4" />
                               Edit
                           </Button>
@@ -136,7 +140,7 @@ export function NoteManager({ notes }: NoteManagerProps) {
 
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="destructive" size="sm">
+                    <Button variant="destructive" size="sm" disabled={isPending}>
                       <Trash2 className="mr-2 h-4 w-4" />
                       Delete
                     </Button>

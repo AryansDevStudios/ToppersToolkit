@@ -3,6 +3,7 @@
 
 import { useFormStatus } from 'react-dom';
 import { useEffect, useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -52,6 +53,7 @@ function SubmitButton({ isEditing, isSubmitting }: { isEditing: boolean, isSubmi
 export function NoteForm({ note, onSuccess }: NoteFormProps) {
   const isEditing = !!note;
   const { toast } = useToast();
+  const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
 
   const { register, watch, setValue, reset, handleSubmit, formState: { errors, isSubmitting } } = useForm<NoteFormInputs>({
@@ -102,6 +104,7 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
 
     if (result.success) {
       toast({ title: 'Success!', description: result.message });
+      router.refresh();
       if (!isEditing) {
         reset();
         formRef.current?.reset();

@@ -8,6 +8,7 @@ import { format } from 'date-fns';
 import { Button } from './ui/button';
 import { completeOrderAction } from '@/lib/actions';
 import { useTransition, useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { IndianRupee } from 'lucide-react';
 
@@ -17,6 +18,7 @@ type OrderListProps = {
 
 export function OrderList({ orders }: OrderListProps) {
     const [isPending, startTransition] = useTransition();
+    const router = useRouter();
     const { toast } = useToast();
     const [isClient, setIsClient] = useState(false);
 
@@ -30,6 +32,7 @@ export function OrderList({ orders }: OrderListProps) {
             const result = await completeOrderAction(orderId);
             if (result.success) {
                 toast({ title: 'Success', description: result.message });
+                router.refresh();
             } else {
                 toast({ title: 'Error', description: result.message, variant: 'destructive' });
             }

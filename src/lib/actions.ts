@@ -2,7 +2,6 @@
 'use server';
 
 import { z } from 'zod';
-import { revalidatePath } from 'next/cache';
 import { CartItem, Subject, SubCategory, NoteMaterial } from '@/types';
 import { saveOrder, saveNoteMaterial, updateOrderStatus, deleteNoteMaterial, updateNoteMaterial } from './data';
 import { Timestamp } from 'firebase/firestore';
@@ -39,7 +38,6 @@ export async function placeOrderAction(prevState: any, formData: FormData) {
     
     await saveOrder(newOrder);
 
-    revalidatePath('/admin');
     return { success: true, message: 'Order placed successfully!' };
   } catch (error) {
     console.error(error);
@@ -88,9 +86,6 @@ export async function addNoteAction(prevState: any, formData: FormData) {
 
         await saveNoteMaterial(newNote);
         
-        revalidatePath(`/subjects/${subject.id}/${subcategory.id}`);
-        revalidatePath('/'); // for recent notes
-        revalidatePath('/admin'); // for note manager
         return { success: true, message: 'Note added successfully!' };
 
     } catch (error) {
@@ -134,10 +129,6 @@ export async function updateNoteAction(prevState: any, formData: FormData) {
 
         await updateNoteMaterial(parsed.noteId, updatedData);
         
-        revalidatePath('/admin');
-        revalidatePath('/');
-        revalidatePath(`/subjects/${subject.id}/${subcategory.id}`);
-        
         return { success: true, message: 'Note updated successfully!' };
 
     } catch (error) {
@@ -151,7 +142,6 @@ export async function updateNoteAction(prevState: any, formData: FormData) {
 export async function completeOrderAction(orderId: string) {
     try {
         await updateOrderStatus(orderId, 'completed');
-        revalidatePath('/admin');
         return { success: true, message: 'Order marked as complete.' };
     } catch (error) {
         return { success: false, message: 'Failed to update order.' };
@@ -161,8 +151,6 @@ export async function completeOrderAction(orderId: string) {
 export async function deleteNoteAction(noteId: string) {
     try {
         await deleteNoteMaterial(noteId);
-        revalidatePath('/admin');
-        revalidatePath('/');
         return { success: true, message: 'Note deleted.' };
     } catch (error) {
         return { success: false, message: 'Failed to delete note.' };
@@ -173,8 +161,6 @@ export async function toggleNoteStatusAction(noteId: string, currentStatus: 'pub
     try {
         const newStatus = currentStatus === 'published' ? 'hidden' : 'published';
         await updateNoteMaterial(noteId, { status: newStatus });
-        revalidatePath('/admin');
-        revalidatePath('/');
         return { success: true, message: `Note status updated to ${newStatus}.` };
     } catch (error) {
         return { success: false, message: 'Failed to update note status.' };
