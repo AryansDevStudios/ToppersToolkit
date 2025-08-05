@@ -50,7 +50,7 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
     if (state.success) {
       clearCart();
       reset();
-      formRef.current?.reset();
+      // We don't need formRef.current?.reset() as react-hook-form's reset handles it.
     } else if (state.message && !state.success) {
       toast({
         title: 'Error',
@@ -84,12 +84,6 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
              <form
               ref={formRef}
               action={formAction}
-              onSubmit={(evt) => {
-                evt.preventDefault();
-                handleSubmit(() => {
-                    formRef.current?.submit();
-                })(evt);
-              }}
               className="space-y-4"
             >
                 <div>
