@@ -1,16 +1,17 @@
 
 'use client';
 
-import { useFormStatus } from 'react-dom';
-import { useEffect, useActionState, useRef } from 'react';
+import { useActionState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import Lottie from 'lottie-react';
 
 import { placeOrderAction } from '@/lib/actions';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
 import type { CartItem } from '@/types';
+import * as tickAnimation from '@/lib/tick-animation.json';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,10 +29,10 @@ const OrderFormSchema = z.object({
 type OrderFormInputs = z.infer<typeof OrderFormSchema>;
 
 function SubmitButton() {
-  const { pending } = useFormStatus();
+  const { formState: { isSubmitting } } = useFormContext();
   return (
-    <Button type="submit" disabled={pending} className="w-full">
-      {pending ? 'Placing Order...' : 'Place Order'}
+    <Button type="submit" disabled={isSubmitting} className="w-full">
+      {isSubmitting ? 'Placing Order...' : 'Place Order'}
     </Button>
   );
 }
@@ -50,7 +51,7 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
     if (state.success) {
       clearCart();
       reset();
-      // We don't need formRef.current?.reset() as react-hook-form's reset handles it.
+      formRef.current?.reset();
     } else if (state.message && !state.success) {
       toast({
         title: 'Error',
@@ -64,7 +65,9 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
       return (
         <Card className="w-full max-w-lg mx-auto bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
             <CardHeader className="text-center">
-                <CheckCircle2 className="mx-auto h-16 w-16 text-green-500 mb-4" />
+                <div className="w-40 h-40 mx-auto">
+                    <Lottie animationData={tickAnimation} loop={false} />
+                </div>
                 <CardTitle className="text-2xl text-green-900 dark:text-green-200">Order Placed Successfully!</CardTitle>
                 <CardDescription className="text-green-700 dark:text-green-400">
                     Thank you for your purchase. We will contact you shortly to confirm the details.
@@ -101,7 +104,9 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
                     <Textarea id="instructions" {...register('instructions')} placeholder="e.g. Printed format, specific binding..." />
                 </div>
                 <input type="hidden" name="cartItems" value={JSON.stringify(cartItems)} />
-                <SubmitButton />
+                <Button type="submit" disabled={false} className="w-full">
+                    Place Order
+                </Button>
             </form>
         </CardContent>
     </Card>
