@@ -16,6 +16,7 @@ import { useEffect, useState } from 'react';
 import type { Subject } from '@/types';
 import { Badge } from './ui/badge';
 import Image from 'next/image';
+import { ThemeToggle } from './ThemeToggle';
 
 export function Header() {
   const { itemCount } = useCart();
@@ -90,6 +91,7 @@ export function Header() {
            <div className="w-full flex-1 md:w-auto md:flex-none">
              {/* Future Search Bar can go here */}
           </div>
+          <ThemeToggle />
           <Link href="/cart">
             <Button variant="ghost" size="icon" aria-label="Cart" className="relative">
               <ShoppingCart className="h-5 w-5" />
