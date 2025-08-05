@@ -21,7 +21,7 @@ const NoteFormSchema = z.object({
   subject: z.string().min(1, 'Please select a subject'),
   subcategory: z.string().min(1, 'Please select a subcategory'),
   chapterName: z.string().min(1, 'Chapter name is required'),
-  noteType: z.string().min(1, 'Please select a note type'),
+  noteType: z.string().min(1, 'Note type is required'),
   description: z.string().min(1, 'Description is required'),
   imageUrl: z.string().url({ message: 'Please enter a valid image URL.' }).optional().or(z.literal('')),
   price: z.coerce.number().min(0, 'Price cannot be negative.'),
@@ -85,8 +85,6 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
         setSubcategories([]);
     }
   }, [selectedSubjectJSON, setValue, note, isEditing]);
-
-  const noteTypes = ['Notes', 'Question Bank', 'Important Dates', 'Summary'];
   
   const processForm = async (data: NoteFormInputs) => {
     const action = isEditing ? updateNoteAction : addNoteAction;
@@ -159,20 +157,9 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
       </div>
        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-            <Label>Note Type</Label>
-            <Select 
-            value={watch('noteType')}
-            onValueChange={(value) => setValue('noteType', value, { shouldValidate: true })}
-            name="noteType"
-            >
-            <SelectTrigger><SelectValue placeholder="Select a note type" /></SelectTrigger>
-            <SelectContent>
-                {noteTypes.map((type) => (
-                <SelectItem key={type} value={type}>{type}</SelectItem>
-                ))}
-            </SelectContent>
-            </Select>
-            {errors.noteType && <p className="text-sm text-destructive mt-1">{errors.noteType.message}</p>}
+          <Label htmlFor="noteType">Note Type</Label>
+          <Input id="noteType" {...register('noteType')} placeholder="e.g., Notes, Question Bank..." />
+          {errors.noteType && <p className="text-sm text-destructive mt-1">{errors.noteType.message}</p>}
         </div>
         <div>
             <Label htmlFor="price">Price (₹)</Label>

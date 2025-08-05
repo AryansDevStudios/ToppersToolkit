@@ -28,6 +28,7 @@ export function NoteCard({ note }: NoteCardProps) {
         </CardHeader>
         <CardContent className="p-4 flex-grow">
           <Badge variant="secondary" className="mb-2">{note.subjectName} - {note.subcategoryName}</Badge>
+          <p className="text-sm font-semibold text-primary mb-1">{note.type}</p>
           <CardTitle className="text-lg font-bold leading-tight group-hover:text-primary transition-colors">{note.chapter}</CardTitle>
           <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{note.description}</p>
         </CardContent>

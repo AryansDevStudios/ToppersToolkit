@@ -18,7 +18,7 @@ export type NoteMaterial = {
   subcategoryId: string;
   subcategoryName: string;
   chapter: string;
-  type: 'Notes' | 'Question Bank' | 'Important Dates' | 'Summary';
+  type: string;
   description: string;
   imageUrl?: string;
   status: 'published' | 'hidden';
