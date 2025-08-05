@@ -26,6 +26,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
+import { NoteImage } from './NoteImage';
 
 type NoteManagerProps = {
   notes: NoteMaterial[];
@@ -72,35 +73,16 @@ export function NoteManager({ notes }: NoteManagerProps) {
   return (
     <div className="space-y-4">
       {notes.map((note) => {
-        const validImageUrl = note.imageUrl || 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true';
         return (
           <Card key={note.id} className={note.status === 'hidden' ? 'bg-muted/50' : ''}>
             <CardHeader>
               <div className="flex items-start gap-4 flex-wrap">
                 <div className="relative w-24 h-24 flex-shrink-0 rounded-md overflow-hidden bg-muted flex items-center justify-center">
-                    {note.imageUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={validImageUrl}
+                    <NoteImage
+                        src={note.imageUrl}
                         alt={note.chapter}
-                        className="h-full w-full object-cover"
-                        data-ai-hint="note education"
-                        onError={(e) => { 
-                            const target = e.target as HTMLImageElement;
-                            target.onerror = null; 
-                            target.src = 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true';
-                            const parent = target.parentElement;
-                            if(parent) {
-                                const placeholder = document.createElement('div');
-                                placeholder.className = 'h-full w-full flex items-center justify-center';
-                                placeholder.appendChild(new ImageOff());
-                                parent.replaceChild(placeholder, target);
-                            }
-                        }}
-                      />
-                    ) : (
-                      <ImageOff className="h-10 w-10 text-muted-foreground" />
-                    )}
+                        fallbackIcon={<ImageOff className="h-10 w-10 text-muted-foreground" />}
+                    />
                   </div>
                 <div className="flex-grow">
                   <CardTitle className="text-xl">{note.chapter}</CardTitle>
