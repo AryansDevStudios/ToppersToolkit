@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useFormStatus } from 'react-dom';
@@ -83,10 +84,6 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
             <form 
               ref={formRef} 
               action={formAction} 
-              onSubmit={handleSubmit(() => {
-                const formData = new FormData(formRef.current!);
-                formAction(formData);
-              })}
               className="space-y-4"
             >
                 <div>
