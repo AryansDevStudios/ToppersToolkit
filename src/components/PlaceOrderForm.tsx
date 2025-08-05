@@ -81,9 +81,15 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
             <CardDescription>Provide your details for hand-to-hand delivery.</CardDescription>
         </CardHeader>
         <CardContent>
-            <form 
-              ref={formRef} 
-              action={formAction} 
+             <form
+              ref={formRef}
+              action={formAction}
+              onSubmit={(evt) => {
+                evt.preventDefault();
+                handleSubmit(() => {
+                    formRef.current?.submit();
+                })(evt);
+              }}
               className="space-y-4"
             >
                 <div>
