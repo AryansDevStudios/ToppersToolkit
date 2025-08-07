@@ -45,6 +45,9 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
   const { control, handleSubmit, reset, watch, formState: { errors } } = useForm<OrderFormInputs>({
     resolver: zodResolver(OrderFormSchema),
     defaultValues: {
+        name: '',
+        userClass: '',
+        instructions: '',
         paymentMethod: 'COD'
     }
   });
