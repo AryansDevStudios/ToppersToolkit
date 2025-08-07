@@ -76,12 +76,12 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
       chapterName: note?.chapter || '',
       description: note?.description || '',
       imageUrl: note?.imageUrl || '',
-      priceHandwrittenPDF: note?.prices.handwritten?.pdf || undefined,
-      priceHandwrittenPrinted: note?.prices.handwritten?.printed || undefined,
-      priceTypedPDF: note?.prices.typed?.pdf || undefined,
-      priceTypedPrinted: note?.prices.typed?.printed || undefined,
-      priceQuestionBankPDF: note?.prices.questionBank?.pdf || undefined,
-      priceQuestionBankPrinted: note?.prices.questionBank?.printed || undefined,
+      priceHandwrittenPDF: note?.prices?.handwritten?.pdf || undefined,
+      priceHandwrittenPrinted: note?.prices?.handwritten?.printed || undefined,
+      priceTypedPDF: note?.prices?.typed?.pdf || undefined,
+      priceTypedPrinted: note?.prices?.typed?.printed || undefined,
+      priceQuestionBankPDF: note?.prices?.questionBank?.pdf || undefined,
+      priceQuestionBankPrinted: note?.prices?.questionBank?.printed || undefined,
     }
   });
   
