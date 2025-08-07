@@ -2,25 +2,29 @@
 'use server';
 
 import { z } from 'zod';
-import { CartItem, Subject, SubCategory, NoteMaterial } from '@/types';
+import { CartItem, Subject, SubCategory, NoteMaterial, NotePrices } from '@/types';
 import { saveOrder, saveNoteMaterial, updateOrderStatus, deleteNoteMaterial, updateNoteMaterial } from './data';
 import { Timestamp } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
+import { unstable_noStore as noStore } from 'next/cache';
 
 const placeOrderSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   userClass: z.string().min(1, 'Class is required'),
   instructions: z.string().optional(),
   cartItems: z.string(),
+  paymentMethod: z.enum(['COD', 'UPI'], { required_error: 'Please select a payment method' }),
 });
 
 export async function placeOrderAction(prevState: any, formData: FormData) {
+  noStore();
   try {
     const parsed = placeOrderSchema.parse({
       name: formData.get('name'),
       userClass: formData.get('userClass'),
       instructions: formData.get('instructions'),
       cartItems: formData.get('cartItems'),
+      paymentMethod: formData.get('paymentMethod'),
     });
 
     const cartItems: CartItem[] = JSON.parse(parsed.cartItems);
@@ -35,6 +39,7 @@ export async function placeOrderAction(prevState: any, formData: FormData) {
         createdAt: Timestamp.now(),
         status: 'new' as const,
         totalPrice,
+        paymentMethod: parsed.paymentMethod,
     };
     
     await saveOrder(newOrder);
@@ -48,30 +53,44 @@ export async function placeOrderAction(prevState: any, formData: FormData) {
   }
 }
 
+const PriceSchema = z.coerce.number().min(0).optional();
+
 const addNoteSchema = z.object({
     subject: z.string().min(1, 'Subject is required'),
     subcategory: z.string().min(1, 'Subcategory is required'),
     chapterName: z.string().min(1, 'Chapter name is required'),
-    noteType: z.string().min(1, 'Note type is required'),
     description: z.string().min(1, 'Description is required'),
     imageUrl: z.string().url().optional().or(z.literal('')),
-    price: z.coerce.number().min(0, 'Price must be a positive number'),
+    priceHandwrittenPDF: PriceSchema,
+    priceHandwrittenPrinted: PriceSchema,
+    priceTypedPDF: PriceSchema,
+    priceTypedPrinted: PriceSchema,
+    priceQuestionBankPDF: PriceSchema,
+    priceQuestionBankPrinted: PriceSchema,
 });
 
 export async function addNoteAction(prevState: any, formData: FormData) {
+    noStore();
     try {
-        const parsed = addNoteSchema.parse({
-            subject: formData.get('subject'),
-            subcategory: formData.get('subcategory'),
-            chapterName: formData.get('chapterName'),
-            noteType: formData.get('noteType'),
-            description: formData.get('description'),
-            imageUrl: formData.get('imageUrl'),
-            price: formData.get('price'),
-        });
+        const parsed = addNoteSchema.parse(Object.fromEntries(formData.entries()));
 
         const subject: Subject = JSON.parse(parsed.subject);
         const subcategory: SubCategory = JSON.parse(parsed.subcategory);
+
+        const prices: NotePrices = {
+            handwritten: {
+                pdf: parsed.priceHandwrittenPDF,
+                printed: parsed.priceHandwrittenPrinted,
+            },
+            typed: {
+                pdf: parsed.priceTypedPDF,
+                printed: parsed.priceTypedPrinted,
+            },
+            questionBank: {
+                pdf: parsed.priceQuestionBankPDF,
+                printed: parsed.priceQuestionBankPrinted,
+            }
+        };
 
         const newNote: Omit<NoteMaterial, 'id' | 'createdAt'> = {
             subjectId: subject.id,
@@ -79,11 +98,10 @@ export async function addNoteAction(prevState: any, formData: FormData) {
             subcategoryId: subcategory.id,
             subcategoryName: subcategory.name,
             chapter: parsed.chapterName,
-            type: parsed.noteType,
             description: parsed.description,
             imageUrl: parsed.imageUrl || 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true',
             status: 'published',
-            price: parsed.price,
+            prices: prices,
         };
 
         await saveNoteMaterial(newNote);
@@ -105,20 +123,27 @@ const updateNoteSchema = addNoteSchema.extend({
 });
 
 export async function updateNoteAction(prevState: any, formData: FormData) {
+    noStore();
     try {
-        const parsed = updateNoteSchema.parse({
-            noteId: formData.get('noteId'),
-            subject: formData.get('subject'),
-            subcategory: formData.get('subcategory'),
-            chapterName: formData.get('chapterName'),
-            noteType: formData.get('noteType'),
-            description: formData.get('description'),
-            imageUrl: formData.get('imageUrl'),
-            price: formData.get('price'),
-        });
+        const parsed = updateNoteSchema.parse(Object.fromEntries(formData.entries()));
 
         const subject: Subject = JSON.parse(parsed.subject);
         const subcategory: SubCategory = JSON.parse(parsed.subcategory);
+
+        const prices: NotePrices = {
+            handwritten: {
+                pdf: parsed.priceHandwrittenPDF,
+                printed: parsed.priceHandwrittenPrinted,
+            },
+            typed: {
+                pdf: parsed.priceTypedPDF,
+                printed: parsed.priceTypedPrinted,
+            },
+            questionBank: {
+                pdf: parsed.priceQuestionBankPDF,
+                printed: parsed.priceQuestionBankPrinted,
+            }
+        };
 
         const updatedData: Partial<NoteMaterial> = {
             subjectId: subject.id,
@@ -126,10 +151,9 @@ export async function updateNoteAction(prevState: any, formData: FormData) {
             subcategoryId: subcategory.id,
             subcategoryName: subcategory.name,
             chapter: parsed.chapterName,
-            type: parsed.noteType,
             description: parsed.description,
             imageUrl: parsed.imageUrl || 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true',
-            price: parsed.price,
+            prices: prices,
         };
 
         await updateNoteMaterial(parsed.noteId, updatedData);
@@ -148,6 +172,7 @@ export async function updateNoteAction(prevState: any, formData: FormData) {
 
 
 export async function completeOrderAction(orderId: string) {
+    noStore();
     try {
         await updateOrderStatus(orderId, 'completed');
         revalidatePath('/admin');
@@ -158,6 +183,7 @@ export async function completeOrderAction(orderId: string) {
 }
 
 export async function deleteNoteAction(noteId: string, subjectId: string, subcategoryId: string) {
+    noStore();
     try {
         await deleteNoteMaterial(noteId);
         revalidatePath('/');
@@ -170,6 +196,7 @@ export async function deleteNoteAction(noteId: string, subjectId: string, subcat
 }
 
 export async function toggleNoteStatusAction(noteId: string, currentStatus: 'published' | 'hidden', subjectId: string, subcategoryId: string) {
+    noStore();
     try {
         const newStatus = currentStatus === 'published' ? 'hidden' : 'published';
         await updateNoteMaterial(noteId, { status: newStatus });

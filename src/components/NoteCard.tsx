@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import type { NoteMaterial } from '@/types';
@@ -10,6 +11,15 @@ type NoteCardProps = {
 
 export function NoteCard({ note }: NoteCardProps) {
   const validImageUrl = note.imageUrl || 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true';
+
+  // Find the first available price to display
+  const firstAvailablePrice = 
+      note.prices?.handwritten?.pdf ??
+      note.prices?.typed?.pdf ??
+      note.prices?.questionBank?.pdf ??
+      note.prices?.handwritten?.printed ??
+      note.prices?.typed?.printed ??
+      note.prices?.questionBank?.printed;
 
   return (
     <Link href={`/subjects/${note.subjectId}/${note.subcategoryId}`} className="group block">
@@ -28,15 +38,19 @@ export function NoteCard({ note }: NoteCardProps) {
         </CardHeader>
         <CardContent className="p-4 flex-grow">
           <Badge variant="secondary" className="mb-2">{note.subjectName} - {note.subcategoryName}</Badge>
-          <p className="text-sm font-semibold text-primary mb-1">{note.type}</p>
           <CardTitle className="text-lg font-bold leading-tight group-hover:text-primary transition-colors">{note.chapter}</CardTitle>
           <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{note.description}</p>
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between items-center">
-            <p className="font-bold text-lg flex items-center">
-                <IndianRupee className="h-5 w-5 mr-1 text-primary"/>
-                {note.price.toFixed(2)}
-            </p>
+            {firstAvailablePrice !== undefined ? (
+              <p className="font-bold text-lg flex items-center">
+                  <IndianRupee className="h-5 w-5 mr-1 text-primary"/>
+                  {firstAvailablePrice.toFixed(2)}
+                  <span className="text-sm font-normal text-muted-foreground ml-1">onwards</span>
+              </p>
+            ) : (
+              <p className="text-sm font-semibold text-muted-foreground">Pricing inside</p>
+            )}
            <div className="flex items-center text-sm font-semibold text-primary/80">
             <span className="group-hover:text-primary transition-colors">Explore</span>
             <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />

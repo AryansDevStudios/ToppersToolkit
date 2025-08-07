@@ -11,6 +11,17 @@ export type SubCategory = {
   name: string;
 };
 
+export type PriceInfo = {
+  pdf?: number;
+  printed?: number;
+};
+
+export type NotePrices = {
+  handwritten?: PriceInfo;
+  typed?: PriceInfo;
+  questionBank?: PriceInfo;
+};
+
 export type NoteMaterial = {
   id: string;
   subjectId: string;
@@ -18,20 +29,22 @@ export type NoteMaterial = {
   subcategoryId: string;
   subcategoryName: string;
   chapter: string;
-  type: string;
   description: string;
   imageUrl?: string;
   status: 'published' | 'hidden';
   createdAt: Timestamp;
-  price: number;
+  prices: NotePrices;
 };
 
 export type CartItem = {
-  id: string;
+  id: string; // Combination of noteId and type, e.g., 'noteId-handwritten'
+  noteId: string;
   subjectName: string;
   chapter: string;
-  type: string;
-  price: number;
+  type: 'Handwritten Notes' | 'Typed Notes' | 'Question Bank';
+  price: number; // This will be the price for the selected format
+  prices: PriceInfo; // Contains both pdf and printed prices
+  selectedFormat: 'PDF' | 'Printed';
 };
 
 export type Order = {
@@ -43,6 +56,7 @@ export type Order = {
   createdAt: Timestamp;
   status: 'new' | 'completed';
   totalPrice: number;
+  paymentMethod: 'COD' | 'UPI';
 };
 
 export type Chapter = {

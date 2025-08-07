@@ -1,26 +1,28 @@
 
 'use client';
 
-import { useActionState, useEffect, useRef } from 'react';
-import { useForm } from 'react-hook-form';
+import { useActionState, useEffect, useRef, useState } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-
 import { placeOrderAction } from '@/lib/actions';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
 import type { CartItem } from '@/types';
-
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { QrCode, Copy } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const OrderFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   userClass: z.string().min(1, { message: "Class is required." }),
   instructions: z.string().optional(),
+  paymentMethod: z.enum(['COD', 'UPI'], { required_error: 'Please select a payment method.' }),
 });
 
 type OrderFormInputs = z.infer<typeof OrderFormSchema>;
@@ -35,13 +37,27 @@ function SubmitButton({ isSubmitting }: { isSubmitting: boolean }) {
 
 export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
   const [state, formAction] = useActionState(placeOrderAction, { success: false, message: '' });
-  const { clearCart } = useCart();
+  const { clearCart, totalPrice } = useCart();
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
+  const [showUpiDetails, setShowUpiDetails] = useState(false);
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting, isSubmitSuccessful } } = useForm<OrderFormInputs>({
+  const { control, handleSubmit, reset, watch } = useForm<OrderFormInputs>({
     resolver: zodResolver(OrderFormSchema),
+    defaultValues: {
+        paymentMethod: 'COD'
+    }
   });
+
+  const paymentMethod = watch('paymentMethod');
+  
+  useEffect(() => {
+    if (paymentMethod === 'UPI') {
+      setShowUpiDetails(true);
+    } else {
+      setShowUpiDetails(false);
+    }
+  }, [paymentMethod]);
   
   useEffect(() => {
     if (state.success) {
@@ -59,7 +75,22 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
       });
     }
   }, [state, clearCart, toast, reset]);
+
+  const onFormSubmit = (data: OrderFormInputs) => {
+    if (totalPrice === 0) {
+        toast({ title: 'Error', description: 'Your cart is empty.', variant: 'destructive'});
+        return;
+    }
+    const formData = new FormData(formRef.current!);
+    formData.append('cartItems', JSON.stringify(cartItems));
+    formAction(formData);
+  };
   
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText('kuldeepsingh-okaxis@pay.co');
+    toast({ title: 'Copied!', description: 'UPI ID copied to clipboard.'});
+  };
+
   return (
     <Card className="w-full max-w-lg mx-auto">
         <CardHeader>
@@ -69,25 +100,90 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
         <CardContent>
              <form
               ref={formRef}
-              action={formAction}
+              onSubmit={handleSubmit(onFormSubmit)}
               className="space-y-4"
             >
                 <input type="hidden" name="cartItems" value={JSON.stringify(cartItems)} />
-                <div>
-                    <Label htmlFor="name">Name</Label>
-                    <Input id="name" {...register('name')} />
-                    {errors.name && <p className="text-sm text-destructive mt-1">{errors.name.message}</p>}
-                </div>
-                <div>
-                    <Label htmlFor="userClass">Class (e.g., 10th A)</Label>
-                    <Input id="userClass" {...register('userClass')} />
-                    {errors.userClass && <p className="text-sm text-destructive mt-1">{errors.userClass.message}</p>}
-                </div>
-                <div>
-                    <Label htmlFor="instructions">Special Instructions</Label>
-                    <Textarea id="instructions" {...register('instructions')} placeholder="e.g. Printed format, specific binding..." />
-                </div>
-                <SubmitButton isSubmitting={isSubmitting} />
+                 <Controller
+                    name="name"
+                    control={control}
+                    render={({ field, fieldState }) => (
+                        <div>
+                            <Label htmlFor="name">Name</Label>
+                            <Input id="name" {...field} />
+                            {fieldState.error && <p className="text-sm text-destructive mt-1">{fieldState.error.message}</p>}
+                        </div>
+                    )}
+                 />
+                 <Controller
+                    name="userClass"
+                    control={control}
+                    render={({ field, fieldState }) => (
+                        <div>
+                            <Label htmlFor="userClass">Class (e.g., 10th A)</Label>
+                            <Input id="userClass" {...field} />
+                            {fieldState.error && <p className="text-sm text-destructive mt-1">{fieldState.error.message}</p>}
+                        </div>
+                    )}
+                 />
+                 <Controller
+                    name="instructions"
+                    control={control}
+                    render={({ field }) => (
+                        <div>
+                            <Label htmlFor="instructions">Special Instructions</Label>
+                            <Textarea id="instructions" {...field} placeholder="e.g. Printed format, specific binding..." />
+                        </div>
+                    )}
+                 />
+
+                <Controller
+                    name="paymentMethod"
+                    control={control}
+                    render={({ field, fieldState }) => (
+                         <div>
+                            <Label>Payment Method</Label>
+                            <RadioGroup
+                                onValueChange={field.onChange}
+                                value={field.value}
+                                className="flex gap-4 pt-2"
+                            >
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="COD" id="cod" />
+                                    <Label htmlFor="cod">Cash on Delivery (COD)</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="UPI" id="upi" />
+                                    <Label htmlFor="upi">UPI</Label>
+                                </div>
+                            </RadioGroup>
+                            {fieldState.error && <p className="text-sm text-destructive mt-1">{fieldState.error.message}</p>}
+                        </div>
+                    )}
+                />
+
+                {showUpiDetails && (
+                    <Alert>
+                        <QrCode className="h-4 w-4" />
+                        <AlertTitle>Pay with UPI</AlertTitle>
+                        <AlertDescription className="space-y-4">
+                            <p>Scan the QR code or use the UPI ID below to complete your payment.</p>
+                            <div className="flex justify-center">
+                                <img src="https://placehold.co/200x200.png" alt="UPI QR Code" data-ai-hint="qr code" className="rounded-md" />
+                            </div>
+                            <div className="flex items-center justify-between p-2 rounded-md bg-muted">
+                                <span className="font-mono text-sm">kuldeepsingh-okaxis@pay.co</span>
+                                <Button type="button" variant="ghost" size="sm" onClick={copyToClipboard}>
+                                    <Copy className="h-4 w-4 mr-2" />
+                                    Copy
+                                </Button>
+                            </div>
+                            <p className="text-xs text-center text-muted-foreground">After payment, please proceed with placing the order.</p>
+                        </AlertDescription>
+                    </Alert>
+                )}
+
+                <SubmitButton isSubmitting={handleSubmit(onFormSubmit).isSubmitting} />
             </form>
         </CardContent>
     </Card>

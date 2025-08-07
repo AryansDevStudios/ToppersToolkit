@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useCart } from '@/hooks/use-cart';
@@ -7,9 +8,11 @@ import { PlaceOrderForm } from '@/components/PlaceOrderForm';
 import Link from 'next/link';
 import { Trash2, ShoppingCart, IndianRupee } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 
 export default function CartPage() {
-  const { items, removeFromCart, itemCount, totalPrice } = useCart();
+  const { items, removeFromCart, itemCount, totalPrice, updateItemFormat } = useCart();
 
   return (
     <div className="container py-12">
@@ -33,12 +36,30 @@ export default function CartPage() {
                 <CardContent>
                     <div className="space-y-4">
                         {items.map((item) => (
-                        <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
-                            <div>
+                        <div key={item.id} className="flex items-start justify-between p-4 border rounded-lg flex-col sm:flex-row gap-4">
+                            <div className="flex-grow">
                                 <h3 className="font-semibold">{item.subjectName} - {item.chapter}</h3>
                                 <p className="text-sm text-muted-foreground">{item.type}</p>
+                                <RadioGroup 
+                                  value={item.selectedFormat} 
+                                  onValueChange={(value) => updateItemFormat(item.id, value as 'PDF' | 'Printed')}
+                                  className="mt-4 flex gap-4"
+                                >
+                                  {item.prices.pdf !== undefined && (
+                                    <div className="flex items-center space-x-2">
+                                      <RadioGroupItem value="PDF" id={`${item.id}-pdf`} />
+                                      <Label htmlFor={`${item.id}-pdf`}>PDF (₹{item.prices.pdf.toFixed(2)})</Label>
+                                    </div>
+                                  )}
+                                  {item.prices.printed !== undefined && (
+                                    <div className="flex items-center space-x-2">
+                                      <RadioGroupItem value="Printed" id={`${item.id}-printed`} />
+                                      <Label htmlFor={`${item.id}-printed`}>Printed (₹{item.prices.printed.toFixed(2)})</Label>
+                                    </div>
+                                  )}
+                                </RadioGroup>
                             </div>
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-4 self-end sm:self-center">
                                 <p className="font-semibold flex items-center">
                                     <IndianRupee className="h-4 w-4 mr-1"/>
                                     {item.price.toFixed(2)}

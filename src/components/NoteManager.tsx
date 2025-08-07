@@ -12,7 +12,7 @@ import { NoteForm } from '@/components/NoteForm';
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Edit, Eye, EyeOff, IndianRupee, ImageOff } from 'lucide-react';
+import { Trash2, Edit, Eye, EyeOff, IndianRupee, ImageOff, FileText, Printer } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import {
@@ -26,7 +26,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { NoteImage } from './NoteImage';
 
 type NoteManagerProps = {
@@ -92,17 +92,16 @@ export function NoteManager({ notes }: NoteManagerProps) {
                   <CardTitle className="text-xl">{note.chapter}</CardTitle>
                   <CardDescription>
                     <Badge variant="outline">{note.subjectName} / {note.subcategoryName}</Badge>
-                    <span className="mx-2 text-muted-foreground">|</span>
-                    <Badge variant="secondary">{note.type}</Badge>
                   </CardDescription>
                   <p className="text-sm text-muted-foreground mt-2">{note.description}</p>
                   <p className="text-xs text-muted-foreground mt-2">
                     Uploaded on: {format(new Date(note.createdAt as any), 'PPP p')}
                   </p>
-                   <p className="font-semibold text-lg flex items-center mt-2">
-                    <IndianRupee className="h-4 w-4 mr-1" />
-                    {note.price.toFixed(2)}
-                  </p>
+                   <div className="font-semibold text-sm flex flex-col mt-2 gap-2">
+                        {note.prices.handwritten && (note.prices.handwritten.pdf || note.prices.handwritten.printed) && <p><b>Handwritten:</b> PDF: ₹{note.prices.handwritten.pdf || 'N/A'} / Printed: ₹{note.prices.handwritten.printed || 'N/A'}</p>}
+                        {note.prices.typed && (note.prices.typed.pdf || note.prices.typed.printed) && <p><b>Typed:</b> PDF: ₹{note.prices.typed.pdf || 'N/A'} / Printed: ₹{note.prices.typed.printed || 'N/A'}</p>}
+                        {note.prices.questionBank && (note.prices.questionBank.pdf || note.prices.questionBank.printed) && <p><b>Question Bank:</b> PDF: ₹{note.prices.questionBank.pdf || 'N/A'} / Printed: ₹{note.prices.questionBank.printed || 'N/A'}</p>}
+                   </div>
                 </div>
               </div>
             </CardHeader>

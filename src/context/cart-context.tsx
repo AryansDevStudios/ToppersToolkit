@@ -1,3 +1,4 @@
+
 'use client';
 
 import { createContext, useState, useEffect, useCallback, ReactNode } from 'react';
@@ -7,6 +8,7 @@ interface CartContextType {
   items: CartItem[];
   addToCart: (item: CartItem) => void;
   removeFromCart: (itemId: string) => void;
+  updateItemFormat: (itemId: string, newFormat: 'PDF' | 'Printed') => void;
   clearCart: () => void;
   itemCount: number;
   totalPrice: number;
@@ -55,6 +57,21 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     setItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
   }, []);
 
+  const updateItemFormat = useCallback((itemId: string, newFormat: 'PDF' | 'Printed') => {
+    setItems(prevItems => prevItems.map(item => {
+      if (item.id === itemId) {
+        const newPrice = newFormat === 'PDF' ? item.prices.pdf : item.prices.printed;
+        if (newPrice === undefined) return item; // Don't update if price for format doesn't exist
+        return {
+          ...item,
+          selectedFormat: newFormat,
+          price: newPrice,
+        };
+      }
+      return item;
+    }));
+  }, []);
+
   const clearCart = useCallback(() => {
     setItems([]);
   }, []);
@@ -63,7 +80,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const totalPrice = isMounted ? items.reduce((sum, item) => sum + item.price, 0) : 0;
 
   return (
-    <CartContext.Provider value={{ items, addToCart, removeFromCart, clearCart, itemCount, totalPrice }}>
+    <CartContext.Provider value={{ items, addToCart, removeFromCart, updateItemFormat, clearCart, itemCount, totalPrice }}>
       {children}
     </CartContext.Provider>
   );
