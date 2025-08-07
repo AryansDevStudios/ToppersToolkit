@@ -61,7 +61,7 @@ export function OrderList({ orders }: OrderListProps) {
               <div>
                 <CardTitle>{order.name}</CardTitle>
                 <CardDescription>Class: {order.userClass}</CardDescription>
-                 <p className="text-sm text-muted-foreground pt-2">{isClient ? format(new Date(order.createdAt), 'PPP') : ''}</p>
+                 <p className="text-sm text-muted-foreground pt-2">{isClient ? format(new Date(order.createdAt), 'PPP p') : ''}</p>
               </div>
                <div className="text-right">
                 <Badge variant={order.status === 'new' ? 'destructive' : 'secondary'}>{order.status}</Badge>
@@ -82,7 +82,7 @@ export function OrderList({ orders }: OrderListProps) {
               <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
                 {order.items.map((item, index) => (
                   <li key={index}>
-                    {item.subjectName} - {item.chapter} ({item.type}) - ₹{item.price.toFixed(2)}
+                    {item.subjectName} - {item.chapter} ({item.type} - {item.selectedFormat}) - ₹{item.price.toFixed(2)}
                   </li>
                 ))}
               </ul>
