@@ -28,7 +28,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { NoteImage } from './NoteImage';
-import { ScrollArea } from './ui/scroll-area';
 
 type NoteManagerProps = {
   notes: NoteMaterial[];
@@ -131,12 +130,12 @@ export function NoteManager({ notes }: NoteManagerProps) {
                           <DialogHeader>
                               <DialogTitle>Edit Note</DialogTitle>
                           </DialogHeader>
-                           <ScrollArea className="max-h-[80vh] p-4">
+                           <div className="overflow-y-auto p-1">
                               <NoteForm 
                                   note={note} 
                                   onSuccess={() => setActiveDialog(null)}
                               />
-                          </ScrollArea>
+                          </div>
                       </DialogContent>
                   </Dialog>
 
