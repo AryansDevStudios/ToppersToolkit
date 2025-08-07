@@ -10,7 +10,7 @@ import { completeOrderAction } from '@/lib/actions';
 import { useTransition, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { IndianRupee } from 'lucide-react';
+import { IndianRupee, HandCoins, QrCode } from 'lucide-react';
 
 type OrderListProps = {
   orders: Order[];
@@ -62,6 +62,10 @@ export function OrderList({ orders }: OrderListProps) {
                 <CardTitle>{order.name}</CardTitle>
                 <CardDescription>Class: {order.userClass}</CardDescription>
                  <p className="text-sm text-muted-foreground pt-2">{isClient ? format(new Date(order.createdAt), 'PPP') : ''}</p>
+                 <div className="flex items-center text-sm text-muted-foreground mt-2 gap-2">
+                    {order.paymentMethod === 'COD' ? <HandCoins className="h-4 w-4" /> : <QrCode className="h-4 w-4" />}
+                    <span>{order.paymentMethod === 'COD' ? 'Cash on Delivery' : 'UPI'}</span>
+                </div>
               </div>
                <div className="text-right">
                 <Badge variant={order.status === 'new' ? 'destructive' : 'secondary'}>{order.status}</Badge>
