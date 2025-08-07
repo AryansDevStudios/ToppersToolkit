@@ -96,6 +96,7 @@ export async function getChaptersForSubcategory(subjectId: string, subcategoryId
 }
 
 export async function getOrders(): Promise<Order[]> {
+    noStore();
     const ordersQuery = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
     const ordersSnapshot = await getDocs(ordersQuery);
     const ordersData = ordersSnapshot.docs.map(doc => {
