@@ -61,7 +61,7 @@ export function OrderList({ orders }: OrderListProps) {
               <div>
                 <CardTitle>{order.name}</CardTitle>
                 <CardDescription>Class: {order.userClass}</CardDescription>
-                 <p className="text-sm text-muted-foreground pt-2">{isClient ? `${format(new Date(order.createdAt), 'PPP p')} UTC` : ''}</p>
+                 <p className="text-sm text-muted-foreground pt-2">{isClient ? `${format(new Date(order.createdAt), 'p, PPP')} UTC` : ''}</p>
               </div>
                <div className="text-right">
                 <Badge variant={order.status === 'new' ? 'destructive' : 'secondary'}>{order.status}</Badge>
