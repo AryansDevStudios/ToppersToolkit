@@ -95,7 +95,7 @@ export function NoteManager({ notes }: NoteManagerProps) {
                   </CardDescription>
                   <p className="text-sm text-muted-foreground mt-2">{note.description}</p>
                   <p className="text-xs text-muted-foreground mt-2">
-                    Uploaded on: {format(new Date(note.createdAt as any), 'PPP p')}
+                    Uploaded on: {`${format(new Date(note.createdAt as any), 'PPP p')} UTC`}
                   </p>
                    <div className="font-semibold text-sm flex flex-col mt-2 gap-2">
                         {note.prices?.handwritten && (note.prices.handwritten.pdf || note.prices.handwritten.printed) && <p><b>Handwritten:</b> PDF: ₹{note.prices.handwritten.pdf || 'N/A'} / Printed: ₹{note.prices.handwritten.printed || 'N/A'}</p>}
