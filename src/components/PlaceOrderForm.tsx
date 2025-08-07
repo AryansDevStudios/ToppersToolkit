@@ -90,7 +90,7 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
   };
   
   const copyToClipboard = () => {
-    navigator.clipboard.writeText('kuldeepsingh-okaxis@pay.co');
+    navigator.clipboard.writeText('nitish545454@ybl');
     toast({ title: 'Copied!', description: 'UPI ID copied to clipboard.'});
   };
 
@@ -172,10 +172,10 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
                         <AlertDescription className="space-y-4">
                             <p>Scan the QR code or use the UPI ID below to complete your payment.</p>
                             <div className="flex justify-center">
-                                <img src="https://placehold.co/200x200.png" alt="UPI QR Code" data-ai-hint="qr code" className="rounded-md" />
+                                <img src="/images/payment_qr.png" alt="UPI QR Code" data-ai-hint="qr code" className="rounded-md h-48 w-48 object-contain" />
                             </div>
                             <div className="flex items-center justify-between p-2 rounded-md bg-muted">
-                                <span className="font-mono text-sm">kuldeepsingh-okaxis@pay.co</span>
+                                <span className="font-mono text-sm">nitish545454@ybl</span>
                                 <Button type="button" variant="ghost" size="sm" onClick={copyToClipboard}>
                                     <Copy className="h-4 w-4 mr-2" />
                                     Copy
