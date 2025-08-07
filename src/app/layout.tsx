@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   title: "Topper's Toolkit - Quality School Notes",
   description: 'Your one-stop shop for chapter-wise school notes.',
   icons: {
-    icon: '/favicon.ico',
+    icon: '/icon/icon_app.ico',
   }
 };
 
