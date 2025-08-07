@@ -71,9 +71,9 @@ export function ChapterAccordion({ chapters }: ChapterAccordionProps) {
             <div className="space-y-6">
               {chapter.materials.map((note) => {
                 const availableMaterials: MaterialDisplayInfo[] = [
-                  { type: 'Handwritten Notes', prices: note.prices.handwritten },
-                  { type: 'Typed Notes', prices: note.prices.typed },
-                  { type: 'Question Bank', prices: note.prices.questionBank },
+                  { type: 'Handwritten Notes', prices: note.prices?.handwritten },
+                  { type: 'Typed Notes', prices: note.prices?.typed },
+                  { type: 'Question Bank', prices: note.prices?.questionBank },
                 ];
 
                 return availableMaterials
