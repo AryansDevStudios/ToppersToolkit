@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -85,10 +85,10 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
     }
   });
   
-  const [subcategories, setSubcategories] = React.useState<SubCategory[]>([]);
+  const [subcategories, setSubcategories] = useState<SubCategory[]>([]);
   const selectedSubjectJSON = watch('subject');
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (selectedSubjectJSON) {
         try {
             const selectedSubject = JSON.parse(selectedSubjectJSON) as Subject;
@@ -127,6 +127,7 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
 
   return (
     <form ref={formRef} onSubmit={handleSubmit(processForm)} className="space-y-4">
+      {isEditing && <input type="hidden" name="noteId" value={note.id} />}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label>Subject</Label>
@@ -227,9 +228,6 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
           </CardContent>
       </Card>
       
-      <input type="hidden" {...register('subject')} />
-      <input type="hidden" {...register('subcategory')} />
-
       <SubmitButton isEditing={isEditing} isSubmitting={isSubmitting} />
     </form>
   );

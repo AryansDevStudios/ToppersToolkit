@@ -106,7 +106,7 @@ export async function addNoteAction(prevState: any, formData: FormData) {
 
         await saveNoteMaterial(newNote);
         revalidatePath('/');
-        revalidatePath(`/subjects/${subject.id}/${subcategory.id}`);
+        revalidatePath('/subjects', 'layout');
         revalidatePath('/admin');
         
         return { success: true, message: 'Note added successfully!' };
@@ -158,7 +158,7 @@ export async function updateNoteAction(prevState: any, formData: FormData) {
 
         await updateNoteMaterial(parsed.noteId, updatedData);
         revalidatePath('/');
-        revalidatePath(`/subjects/${subject.id}/${subcategory.id}`);
+        revalidatePath('/subjects', 'layout');
         revalidatePath('/admin');
         
         return { success: true, message: 'Note updated successfully!' };
@@ -187,7 +187,7 @@ export async function deleteNoteAction(noteId: string, subjectId: string, subcat
     try {
         await deleteNoteMaterial(noteId);
         revalidatePath('/');
-        revalidatePath(`/subjects/${subjectId}/${subcategoryId}`);
+        revalidatePath('/subjects', 'layout');
         revalidatePath('/admin');
         return { success: true, message: 'Note deleted.' };
     } catch (error) {
@@ -201,7 +201,7 @@ export async function toggleNoteStatusAction(noteId: string, currentStatus: 'pub
         const newStatus = currentStatus === 'published' ? 'hidden' : 'published';
         await updateNoteMaterial(noteId, { status: newStatus });
         revalidatePath('/');
-        revalidatePath(`/subjects/${subjectId}/${subcategoryId}`);
+        revalidatePath('/subjects', 'layout');
         revalidatePath('/admin');
         return { success: true, message: `Note status updated to ${newStatus}.` };
     } catch (error) {

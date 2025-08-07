@@ -40,9 +40,9 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
   const { clearCart, totalPrice } = useCart();
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const [showUpiDetails, setShowUpiDetails] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { control, handleSubmit, reset, watch } = useForm<OrderFormInputs>({
+  const { control, handleSubmit, reset, watch, formState: { errors } } = useForm<OrderFormInputs>({
     resolver: zodResolver(OrderFormSchema),
     defaultValues: {
         paymentMethod: 'COD'
@@ -52,27 +52,21 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
   const paymentMethod = watch('paymentMethod');
   
   useEffect(() => {
-    if (paymentMethod === 'UPI') {
-      setShowUpiDetails(true);
-    } else {
-      setShowUpiDetails(false);
-    }
-  }, [paymentMethod]);
-  
-  useEffect(() => {
     if (state.success) {
-        toast({
-            title: "Order Placed!",
-            description: state.message,
-        });
+      toast({
+          title: "Order Placed!",
+          description: state.message,
+      });
       clearCart();
       reset();
+      setIsSubmitting(false);
     } else if (state.message) {
       toast({
         title: 'Error',
         description: state.message,
         variant: 'destructive',
       });
+      setIsSubmitting(false);
     }
   }, [state, clearCart, toast, reset]);
 
@@ -81,8 +75,14 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
         toast({ title: 'Error', description: 'Your cart is empty.', variant: 'destructive'});
         return;
     }
-    const formData = new FormData(formRef.current!);
+    setIsSubmitting(true);
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('userClass', data.userClass);
+    formData.append('paymentMethod', data.paymentMethod);
+    if(data.instructions) formData.append('instructions', data.instructions);
     formData.append('cartItems', JSON.stringify(cartItems));
+
     formAction(formData);
   };
   
@@ -107,22 +107,22 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
                  <Controller
                     name="name"
                     control={control}
-                    render={({ field, fieldState }) => (
+                    render={({ field }) => (
                         <div>
                             <Label htmlFor="name">Name</Label>
                             <Input id="name" {...field} />
-                            {fieldState.error && <p className="text-sm text-destructive mt-1">{fieldState.error.message}</p>}
+                            {errors.name && <p className="text-sm text-destructive mt-1">{errors.name.message}</p>}
                         </div>
                     )}
                  />
                  <Controller
                     name="userClass"
                     control={control}
-                    render={({ field, fieldState }) => (
+                    render={({ field }) => (
                         <div>
                             <Label htmlFor="userClass">Class (e.g., 10th A)</Label>
                             <Input id="userClass" {...field} />
-                            {fieldState.error && <p className="text-sm text-destructive mt-1">{fieldState.error.message}</p>}
+                            {errors.userClass && <p className="text-sm text-destructive mt-1">{errors.userClass.message}</p>}
                         </div>
                     )}
                  />
@@ -140,7 +140,7 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
                 <Controller
                     name="paymentMethod"
                     control={control}
-                    render={({ field, fieldState }) => (
+                    render={({ field }) => (
                          <div>
                             <Label>Payment Method</Label>
                             <RadioGroup
@@ -157,12 +157,12 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
                                     <Label htmlFor="upi">UPI</Label>
                                 </div>
                             </RadioGroup>
-                            {fieldState.error && <p className="text-sm text-destructive mt-1">{fieldState.error.message}</p>}
+                            {errors.paymentMethod && <p className="text-sm text-destructive mt-1">{errors.paymentMethod.message}</p>}
                         </div>
                     )}
                 />
 
-                {showUpiDetails && (
+                {paymentMethod === 'UPI' && (
                     <Alert>
                         <QrCode className="h-4 w-4" />
                         <AlertTitle>Pay with UPI</AlertTitle>
@@ -183,7 +183,7 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
                     </Alert>
                 )}
 
-                <SubmitButton isSubmitting={handleSubmit(onFormSubmit).isSubmitting} />
+                <SubmitButton isSubmitting={isSubmitting} />
             </form>
         </CardContent>
     </Card>
