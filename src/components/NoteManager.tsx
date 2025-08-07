@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { NoteImage } from './NoteImage';
+import { ScrollArea } from './ui/scroll-area';
 
 type NoteManagerProps = {
   notes: NoteMaterial[];
@@ -95,7 +96,7 @@ export function NoteManager({ notes }: NoteManagerProps) {
                   </CardDescription>
                   <p className="text-sm text-muted-foreground mt-2">{note.description}</p>
                   <p className="text-xs text-muted-foreground mt-2">
-                    Uploaded on: {`${format(new Date(note.createdAt as any), 'p, PPP')} UTC`}
+                    Uploaded on: {`${format(new Date(note.createdAt as any), 'p, PPP')}, UTC`}
                   </p>
                    <div className="font-semibold text-sm flex flex-col mt-2 gap-2">
                         {note.prices?.handwritten && (note.prices.handwritten.pdf || note.prices.handwritten.printed) && <p><b>Handwritten:</b> PDF: ₹{note.prices.handwritten.pdf || 'N/A'} / Printed: ₹{note.prices.handwritten.printed || 'N/A'}</p>}
@@ -130,10 +131,12 @@ export function NoteManager({ notes }: NoteManagerProps) {
                           <DialogHeader>
                               <DialogTitle>Edit Note</DialogTitle>
                           </DialogHeader>
-                          <NoteForm 
-                              note={note} 
-                              onSuccess={() => setActiveDialog(null)}
-                          />
+                           <ScrollArea className="max-h-[80vh] p-4">
+                              <NoteForm 
+                                  note={note} 
+                                  onSuccess={() => setActiveDialog(null)}
+                              />
+                          </ScrollArea>
                       </DialogContent>
                   </Dialog>
 
