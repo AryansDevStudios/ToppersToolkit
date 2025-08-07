@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { deleteNoteAction, toggleNoteStatusAction } from '@/lib/actions';
 import type { NoteMaterial } from '@/types';
 import { NoteForm } from '@/components/NoteForm';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,11 @@ export function NoteManager({ notes }: NoteManagerProps) {
   const [isPending, startTransition] = useTransition();
   const [activeDialog, setActiveDialog] = useState<string | null>(null);
 
+  const getFormattedTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return `${format(date, 'p, PPP')} UTC`;
+  };
+  
   const handleDelete = (note: NoteMaterial) => {
     startTransition(async () => {
       const result = await deleteNoteAction(note.id, note.subjectId, note.subcategoryId);
@@ -95,7 +101,7 @@ export function NoteManager({ notes }: NoteManagerProps) {
                   </CardDescription>
                   <p className="text-sm text-muted-foreground mt-2">{note.description}</p>
                   <p className="text-xs text-muted-foreground mt-2">
-                    Uploaded on: {`${format(new Date(note.createdAt as any), 'p, PPP')}, UTC`}
+                    Uploaded on: {getFormattedTime(note.createdAt as any)}
                   </p>
                    <div className="font-semibold text-sm flex flex-col mt-2 gap-2">
                         {note.prices?.handwritten && (note.prices.handwritten.pdf || note.prices.handwritten.printed) && <p><b>Handwritten:</b> PDF: ₹{note.prices.handwritten.pdf || 'N/A'} / Printed: ₹{note.prices.handwritten.printed || 'N/A'}</p>}
