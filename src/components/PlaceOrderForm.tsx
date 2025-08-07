@@ -3,7 +3,6 @@
 
 import { useActionState, useEffect, useRef } from 'react';
 import { useFormStatus } from 'react-dom';
-import { z } from 'zod';
 import { placeOrderAction } from '@/lib/actions';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
@@ -16,17 +15,8 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { QrCode, Copy } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
 
-const OrderFormSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  userClass: z.string().min(1, { message: "Class is required." }),
-  instructions: z.string().optional(),
-  paymentMethod: z.enum(['COD', 'UPI'], { required_error: 'Please select a payment method.' }),
-});
-
-type OrderFormInputs = z.infer<typeof OrderFormSchema>;
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -42,19 +32,8 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
   const { clearCart, totalPrice } = useCart();
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'COD' | 'UPI'>('COD');
 
-  const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<OrderFormInputs>({
-    resolver: zodResolver(OrderFormSchema),
-    defaultValues: {
-        name: '',
-        userClass: '',
-        instructions: '',
-        paymentMethod: 'COD'
-    }
-  });
-
-  const paymentMethod = watch('paymentMethod');
-  
   useEffect(() => {
     if (state.success) {
       toast({
@@ -63,7 +42,7 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
       });
       clearCart();
       formRef.current?.reset();
-      reset();
+      setPaymentMethod('COD');
     } else if (state.message) {
       toast({
         title: 'Error',
@@ -71,23 +50,13 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
         variant: 'destructive',
       });
     }
-  }, [state, clearCart, toast, reset]);
+  }, [state, clearCart, toast]);
   
   const copyToClipboard = () => {
     navigator.clipboard.writeText('nitish545454@ybl');
     toast({ title: 'Copied!', description: 'UPI ID copied to clipboard.'});
   };
   
-  const handleFormSubmit = (data: OrderFormInputs) => {
-     if (totalPrice === 0) {
-        toast({ title: 'Error', description: 'Your cart is empty.', variant: 'destructive'});
-        return;
-    }
-    const formData = new FormData(formRef.current!);
-    formData.append('cartItems', JSON.stringify(cartItems));
-    formAction(formData);
-  }
-
   return (
     <Card className="w-full max-w-lg mx-auto">
         <CardHeader>
@@ -97,34 +66,38 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
         <CardContent>
              <form
               ref={formRef}
-              onSubmit={handleSubmit(handleFormSubmit)}
+              action={(formData) => {
+                if (totalPrice === 0) {
+                    toast({ title: 'Error', description: 'Your cart is empty.', variant: 'destructive'});
+                    return;
+                }
+                formData.append('cartItems', JSON.stringify(cartItems));
+                formAction(formData);
+              }}
               className="space-y-4"
-              noValidate
             >
                 <div>
                     <Label htmlFor="name">Name</Label>
-                    <Input id="name" {...register('name')} />
-                    {errors.name && <p className="text-sm text-destructive mt-1">{errors.name.message}</p>}
+                    <Input id="name" name="name" required minLength={2} />
                 </div>
                 <div>
                     <Label htmlFor="userClass">Class (e.g., 10th A)</Label>
-                    <Input id="userClass" {...register('userClass')} />
-                     {errors.userClass && <p className="text-sm text-destructive mt-1">{errors.userClass.message}</p>}
+                    <Input id="userClass" name="userClass" required />
                 </div>
 
                 <div>
                     <Label htmlFor="instructions">Special Instructions</Label>
-                    <Textarea id="instructions" {...register('instructions')} placeholder="e.g. Printed format, specific binding..." />
+                    <Textarea id="instructions" name="instructions" placeholder="e.g. Printed format, specific binding..." />
                 </div>
 
                  <div>
                     <Label>Payment Method</Label>
                      <RadioGroup
-                        defaultValue={watch('paymentMethod')}
-                        onValueChange={(val: 'COD' | 'UPI') => setValue('paymentMethod', val, { shouldValidate: true })}
+                        name="paymentMethod"
+                        value={paymentMethod}
+                        onValueChange={(val: 'COD' | 'UPI') => setPaymentMethod(val)}
                         className="flex gap-4 pt-2"
                     >
-                        <input type="hidden" {...register('paymentMethod')} />
                         <div className="flex items-center space-x-2">
                             <RadioGroupItem value="COD" id="cod" />
                             <Label htmlFor="cod">Cash on Delivery (COD)</Label>
@@ -134,7 +107,6 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
                             <Label htmlFor="upi">UPI</Label>
                         </div>
                     </RadioGroup>
-                    {errors.paymentMethod && <p className="text-sm text-destructive mt-1">{errors.paymentMethod.message}</p>}
                 </div>
             
 
