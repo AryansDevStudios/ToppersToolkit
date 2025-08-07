@@ -17,6 +17,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { QrCode, Copy } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 const OrderFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -42,7 +43,8 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
 
-  const { reset, watch, setValue, formState: { errors } } = useForm<OrderFormInputs>({
+  const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<OrderFormInputs>({
+    resolver: zodResolver(OrderFormSchema),
     defaultValues: {
         name: '',
         userClass: '',
@@ -76,11 +78,12 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
     toast({ title: 'Copied!', description: 'UPI ID copied to clipboard.'});
   };
   
-  const handleFormAction = (formData: FormData) => {
+  const handleFormSubmit = (data: OrderFormInputs) => {
      if (totalPrice === 0) {
         toast({ title: 'Error', description: 'Your cart is empty.', variant: 'destructive'});
         return;
     }
+    const formData = new FormData(formRef.current!);
     formData.append('cartItems', JSON.stringify(cartItems));
     formAction(formData);
   }
@@ -94,33 +97,34 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
         <CardContent>
              <form
               ref={formRef}
-              action={handleFormAction}
+              onSubmit={handleSubmit(handleFormSubmit)}
               className="space-y-4"
+              noValidate
             >
                 <div>
                     <Label htmlFor="name">Name</Label>
-                    <Input id="name" name="name" required />
+                    <Input id="name" {...register('name')} />
                     {errors.name && <p className="text-sm text-destructive mt-1">{errors.name.message}</p>}
                 </div>
                 <div>
                     <Label htmlFor="userClass">Class (e.g., 10th A)</Label>
-                    <Input id="userClass" name="userClass" required />
+                    <Input id="userClass" {...register('userClass')} />
                      {errors.userClass && <p className="text-sm text-destructive mt-1">{errors.userClass.message}</p>}
                 </div>
 
                 <div>
                     <Label htmlFor="instructions">Special Instructions</Label>
-                    <Textarea id="instructions" name="instructions" placeholder="e.g. Printed format, specific binding..." />
+                    <Textarea id="instructions" {...register('instructions')} placeholder="e.g. Printed format, specific binding..." />
                 </div>
 
                  <div>
                     <Label>Payment Method</Label>
-                    <RadioGroup
-                        name="paymentMethod"
-                        defaultValue={paymentMethod}
-                        onValueChange={(val: 'COD' | 'UPI') => setValue('paymentMethod', val)}
+                     <RadioGroup
+                        defaultValue={watch('paymentMethod')}
+                        onValueChange={(val: 'COD' | 'UPI') => setValue('paymentMethod', val, { shouldValidate: true })}
                         className="flex gap-4 pt-2"
                     >
+                        <input type="hidden" {...register('paymentMethod')} />
                         <div className="flex items-center space-x-2">
                             <RadioGroupItem value="COD" id="cod" />
                             <Label htmlFor="cod">Cash on Delivery (COD)</Label>
@@ -140,8 +144,8 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
                         <AlertTitle>Pay with UPI</AlertTitle>
                         <AlertDescription className="space-y-4">
                             <p>Scan the QR code or use the UPI ID below to complete your payment.</p>
-                            <div className="flex justify-center">
-                                <img src="/images/payment_qr.png" alt="UPI QR Code" data-ai-hint="qr code" className="rounded-md" />
+                             <div className="flex justify-center">
+                                <img src="/images/payment_qr.png" alt="UPI QR Code" data-ai-hint="qr code" className="rounded-md w-48 h-48 object-contain" />
                             </div>
                             <div className="flex items-center justify-between p-2 rounded-md bg-muted">
                                 <span className="font-mono text-sm">nitish545454@ybl</span>
