@@ -62,10 +62,6 @@ export function OrderList({ orders }: OrderListProps) {
                 <CardTitle>{order.name}</CardTitle>
                 <CardDescription>Class: {order.userClass}</CardDescription>
                  <p className="text-sm text-muted-foreground pt-2">{isClient ? format(new Date(order.createdAt), 'PPP') : ''}</p>
-                 <div className="flex items-center text-sm text-muted-foreground mt-2 gap-2">
-                    {order.paymentMethod === 'COD' ? <HandCoins className="h-4 w-4" /> : <QrCode className="h-4 w-4" />}
-                    <span>{order.paymentMethod === 'COD' ? 'Cash on Delivery' : 'UPI'}</span>
-                </div>
               </div>
                <div className="text-right">
                 <Badge variant={order.status === 'new' ? 'destructive' : 'secondary'}>{order.status}</Badge>
@@ -73,6 +69,10 @@ export function OrderList({ orders }: OrderListProps) {
                   <IndianRupee className="h-5 w-5 mr-1" />
                   {order.totalPrice.toFixed(2)}
                 </p>
+                <div className="flex items-center justify-end text-sm text-muted-foreground mt-1 gap-2">
+                    {order.paymentMethod === 'COD' ? <HandCoins className="h-4 w-4" /> : <QrCode className="h-4 w-4" />}
+                    <span>{order.paymentMethod === 'COD' ? 'Cash on Delivery' : 'UPI'}</span>
+                </div>
               </div>
             </div>
           </CardHeader>
