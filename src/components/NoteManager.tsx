@@ -98,9 +98,9 @@ export function NoteManager({ notes }: NoteManagerProps) {
                     Uploaded on: {format(new Date(note.createdAt as any), 'PPP p')}
                   </p>
                    <div className="font-semibold text-sm flex flex-col mt-2 gap-2">
-                        {note.prices.handwritten && (note.prices.handwritten.pdf || note.prices.handwritten.printed) && <p><b>Handwritten:</b> PDF: ₹{note.prices.handwritten.pdf || 'N/A'} / Printed: ₹{note.prices.handwritten.printed || 'N/A'}</p>}
-                        {note.prices.typed && (note.prices.typed.pdf || note.prices.typed.printed) && <p><b>Typed:</b> PDF: ₹{note.prices.typed.pdf || 'N/A'} / Printed: ₹{note.prices.typed.printed || 'N/A'}</p>}
-                        {note.prices.questionBank && (note.prices.questionBank.pdf || note.prices.questionBank.printed) && <p><b>Question Bank:</b> PDF: ₹{note.prices.questionBank.pdf || 'N/A'} / Printed: ₹{note.prices.questionBank.printed || 'N/A'}</p>}
+                        {note.prices?.handwritten && (note.prices.handwritten.pdf || note.prices.handwritten.printed) && <p><b>Handwritten:</b> PDF: ₹{note.prices.handwritten.pdf || 'N/A'} / Printed: ₹{note.prices.handwritten.printed || 'N/A'}</p>}
+                        {note.prices?.typed && (note.prices.typed.pdf || note.prices.typed.printed) && <p><b>Typed:</b> PDF: ₹{note.prices.typed.pdf || 'N/A'} / Printed: ₹{note.prices.typed.printed || 'N/A'}</p>}
+                        {note.prices?.questionBank && (note.prices.questionBank.pdf || note.prices.questionBank.printed) && <p><b>Question Bank:</b> PDF: ₹{note.prices.questionBank.pdf || 'N/A'} / Printed: ₹{note.prices.questionBank.printed || 'N/A'}</p>}
                    </div>
                 </div>
               </div>
