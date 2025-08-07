@@ -172,7 +172,7 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
                         <AlertDescription className="space-y-4">
                             <p>Scan the QR code or use the UPI ID below to complete your payment.</p>
                             <div className="flex justify-center">
-                                <img src="/images/payment_qr.png" alt="UPI QR Code" data-ai-hint="qr code" className="rounded-md h-48 w-48 object-contain" />
+                                <img src="/images/payment_qr.png" alt="UPI QR Code" data-ai-hint="qr code" className="rounded-md" />
                             </div>
                             <div className="flex items-center justify-between p-2 rounded-md bg-muted">
                                 <span className="font-mono text-sm">nitish545454@ybl</span>
