@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { CartItem, Subject, SubCategory, NoteMaterial } from '@/types';
 import { saveOrder, saveNoteMaterial, updateOrderStatus, deleteNoteMaterial, updateNoteMaterial } from './data';
 import { Timestamp } from 'firebase/firestore';
+import { revalidatePath } from 'next/cache';
 
 const placeOrderSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -85,6 +86,8 @@ export async function addNoteAction(prevState: any, formData: FormData) {
         };
 
         await saveNoteMaterial(newNote);
+        revalidatePath('/');
+        revalidatePath(`/subjects/${subject.id}/${subcategory.id}`);
         
         return { success: true, message: 'Note added successfully!' };
 
@@ -128,6 +131,8 @@ export async function updateNoteAction(prevState: any, formData: FormData) {
         };
 
         await updateNoteMaterial(parsed.noteId, updatedData);
+        revalidatePath('/');
+        revalidatePath(`/subjects/${subject.id}/${subcategory.id}`);
         
         return { success: true, message: 'Note updated successfully!' };
 
@@ -142,25 +147,30 @@ export async function updateNoteAction(prevState: any, formData: FormData) {
 export async function completeOrderAction(orderId: string) {
     try {
         await updateOrderStatus(orderId, 'completed');
+        revalidatePath('/admin');
         return { success: true, message: 'Order marked as complete.' };
     } catch (error) {
         return { success: false, message: 'Failed to update order.' };
     }
 }
 
-export async function deleteNoteAction(noteId: string) {
+export async function deleteNoteAction(noteId: string, subjectId: string, subcategoryId: string) {
     try {
         await deleteNoteMaterial(noteId);
+        revalidatePath('/');
+        revalidatePath(`/subjects/${subjectId}/${subcategoryId}`);
         return { success: true, message: 'Note deleted.' };
     } catch (error) {
         return { success: false, message: 'Failed to delete note.' };
     }
 }
 
-export async function toggleNoteStatusAction(noteId: string, currentStatus: 'published' | 'hidden') {
+export async function toggleNoteStatusAction(noteId: string, currentStatus: 'published' | 'hidden', subjectId: string, subcategoryId: string) {
     try {
         const newStatus = currentStatus === 'published' ? 'hidden' : 'published';
         await updateNoteMaterial(noteId, { status: newStatus });
+        revalidatePath('/');
+        revalidatePath(`/subjects/${subjectId}/${subcategoryId}`);
         return { success: true, message: `Note status updated to ${newStatus}.` };
     } catch (error) {
         return { success: false, message: 'Failed to update note status.' };

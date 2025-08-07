@@ -39,9 +39,9 @@ export function NoteManager({ notes }: NoteManagerProps) {
   const [isPending, startTransition] = useTransition();
   const [activeDialog, setActiveDialog] = useState<string | null>(null);
 
-  const handleDelete = (noteId: string) => {
+  const handleDelete = (note: NoteMaterial) => {
     startTransition(async () => {
-      const result = await deleteNoteAction(noteId);
+      const result = await deleteNoteAction(note.id, note.subjectId, note.subcategoryId);
       if (result.success) {
         toast({ title: 'Success', description: result.message });
         router.refresh();
@@ -51,9 +51,9 @@ export function NoteManager({ notes }: NoteManagerProps) {
     });
   };
 
-  const handleToggleStatus = (noteId: string, currentStatus: 'published' | 'hidden') => {
+  const handleToggleStatus = (note: NoteMaterial) => {
     startTransition(async () => {
-      const result = await toggleNoteStatusAction(noteId, currentStatus);
+      const result = await toggleNoteStatusAction(note.id, note.status, note.subjectId, note.subcategoryId);
       if (result.success) {
         toast({ title: 'Success', description: result.message });
         router.refresh();
@@ -111,7 +111,7 @@ export function NoteManager({ notes }: NoteManagerProps) {
                   <Switch 
                       id={`status-${note.id}`} 
                       checked={note.status === 'published'}
-                      onCheckedChange={() => handleToggleStatus(note.id, note.status)}
+                      onCheckedChange={() => handleToggleStatus(note)}
                       disabled={isPending}
                       aria-label="Toggle note visibility"
                   />
@@ -155,7 +155,7 @@ export function NoteManager({ notes }: NoteManagerProps) {
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
                       <AlertDialogAction
-                        onClick={() => handleDelete(note.id)}
+                        onClick={() => handleDelete(note)}
                         disabled={isPending}
                         className="bg-destructive hover:bg-destructive/90"
                       >

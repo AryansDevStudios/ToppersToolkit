@@ -2,6 +2,7 @@
 import type { Subject, NoteMaterial, Chapter, Order } from '@/types';
 import { db } from './firebase';
 import { collection, getDocs, getDoc, doc, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, Timestamp } from 'firebase/firestore';
+import { unstable_noStore as noStore } from 'next/cache';
 
 
 // API-like functions to get data from Firestore
@@ -23,6 +24,7 @@ export async function getSubjectById(id: string): Promise<Subject | undefined> {
 }
 
 export async function getRecentNotes(count: number = 8): Promise<NoteMaterial[]> {
+    noStore();
     const notesQuery = query(
         collection(db, 'noteMaterials'), 
         orderBy('createdAt', 'desc'), 
@@ -43,6 +45,7 @@ export async function getRecentNotes(count: number = 8): Promise<NoteMaterial[]>
 }
 
 export async function getAllNotes(): Promise<NoteMaterial[]> {
+    noStore();
     const notesQuery = query(collection(db, 'noteMaterials'), orderBy('createdAt', 'desc'));
     const notesSnapshot = await getDocs(notesQuery);
     const notesData = notesSnapshot.docs.map(doc => {
@@ -58,6 +61,7 @@ export async function getAllNotes(): Promise<NoteMaterial[]> {
 
 
 export async function getChaptersForSubcategory(subjectId: string, subcategoryId: string): Promise<Chapter[]> {
+    noStore();
     const materialsQuery = query(
         collection(db, 'noteMaterials'), 
         where('subjectId', '==', subjectId), 
