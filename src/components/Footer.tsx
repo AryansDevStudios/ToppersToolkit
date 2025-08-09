@@ -42,7 +42,7 @@ export function Footer() {
             <h3 className="text-lg font-semibold font-headline mb-2">Download Our App</h3>
             <p className="text-muted-foreground mb-4">Get the full experience on your Android device.</p>
             <Button asChild>
-              <Link href="#">
+              <Link href="/app/android/Topper's%20Toolkit.apk">
                 <AndroidIcon className="mr-2 h-5 w-5" />
                 Download for Android
               </Link>
