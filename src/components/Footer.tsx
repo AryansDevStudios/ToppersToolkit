@@ -6,7 +6,7 @@ export function Footer() {
   return (
     <footer className="bg-card mt-12 border-t">
       <div className="container py-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 text-center md:text-left">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
           <div>
             <h3 className="text-lg font-black mb-2">Topper's Toolkit Viewer</h3>
             <p className="text-muted-foreground text-sm">High-quality resources for academic success. All rights reserved.</p>
@@ -40,7 +40,7 @@ export function Footer() {
               </li>
             </ul>
           </div>
-           <div>
+           <div className="text-center md:text-left">
             <h3 className="text-lg font-semibold mb-2">Download App</h3>
             <p className="text-muted-foreground text-sm mb-4">Get the Android app for a better mobile experience.</p>
             <Button asChild>
