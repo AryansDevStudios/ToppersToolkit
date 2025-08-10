@@ -35,7 +35,7 @@ export function Header() {
       </Link>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="p-0 h-auto text-muted-foreground transition-colors hover:text-foreground hover:bg-transparent" disabled={!isClient}>Browse</Button>
+          <Button variant="ghost" className="p-0 h-auto text-muted-foreground transition-colors hover:text-foreground hover:bg-transparent" disabled={subjects.length === 0}>Browse</Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
           {subjects.map((subject) => (
@@ -64,7 +64,7 @@ export function Header() {
             <span className="font-black text-lg font-headline">Topper's Toolkit</span>
           </Link>
           <nav className="flex items-center space-x-6 text-sm font-medium">
-            {isClient ? navLinks : null}
+            {isClient && navLinks}
           </nav>
         </div>
 
@@ -88,7 +88,7 @@ export function Header() {
                   </SheetTitle>
                 </SheetHeader>
                 <nav className="flex flex-col gap-4 mt-8">
-                  {isClient ? navLinks : null}
+                  {isClient && navLinks}
                 </nav>
               </SheetContent>
             </Sheet>
