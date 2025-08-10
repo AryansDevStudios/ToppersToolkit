@@ -1,7 +1,8 @@
+
 'use client';
 
 import Link from 'next/link';
-import { Menu, ShoppingCart, UserCog } from 'lucide-react';
+import { Menu, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -15,15 +16,16 @@ import { getSubjects } from '@/lib/data';
 import { useEffect, useState } from 'react';
 import type { Subject } from '@/types';
 import { Badge } from './ui/badge';
-import Image from 'next/image';
 import { ThemeToggle } from './ThemeToggle';
 
 export function Header() {
   const { itemCount } = useCart();
   const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     getSubjects().then(setSubjects);
+    setIsClient(true);
   }, []);
 
   const navLinks = (
@@ -33,7 +35,7 @@ export function Header() {
       </Link>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="p-0 h-auto text-muted-foreground transition-colors hover:text-foreground hover:bg-transparent">Browse</Button>
+          <Button variant="ghost" className="p-0 h-auto text-muted-foreground transition-colors hover:text-foreground hover:bg-transparent" disabled={!isClient}>Browse</Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
           {subjects.map((subject) => (
@@ -43,9 +45,9 @@ export function Header() {
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
-      <Link href="https://topperstoolkitviewer.netlify.app/" className="text-muted-foreground transition-colors hover:text-foreground">
+      <a href="https://topperstoolkitviewer.netlify.app/" className="text-muted-foreground transition-colors hover:text-foreground">
         E-Library
-      </Link>
+      </a>
       <Link href="/admin" className="text-muted-foreground transition-colors hover:text-foreground">
         Admin
       </Link>
@@ -62,7 +64,7 @@ export function Header() {
             <span className="font-black text-lg font-headline">Topper's Toolkit</span>
           </Link>
           <nav className="flex items-center space-x-6 text-sm font-medium">
-            {navLinks}
+            {isClient ? navLinks : null}
           </nav>
         </div>
 
@@ -86,7 +88,7 @@ export function Header() {
                   </SheetTitle>
                 </SheetHeader>
                 <nav className="flex flex-col gap-4 mt-8">
-                  {navLinks}
+                  {isClient ? navLinks : null}
                 </nav>
               </SheetContent>
             </Sheet>
