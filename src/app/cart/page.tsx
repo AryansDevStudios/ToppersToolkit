@@ -6,17 +6,25 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { PlaceOrderForm } from '@/components/PlaceOrderForm';
 import Link from 'next/link';
-import { Trash2, ShoppingCart, IndianRupee } from 'lucide-react';
+import { Trash2, ShoppingCart, IndianRupee, Info } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function CartPage() {
   const { items, removeFromCart, itemCount, totalPrice, updateItemFormat } = useCart();
 
   return (
     <div className="container py-12">
-      <h1 className="text-4xl font-bold font-headline mb-8 text-center">Your Cart</h1>
+      <h1 className="text-4xl font-bold font-headline mb-4 text-center">Your Cart</h1>
+       <Alert className="max-w-3xl mx-auto mb-8 bg-muted/50">
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            This website is for ordering notes. After purchase, digital items (PDFs) will be accessible for viewing on our secure <a href="https://topperstoolkitviewer.netlify.app/" className="text-primary font-semibold hover:underline" target="_blank" rel="noopener noreferrer">E-Library platform</a>.
+          </AlertDescription>
+        </Alert>
+
       {itemCount === 0 ? (
         <div className="text-center py-16">
           <ShoppingCart className="mx-auto h-24 w-24 text-muted-foreground/50" />
