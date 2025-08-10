@@ -14,6 +14,7 @@ const placeOrderSchema = z.object({
   instructions: z.string().optional(),
   cartItems: z.string(),
   paymentMethod: z.enum(['COD', 'UPI'], { required_error: 'Please select a payment method' }),
+  terms: z.literal('on', { errorMap: () => ({ message: 'You must agree to the Terms and Conditions' }) }),
 });
 
 export async function placeOrderAction(prevState: any, formData: FormData) {
@@ -25,6 +26,7 @@ export async function placeOrderAction(prevState: any, formData: FormData) {
       instructions: formData.get('instructions'),
       cartItems: formData.get('cartItems'),
       paymentMethod: formData.get('paymentMethod'),
+      terms: formData.get('terms'),
     });
 
     const cartItems: CartItem[] = JSON.parse(parsed.cartItems);
@@ -49,6 +51,9 @@ export async function placeOrderAction(prevState: any, formData: FormData) {
   } catch (error) {
     console.error(error);
     const message = error instanceof Error ? error.message : 'Failed to place order.';
+    if (error instanceof z.ZodError) {
+        return { success: false, message: error.errors[0].message };
+    }
     return { success: false, message };
   }
 }

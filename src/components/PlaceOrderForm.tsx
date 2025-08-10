@@ -16,12 +16,14 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { QrCode, Copy } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useState } from 'react';
+import { Checkbox } from './ui/checkbox';
+import Link from 'next/link';
 
 
-function SubmitButton() {
+function SubmitButton({ disabled }: { disabled: boolean }) {
     const { pending } = useFormStatus();
     return (
-      <Button type="submit" disabled={pending} className="w-full">
+      <Button type="submit" disabled={pending || disabled} className="w-full">
         {pending ? 'Placing Order...' : 'Place Order'}
       </Button>
     );
@@ -33,6 +35,7 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
   const [paymentMethod, setPaymentMethod] = useState<'COD' | 'UPI'>('COD');
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   useEffect(() => {
     if (state.success) {
@@ -43,6 +46,7 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
       clearCart();
       formRef.current?.reset();
       setPaymentMethod('COD');
+      setAgreedToTerms(false);
     } else if (state.message) {
       toast({
         title: 'Error',
@@ -131,7 +135,23 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
                     </Alert>
                 )}
 
-                <SubmitButton />
+                <div className="flex items-start space-x-2 pt-2">
+                    <Checkbox 
+                        id="terms"
+                        name="terms"
+                        checked={agreedToTerms}
+                        onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
+                    />
+                    <Label htmlFor="terms" className="text-sm text-muted-foreground leading-normal">
+                        I have read and agree to the 
+                        <Link href="/terms" target="_blank" className="text-primary hover:underline underline-offset-2 ml-1">
+                            Terms and Conditions
+                        </Link>
+                        .
+                    </Label>
+                </div>
+
+                <SubmitButton disabled={!agreedToTerms} />
             </form>
         </CardContent>
     </Card>
