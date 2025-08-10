@@ -43,6 +43,9 @@ export function Header() {
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
+      <Link href="https://topperstoolkitviewer.netlify.app/" className="text-muted-foreground transition-colors hover:text-foreground">
+        E-Library
+      </Link>
       <Link href="/admin" className="text-muted-foreground transition-colors hover:text-foreground">
         Admin
       </Link>
