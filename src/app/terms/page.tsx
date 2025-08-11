@@ -16,10 +16,20 @@ export default function TermsPage() {
 
         <div>
             <h2 className="text-2xl font-bold mt-8 mb-4">1. Parties Involved</h2>
-            <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                <li><strong>Site Owner:</strong> Aryan Gupta (AryansDevStudios) — Contact: <a href="mailto:aryan0106gupta@gmail.com" className="text-primary hover:underline">aryan0106gupta@gmail.com</a>, WhatsApp: +91 98380 40111</li>
-                <li><strong>Seller:</strong> Kuldeep Singh — Contact: <a href="mailto:kuldeepsingh012011@gmail.com" className="text-primary hover:underline">kuldeepsingh012011@gmail.com</a>, WhatsApp: +91 77540 00411</li>
-            </ul>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="text-sm p-4 rounded-lg border bg-card">
+                    <h3 className="font-semibold text-lg text-card-foreground">Site Owner</h3>
+                    <p className="text-muted-foreground">Aryan Gupta (AryansDevStudios)</p>
+                    <a href="mailto:aryan0106gupta@gmail.com" className="text-primary hover:underline block mt-2">aryan0106gupta@gmail.com</a>
+                    <a href="https://wa.me/919838040111" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline block">WhatsApp: +91 98380 40111</a>
+                </div>
+                <div className="text-sm p-4 rounded-lg border bg-card">
+                    <h3 className="font-semibold text-lg text-card-foreground">Seller</h3>
+                    <p className="text-muted-foreground">Kuldeep Singh</p>
+                    <a href="mailto:kuldeepsingh012011@gmail.com" className="text-primary hover:underline block mt-2">kuldeepsingh012011@gmail.com</a>
+                    <a href="https://wa.me/917754000411" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline block">WhatsApp: +91 77540 00411</a>
+                </div>
+            </div>
         </div>
         
         <div>
@@ -116,11 +126,21 @@ export default function TermsPage() {
 
         <div>
             <h2 className="text-2xl font-bold mt-8 mb-4">12. Contact</h2>
-            <p className="text-muted-foreground mb-2">For any questions regarding these Terms:</p>
-             <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                <li><strong>Owner:</strong> <a href="mailto:aryan0106gupta@gmail.com" className="text-primary hover:underline">aryan0106gupta@gmail.com</a> | WhatsApp: +91 98380 40111</li>
-                <li><strong>Seller:</strong> <a href="mailto:kuldeepsingh012011@gmail.com" className="text-primary hover:underline">kuldeepsingh012011@gmail.com</a> | WhatsApp: +91 77540 00411</li>
-            </ul>
+            <p className="text-muted-foreground mb-2">For any questions regarding these Terms, please contact the relevant party:</p>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                <div className="text-sm p-4 rounded-lg border bg-card">
+                    <h3 className="font-semibold text-lg text-card-foreground">Site Owner</h3>
+                    <p className="text-muted-foreground">Aryan Gupta (AryansDevStudios)</p>
+                    <a href="mailto:aryan0106gupta@gmail.com" className="text-primary hover:underline block mt-2">aryan0106gupta@gmail.com</a>
+                    <a href="https://wa.me/919838040111" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline block">WhatsApp: +91 98380 40111</a>
+                </div>
+                <div className="text-sm p-4 rounded-lg border bg-card">
+                    <h3 className="font-semibold text-lg text-card-foreground">Seller</h3>
+                    <p className="text-muted-foreground">Kuldeep Singh</p>
+                    <a href="mailto:kuldeepsingh012011@gmail.com" className="text-primary hover:underline block mt-2">kuldeepsingh012011@gmail.com</a>
+                    <a href="https://wa.me/917754000411" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline block">WhatsApp: +91 77540 00411</a>
+                </div>
+            </div>
         </div>
 
       </div>
