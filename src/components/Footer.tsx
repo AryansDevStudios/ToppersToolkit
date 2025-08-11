@@ -1,3 +1,4 @@
+
 import { Mail, Send, Smartphone, Download } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
           <div>
             <h3 className="text-lg font-black mb-2">Topper's Toolkit</h3>
-            <p className="text-muted-foreground text-sm">This site is for ordering notes. Purchased digital materials can be viewed on our <a href="https://topperstoolkitviewer.netlify.app/" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">E-Library platform</a>.</p>
+            <p className="text-muted-foreground text-sm">This site is for ordering notes. Purchased digital materials can be viewed on our <a href="https://topperstoolkitviewer.netlify.app/" className="text-primary hover:underline">E-Library platform</a>.</p>
              <div className="mt-4">
                 <Link href="/terms" className="text-sm text-primary underline underline-offset-4 hover:opacity-80 transition-opacity">
                     Terms & Conditions
