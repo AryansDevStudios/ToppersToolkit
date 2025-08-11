@@ -32,6 +32,8 @@ export default function TermsPage() {
             </div>
         </div>
         
+        <Separator className="my-8" />
+
         <div>
             <h2 className="text-2xl font-bold mt-8 mb-4">2. Relationship with Access Site</h2>
             <p className="text-muted-foreground">
@@ -39,12 +41,16 @@ export default function TermsPage() {
             </p>
         </div>
 
+        <Separator className="my-8" />
+
         <div>
             <h2 className="text-2xl font-bold mt-8 mb-4">3. Ownership of Content</h2>
             <p className="text-muted-foreground">
                 All notes, study materials, PDFs, booklets, and related resources are the sole property of <strong>Kuldeep Singh</strong>. Purchasing a product does <strong>not</strong> grant ownership rights — you are purchasing a <strong>license to use</strong>, not the right to reproduce, distribute, or resell.
             </p>
         </div>
+
+        <Separator className="my-8" />
 
         <div>
             <h2 className="text-2xl font-bold mt-8 mb-4">4. Delivery of Access</h2>
@@ -55,6 +61,8 @@ export default function TermsPage() {
             </ul>
         </div>
         
+        <Separator className="my-8" />
+
         <div>
             <h2 className="text-2xl font-bold mt-8 mb-4">5. Refund Policy</h2>
             <p className="text-muted-foreground mb-2">Refunds are granted <strong>only under the following conditions</strong>:</p>
@@ -65,6 +73,8 @@ export default function TermsPage() {
                 <li>No refunds are given for violations of these Terms.</li>
             </ul>
         </div>
+
+        <Separator className="my-8" />
 
         <div>
             <h2 className="text-2xl font-bold mt-8 mb-4">6. Prohibited Activities (Digital & Printed Content)</h2>
@@ -80,6 +90,8 @@ export default function TermsPage() {
             </ul>
         </div>
 
+        <Separator className="my-8" />
+
         <div>
             <h2 className="text-2xl font-bold mt-8 mb-4">7. Terms for Printed Purchases (Booklets)</h2>
             <p className="text-muted-foreground mb-2">If you purchase a printed version of our notes (“booklet” format), you agree that:</p>
@@ -91,12 +103,16 @@ export default function TermsPage() {
             </ul>
         </div>
 
+        <Separator className="my-8" />
+
         <div>
             <h2 className="text-2xl font-bold mt-8 mb-4">8. Anti-Piracy Notice</h2>
             <p className="text-muted-foreground">
                 We actively monitor for <strong>digital and physical piracy</strong>. Content may contain <strong>digital watermarks</strong> or other identifiers to trace unauthorized distribution. Any violation — including sharing photographs of printed materials — will be treated as copyright infringement.
             </p>
         </div>
+
+        <Separator className="my-8" />
 
         <div>
             <h2 className="text-2xl font-bold mt-8 mb-4">9. Enforcement</h2>
@@ -110,6 +126,8 @@ export default function TermsPage() {
             </ul>
         </div>
         
+        <Separator className="my-8" />
+
         <div>
             <h2 className="text-2xl font-bold mt-8 mb-4">10. Agreement Requirement</h2>
             <p className="text-muted-foreground">
@@ -117,12 +135,16 @@ export default function TermsPage() {
             </p>
         </div>
 
+        <Separator className="my-8" />
+
         <div>
             <h2 className="text-2xl font-bold mt-8 mb-4">11. Availability</h2>
             <p className="text-muted-foreground">
                 We aim for high availability of our services. In rare cases, downtime may occur, with a maximum expected outage of <strong>1 hour</strong>.
             </p>
         </div>
+
+        <Separator className="my-8" />
 
         <div>
             <h2 className="text-2xl font-bold mt-8 mb-4">12. Contact</h2>
