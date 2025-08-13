@@ -10,8 +10,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useCart } from '@/hooks/use-cart';
-import type { Chapter, NoteMaterial, NoteItem, PriceInfo } from '@/types';
+import type { Chapter, NoteMaterial, NoteItem } from '@/types';
 import { ShoppingCart, IndianRupee } from 'lucide-react';
+import { NoteImage } from './NoteImage';
+import { BookOpen } from 'lucide-react';
 
 type ChapterAccordionProps = {
   chapters: Chapter[];
@@ -72,17 +74,15 @@ export function ChapterAccordion({ chapters }: ChapterAccordionProps) {
                     const cartItemId = `${note.id}-${noteItem.id}`;
                     const isInCart = items.some(item => item.id === cartItemId);
                     
-                    const itemImage = noteItem.imageUrl || note.imageUrl || 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true';
+                    const itemImage = noteItem.imageUrl || note.imageUrl;
 
                     return (
                       <div key={cartItemId} className="flex flex-col md:flex-row flex-wrap gap-4 p-4 rounded-lg border bg-card/50">
-                        <div className="relative w-full md:w-48 h-32 flex-shrink-0 rounded-md overflow-hidden">
-                          <img
+                        <div className="relative w-full md:w-48 h-32 flex-shrink-0 rounded-md overflow-hidden bg-muted flex items-center justify-center">
+                          <NoteImage
                             src={itemImage}
                             alt={note.chapter}
-                            className="w-full h-full object-cover"
-                            data-ai-hint="notes study"
-                            onError={(e) => { e.currentTarget.src = 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true'; }}
+                            fallbackIcon={<BookOpen className="h-10 w-10 text-muted-foreground" />}
                           />
                         </div>
                         <div className="flex-grow">
@@ -109,7 +109,7 @@ export function ChapterAccordion({ chapters }: ChapterAccordionProps) {
                             )}
                           </div>
                         </div>
-                        <div className="flex-shrink-0 flex flex-col justify-center items-center">
+                        <div className="flex-shrink-0 flex flex-col justify-center items-center self-center ml-auto">
                           <Button onClick={() => handleAddToCart(note, noteItem)} disabled={isInCart} className="w-full md:w-auto">
                             <ShoppingCart className="mr-2 h-4 w-4" />
                             {isInCart ? 'Added' : 'Add to Cart'}

@@ -37,7 +37,7 @@ export type NoteMaterial = {
   description: string; // Main description for the chapter notes
   imageUrl?: string; // Main image for the whole chapter notes collection
   status: 'published' | 'hidden';
-  createdAt: Timestamp;
+  createdAt: Timestamp | string; // Allow string for client-side representation
   items: NoteItem[]; // Array of different note types for this chapter
 };
 
@@ -59,7 +59,7 @@ export type Order = {
   userClass: string;
   instructions?: string;
   items: CartItem[];
-  createdAt: Timestamp;
+  createdAt: Timestamp | string;
   status: 'new' | 'completed';
   totalPrice: number;
   paymentMethod: 'COD' | 'UPI';

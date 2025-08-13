@@ -4,17 +4,19 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import type { NoteMaterial } from '@/types';
 import { Badge } from './ui/badge';
 import { ArrowRight, IndianRupee } from 'lucide-react';
+import { NoteImage } from './NoteImage';
+import { BookOpen } from 'lucide-react';
+
 
 type NoteCardProps = {
   note: NoteMaterial;
 };
 
 export function NoteCard({ note }: NoteCardProps) {
-  const validImageUrl = note.imageUrl || 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true';
-
+  const items = Array.isArray(note.items) ? note.items : [];
   // Find the first available price from all items to display
   const findFirstPrice = () => {
-    for (const item of note.items) {
+    for (const item of items) {
       if (item.prices.pdf !== undefined) return item.prices.pdf;
       if (item.prices.printed !== undefined) return item.prices.printed;
     }
@@ -27,13 +29,11 @@ export function NoteCard({ note }: NoteCardProps) {
     <Link href={`/subjects/${note.subjectId}/${note.subcategoryId}`} className="group block">
       <Card className="overflow-hidden h-full flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-2 bg-card hover:bg-accent/40">
         <CardHeader className="p-0">
-          <div className="relative h-48 w-full">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={validImageUrl}
+          <div className="relative h-48 w-full bg-muted flex items-center justify-center">
+            <NoteImage 
+              src={note.imageUrl}
               alt={note.chapter}
-              className="w-full h-full object-cover"
-              data-ai-hint="notebook education"
+              fallbackIcon={<BookOpen className="h-16 w-16 text-muted-foreground" />}
             />
              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
           </div>

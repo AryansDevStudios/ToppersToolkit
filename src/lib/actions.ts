@@ -58,29 +58,34 @@ export async function placeOrderAction(prevState: any, formData: FormData) {
   }
 }
 
-const PriceSchema = z.coerce.number().min(0).optional().or(z.literal(''));
+const PriceSchema = z.coerce.number().min(0, 'Price must be non-negative').optional().or(z.literal(''));
 
 const NoteItemSchema = z.object({
     id: z.string(),
-    name: z.string().min(1),
+    name: z.string().min(1, 'Note type name is required.'),
     description: z.string().optional(),
-    imageUrl: z.string().url().optional().or(z.literal('')),
+    imageUrl: z.string().url({ message: 'Please enter a valid image URL.' }).optional().or(z.literal('')),
     pricePDF: PriceSchema,
     pricePrinted: PriceSchema,
+}).refine(data => data.pricePDF || data.pricePrinted, {
+    message: 'At least one price (PDF or Printed) is required for this note type.',
+    path: ['name'], // Attach error to the name field of the item
 });
+
 
 const NoteFormSchema = z.object({
-    subject: z.string().min(1),
-    subcategory: z.string().min(1),
-    chapterName: z.string().min(1),
-    description: z.string().min(1),
-    imageUrl: z.string().url().optional().or(z.literal('')),
-    items: z.string(), // JSON string of NoteItem array
+  subject: z.string().min(1, 'Please select a subject'),
+  subcategory: z.string().min(1, 'Please select a subcategory'),
+  chapterName: z.string().min(1, 'Chapter name is required'),
+  description: z.string().min(1, 'A main description is required'),
+  imageUrl: z.string().url({ message: 'Please enter a valid main image URL.' }).optional().or(z.literal('')),
+  items: z.string(), // This will be a JSON string
 });
 
+
 const parseAndTransformNoteItems = (itemsJSON: string): NoteItem[] => {
-    const parsedItems = z.array(NoteItemSchema).parse(JSON.parse(itemsJSON));
-    return parsedItems.map(item => ({
+    const parsedItemsForValidation = z.array(NoteItemSchema).min(1, 'You must add at least one note type.').parse(JSON.parse(itemsJSON));
+    return parsedItemsForValidation.map(item => ({
         id: item.id,
         name: item.name,
         description: item.description || '',
@@ -95,7 +100,8 @@ const parseAndTransformNoteItems = (itemsJSON: string): NoteItem[] => {
 export async function addNoteAction(prevState: any, formData: FormData) {
     noStore();
     try {
-        const parsed = NoteFormSchema.parse(Object.fromEntries(formData.entries()));
+        const rawData = Object.fromEntries(formData.entries());
+        const parsed = NoteFormSchema.parse(rawData);
 
         const subject: Subject = JSON.parse(parsed.subject);
         const subcategory: SubCategory = JSON.parse(parsed.subcategory);
@@ -137,7 +143,8 @@ const updateNoteSchema = NoteFormSchema.extend({
 export async function updateNoteAction(prevState: any, formData: FormData) {
     noStore();
     try {
-        const parsed = updateNoteSchema.parse(Object.fromEntries(formData.entries()));
+        const rawData = Object.fromEntries(formData.entries());
+        const parsed = updateNoteSchema.parse(rawData);
 
         const subject: Subject = JSON.parse(parsed.subject);
         const subcategory: SubCategory = JSON.parse(parsed.subcategory);
@@ -183,7 +190,7 @@ export async function completeOrderAction(orderId: string) {
     }
 }
 
-export async function deleteNoteAction(noteId: string, subjectId: string, subcategoryId: string) {
+export async function deleteNoteAction(noteId: string) {
     noStore();
     try {
         await deleteNoteMaterial(noteId);
@@ -196,7 +203,7 @@ export async function deleteNoteAction(noteId: string, subjectId: string, subcat
     }
 }
 
-export async function toggleNoteStatusAction(noteId: string, currentStatus: 'published' | 'hidden', subjectId: string, subcategoryId: string) {
+export async function toggleNoteStatusAction(noteId: string, currentStatus: 'published' | 'hidden') {
     noStore();
     try {
         const newStatus = currentStatus === 'published' ? 'hidden' : 'published';

@@ -27,7 +27,7 @@ const NoteItemSchema = z.object({
     imageUrl: z.string().url({ message: 'Please enter a valid image URL.' }).optional().or(z.literal('')),
     pricePDF: PriceSchema,
     pricePrinted: PriceSchema,
-}).refine(data => data.pricePDF || data.pricePrinted, {
+}).refine(data => data.pricePDF !== undefined && data.pricePDF !== '' || data.pricePrinted !== undefined && data.pricePrinted !== '', {
     message: 'At least one price (PDF or Printed) is required for this note type.',
     path: ['name'],
 });
@@ -70,11 +70,24 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
 
+  const getInitialSubjectString = () => {
+    if (!note) return '';
+    const subject = subjectsData.find(s => s.id === note.subjectId);
+    return subject ? JSON.stringify(subject) : '';
+  };
+  
+  const getInitialSubcategoryString = () => {
+      if (!note) return '';
+      const subject = subjectsData.find(s => s.id === note.subjectId);
+      const subcategory = subject?.subcategories.find(sc => sc.id === note.subcategoryId);
+      return subcategory ? JSON.stringify(subcategory) : '';
+  };
+
   const { register, control, watch, setValue, reset, handleSubmit, formState: { errors, isSubmitting } } = useForm<NoteFormInputs>({
     resolver: zodResolver(NoteFormSchema),
     defaultValues: {
-      subject: note ? JSON.stringify({ id: note.subjectId, name: note.subjectName, subcategories: subjectsData.find(s => s.id === note.subjectId)?.subcategories }) : '',
-      subcategory: note ? JSON.stringify({ id: note.subcategoryId, name: note.subcategoryName }) : '',
+      subject: getInitialSubjectString(),
+      subcategory: getInitialSubcategoryString(),
       chapterName: note?.chapter || '',
       description: note?.description || '',
       imageUrl: note?.imageUrl || '',
@@ -102,24 +115,41 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
         try {
             const selectedSubject = JSON.parse(selectedSubjectJSON) as Subject;
             setSubcategories(selectedSubject.subcategories || []);
-            if (!isEditing || (note?.subjectId !== selectedSubject.id)) {
-                setValue('subcategory', '');
+            // This logic ensures that when the subject changes, the subcategory is reset,
+            // unless we are in edit mode and the subject is the note's original subject.
+            const currentSubcategory = watch('subcategory');
+            if (currentSubcategory) {
+                const parsedSubcategory = JSON.parse(currentSubcategory);
+                if (!selectedSubject.subcategories.some(sc => sc.id === parsedSubcategory.id)) {
+                    setValue('subcategory', '');
+                }
             }
         } catch (e) {
             setSubcategories([]);
+            setValue('subcategory', '');
         }
     } else {
         setSubcategories([]);
+        setValue('subcategory', '');
     }
-  }, [selectedSubjectJSON, setValue, note, isEditing]);
+  }, [selectedSubjectJSON, setValue, watch]);
   
   const processForm = async (data: NoteFormInputs) => {
-    const action = isEditing ? updateNoteAction : addNoteAction;
+    const action = isEditing && note ? updateNoteAction : addNoteAction;
     
-    // Convert form data to a format that can be sent via FormData
-    const formData = new FormData(formRef.current!);
-    formData.set('items', JSON.stringify(data.items));
+    // Create a new FormData object to send to the server action
+    const formData = new FormData();
+    formData.append('subject', data.subject);
+    formData.append('subcategory', data.subcategory);
+    formData.append('chapterName', data.chapterName);
+    formData.append('description', data.description);
+    formData.append('imageUrl', data.imageUrl || '');
+    formData.append('items', JSON.stringify(data.items)); // Send items as a JSON string
 
+    if (isEditing && note) {
+        formData.append('noteId', note.id);
+    }
+    
     const result = await action(null, formData);
 
     if (result.success) {
@@ -138,39 +168,48 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
 
   return (
     <form ref={formRef} onSubmit={handleSubmit(processForm)} className="space-y-4">
-      {isEditing && <input type="hidden" name="noteId" value={note.id} />}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label>Subject</Label>
-          <Select 
-            value={watch('subject')}
-            onValueChange={(value) => setValue('subject', value, { shouldValidate: true })}
+          <Controller
             name="subject"
-          >
-            <SelectTrigger><SelectValue placeholder="Select a subject" /></SelectTrigger>
-            <SelectContent>
-              {subjectsData.map((s) => (
-                <SelectItem key={s.id} value={JSON.stringify(s)}>{s.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            control={control}
+            render={({ field }) => (
+              <Select 
+                value={field.value}
+                onValueChange={field.onChange}
+              >
+                <SelectTrigger><SelectValue placeholder="Select a subject" /></SelectTrigger>
+                <SelectContent>
+                  {subjectsData.map((s) => (
+                    <SelectItem key={s.id} value={JSON.stringify(s)}>{s.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
            {errors.subject && <p className="text-sm text-destructive mt-1">{errors.subject.message}</p>}
         </div>
         <div>
           <Label>Subcategory</Label>
-          <Select 
-            value={watch('subcategory')}
-            onValueChange={(value) => setValue('subcategory', value, { shouldValidate: true })} 
-            disabled={!selectedSubjectJSON}
+          <Controller
             name="subcategory"
-          >
-            <SelectTrigger><SelectValue placeholder="Select a subcategory" /></SelectTrigger>
-            <SelectContent>
-              {subcategories.map((sc) => (
-                <SelectItem key={sc.id} value={JSON.stringify(sc)}>{sc.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            control={control}
+            render={({ field }) => (
+              <Select 
+                value={field.value}
+                onValueChange={field.onChange}
+                disabled={!selectedSubjectJSON}
+              >
+                <SelectTrigger><SelectValue placeholder="Select a subcategory" /></SelectTrigger>
+                <SelectContent>
+                  {subcategories.map((sc) => (
+                    <SelectItem key={sc.id} value={JSON.stringify(sc)}>{sc.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
           {errors.subcategory && <p className="text-sm text-destructive mt-1">{errors.subcategory.message}</p>}
         </div>
       </div>
@@ -220,11 +259,11 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
               <div className="grid grid-cols-2 gap-4">
                   <div>
                       <Label>PDF Price (₹)</Label>
-                      <Input type="number" {...register(`items.${index}.pricePDF`)} placeholder="e.g., 50"/>
+                      <Input type="number" step="0.01" {...register(`items.${index}.pricePDF`)} placeholder="e.g., 50"/>
                   </div>
                   <div>
                       <Label>Printed Price (₹)</Label>
-                      <Input type="number" {...register(`items.${index}.pricePrinted`)} placeholder="e.g., 150"/>
+                      <Input type="number" step="0.01" {...register(`items.${index}.pricePrinted`)} placeholder="e.g., 150"/>
                   </div>
               </div>
             </div>

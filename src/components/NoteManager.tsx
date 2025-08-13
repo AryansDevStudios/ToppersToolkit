@@ -42,10 +42,10 @@ export function NoteManager({ notes }: NoteManagerProps) {
   const [isPending, startTransition] = useTransition();
   const [openCollapsibleId, setOpenCollapsibleId] = useState<string | null>(null);
 
-  const getFormattedTime = (dateString: string) => {
+  const getFormattedTime = (dateString: string | any) => {
     if (!dateString) return 'N/A';
     try {
-        const date = new Date(dateString);
+        const date = typeof dateString === 'string' ? new Date(dateString) : dateString.toDate();
         const time = format(date, 'p');
         const day = format(date, 'PPP');
         return `${time}, ${day} UTC`;
@@ -56,7 +56,7 @@ export function NoteManager({ notes }: NoteManagerProps) {
   
   const handleDelete = (note: NoteMaterial) => {
     startTransition(async () => {
-      const result = await deleteNoteAction(note.id, note.subjectId, note.subcategoryId);
+      const result = await deleteNoteAction(note.id);
       if (result.success) {
         toast({ title: 'Success', description: result.message });
         router.refresh();
@@ -68,7 +68,7 @@ export function NoteManager({ notes }: NoteManagerProps) {
 
   const handleToggleStatus = (note: NoteMaterial) => {
     startTransition(async () => {
-      const result = await toggleNoteStatusAction(note.id, note.status, note.subjectId, note.subcategoryId);
+      const result = await toggleNoteStatusAction(note.id, note.status);
       if (result.success) {
         toast({ title: 'Success', description: result.message });
         router.refresh();
@@ -94,7 +94,7 @@ export function NoteManager({ notes }: NoteManagerProps) {
       {notes.map((note) => {
         const isOpen = openCollapsibleId === note.id;
         return (
-          <Collapsible key={note.id} open={isOpen} onOpenChange={() => setOpenCollapsibleId(isOpen ? null : note.id)}>
+          <Collapsible key={note.id} open={isOpen} onOpenChange={(open) => setOpenCollapsibleId(open ? note.id : null)}>
             <Card className={note.status === 'hidden' ? 'bg-muted/50' : ''}>
               <CardHeader>
                 <div className="flex items-start gap-4 flex-wrap">
@@ -112,7 +112,7 @@ export function NoteManager({ notes }: NoteManagerProps) {
                     </CardDescription>
                     <p className="text-sm text-muted-foreground mt-2">{note.description}</p>
                     <p className="text-xs text-muted-foreground mt-2">
-                      Uploaded on: {getFormattedTime(note.createdAt as any)}
+                      Uploaded on: {getFormattedTime(note.createdAt)}
                     </p>
                      <div className="font-semibold text-sm flex flex-col mt-2 gap-1">
                         {note.items?.map(item => (
