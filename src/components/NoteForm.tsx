@@ -184,149 +184,153 @@ export function NoteForm({ onSuccess, notes }: NoteFormProps) {
       <Accordion type="multiple" defaultValue={["step1", "step2"]} className="w-full">
         <AccordionItem value="step1">
             <AccordionTrigger className="text-lg font-semibold">Step 1: Chapter Details</AccordionTrigger>
-            <AccordionContent className="pt-4 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <Label>Subject</Label>
-                        <Controller
-                            name="subject"
-                            control={control}
-                            render={({ field }) => (
-                            <Select 
-                                value={field.value}
-                                onValueChange={(value) => {
-                                    field.onChange(value);
-                                    setValue('subcategory', '');
-                                }}
-                            >
-                                <SelectTrigger><SelectValue placeholder="Select a subject" /></SelectTrigger>
-                                <SelectContent>
-                                {subjectsData.map((s) => (
-                                    <SelectItem key={s.id} value={JSON.stringify(s)}>{s.name}</SelectItem>
-                                ))}
-                                </SelectContent>
-                            </Select>
-                            )}
-                        />
-                        {errors.subject && <p className="text-sm text-destructive mt-1">{errors.subject.message}</p>}
+            <AccordionContent>
+                <div className="pt-4 space-y-4 px-1">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <Label>Subject</Label>
+                            <Controller
+                                name="subject"
+                                control={control}
+                                render={({ field }) => (
+                                <Select 
+                                    value={field.value}
+                                    onValueChange={(value) => {
+                                        field.onChange(value);
+                                        setValue('subcategory', '');
+                                    }}
+                                >
+                                    <SelectTrigger><SelectValue placeholder="Select a subject" /></SelectTrigger>
+                                    <SelectContent>
+                                    {subjectsData.map((s) => (
+                                        <SelectItem key={s.id} value={JSON.stringify(s)}>{s.name}</SelectItem>
+                                    ))}
+                                    </SelectContent>
+                                </Select>
+                                )}
+                            />
+                            {errors.subject && <p className="text-sm text-destructive mt-1">{errors.subject.message}</p>}
+                        </div>
+                        <div>
+                            <Label>Subcategory</Label>
+                            <Controller
+                                name="subcategory"
+                                control={control}
+                                render={({ field }) => (
+                                <Select 
+                                    value={field.value}
+                                    onValueChange={field.onChange}
+                                    disabled={!selectedSubjectJSON}
+                                >
+                                    <SelectTrigger><SelectValue placeholder="Select a subcategory" /></SelectTrigger>
+                                    <SelectContent>
+                                    {subcategories.map((sc) => (
+                                        <SelectItem key={sc.id} value={JSON.stringify(sc)}>{sc.name}</SelectItem>
+                                    ))}
+                                    </SelectContent>
+                                </Select>
+                                )}
+                            />
+                            {errors.subcategory && <p className="text-sm text-destructive mt-1">{errors.subcategory.message}</p>}
+                        </div>
                     </div>
                     <div>
-                        <Label>Subcategory</Label>
-                        <Controller
-                            name="subcategory"
-                            control={control}
-                            render={({ field }) => (
-                            <Select 
-                                value={field.value}
-                                onValueChange={field.onChange}
-                                disabled={!selectedSubjectJSON}
+                        <Label htmlFor="chapterName">Chapter Name</Label>
+                        <div className="relative">
+                            <Input id="chapterName" {...register('chapterName')} />
+                            {isChecking && <Loader2 className="animate-spin h-4 w-4 absolute right-3 top-3 text-muted-foreground" />}
+                        </div>
+                        {errors.chapterName && <p className="text-sm text-destructive mt-1">{errors.chapterName.message}</p>}
+                    </div>
+                    
+                    <AnimatePresence>
+                        {!chapterExists && !isChecking && (
+                            <motion.div 
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="space-y-4 overflow-hidden"
                             >
-                                <SelectTrigger><SelectValue placeholder="Select a subcategory" /></SelectTrigger>
-                                <SelectContent>
-                                {subcategories.map((sc) => (
-                                    <SelectItem key={sc.id} value={JSON.stringify(sc)}>{sc.name}</SelectItem>
-                                ))}
-                                </SelectContent>
-                            </Select>
-                            )}
-                        />
-                        {errors.subcategory && <p className="text-sm text-destructive mt-1">{errors.subcategory.message}</p>}
-                    </div>
-                </div>
-                <div>
-                    <Label htmlFor="chapterName">Chapter Name</Label>
-                    <div className="relative">
-                        <Input id="chapterName" {...register('chapterName')} />
-                        {isChecking && <Loader2 className="animate-spin h-4 w-4 absolute right-3 top-3 text-muted-foreground" />}
-                    </div>
-                    {errors.chapterName && <p className="text-sm text-destructive mt-1">{errors.chapterName.message}</p>}
-                </div>
-                
-                <AnimatePresence>
-                    {!chapterExists && !isChecking && (
-                        <motion.div 
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="space-y-4 overflow-hidden"
-                        >
-                            <div>
-                                <Label htmlFor="description">Main Description</Label>
-                                <Textarea id="description" {...register('description')} placeholder="This description applies to the whole chapter entry."/>
-                                {errors.description && <p className="text-sm text-destructive mt-1">{errors.description.message}</p>}
-                            </div>
-                            <div>
-                                <Label htmlFor="imageUrl">Main Image URL (Optional)</Label>
-                                <Input id="imageUrl" {...register('imageUrl')} placeholder="https://... (used as a fallback for all note types)" />
-                                {errors.imageUrl && <p className="text-sm text-destructive mt-1">{errors.imageUrl.message}</p>}
-                            </div>
-                        </motion.div>
+                                <div>
+                                    <Label htmlFor="description">Main Description</Label>
+                                    <Textarea id="description" {...register('description')} placeholder="This description applies to the whole chapter entry."/>
+                                    {errors.description && <p className="text-sm text-destructive mt-1">{errors.description.message}</p>}
+                                </div>
+                                <div>
+                                    <Label htmlFor="imageUrl">Main Image URL (Optional)</Label>
+                                    <Input id="imageUrl" {...register('imageUrl')} placeholder="https://... (used as a fallback for all note types)" />
+                                    {errors.imageUrl && <p className="text-sm text-destructive mt-1">{errors.imageUrl.message}</p>}
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                    {chapterExists && !isChecking && (
+                        <Alert variant="default" className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+                            <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                            <AlertTitle className="text-blue-800 dark:text-blue-300">Existing Chapter Found</AlertTitle>
+                            <AlertDescription className="text-blue-700 dark:text-blue-400">
+                                This chapter already exists. Any items you add below will be appended to it.
+                            </AlertDescription>
+                        </Alert>
                     )}
-                </AnimatePresence>
-                {chapterExists && !isChecking && (
-                    <Alert variant="default" className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
-                        <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                        <AlertTitle className="text-blue-800 dark:text-blue-300">Existing Chapter Found</AlertTitle>
-                        <AlertDescription className="text-blue-700 dark:text-blue-400">
-                            This chapter already exists. Any items you add below will be appended to it.
-                        </AlertDescription>
-                    </Alert>
-                )}
+                </div>
             </AccordionContent>
         </AccordionItem>
         <AccordionItem value="step2">
              <AccordionTrigger className="text-lg font-semibold">Step 2: Add Note Types</AccordionTrigger>
-             <AccordionContent className="pt-4 space-y-4">
-                {errors.items?.root && <p className="text-sm text-destructive my-2">{errors.items.root.message}</p>}
-                {errors.items && !errors.items.root && <p className="text-sm text-destructive my-2">Please check the errors in the note types below.</p>}
+             <AccordionContent>
+                <div className="pt-4 space-y-4 px-1">
+                    {errors.items?.root && <p className="text-sm text-destructive my-2">{errors.items.root.message}</p>}
+                    {errors.items && !errors.items.root && <p className="text-sm text-destructive my-2">Please check the errors in the note types below.</p>}
 
-                {fields.map((field, index) => (
-                    <div key={field.id} className="space-y-3">
-                         <h4 className="font-semibold text-md">Note Type #{index + 1}</h4>
-                        <div className="p-4 border rounded-lg space-y-3 relative bg-muted/50">
-                            {fields.length > 1 && (
-                                <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)}>
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
-                            )}
+                    {fields.map((field, index) => (
+                        <div key={field.id} className="space-y-3">
+                            <h4 className="font-semibold text-md">Note Type #{index + 1}</h4>
+                            <div className="p-4 border rounded-lg space-y-3 relative bg-muted/50">
+                                {fields.length > 1 && (
+                                    <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)}>
+                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                )}
 
-                            <div>
-                                <Label>Note Type Name</Label>
-                                <Input {...register(`items.${index}.name`)} placeholder='e.g., Handwritten Notes, Summary' />
-                                {errors.items?.[index]?.name && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.name?.message}</p>}
-                                {errors.items?.[index]?.root && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.root?.message}</p>}
-                            </div>
-                            <div>
-                                <Label>Specific Description (Optional)</Label>
-                                <Textarea {...register(`items.${index}.description`)} placeholder="Describe this specific note type."/>
-                            </div>
-                            <div>
-                                <Label>Specific Image URL (Optional)</Label>
-                                <Input {...register(`items.${index}.imageUrl`)} placeholder="Overrides main image for this type" />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <Label>PDF Price (₹)</Label>
-                                    <Input type="number" step="0.01" {...register(`items.${index}.pricePDF`)} placeholder="e.g., 50 or 0 for free. Leave blank if N/A."/>
-                                    {errors.items?.[index]?.pricePDF && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.pricePDF?.message}</p>}
+                                    <Label>Note Type Name</Label>
+                                    <Input {...register(`items.${index}.name`)} placeholder='e.g., Handwritten Notes, Summary' />
+                                    {errors.items?.[index]?.name && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.name?.message}</p>}
+                                    {errors.items?.[index]?.root && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.root?.message}</p>}
                                 </div>
                                 <div>
-                                    <Label>Printed Price (₹)</Label>
-                                    <Input type="number" step="0.01" {...register(`items.${index}.pricePrinted`)} placeholder="e.g., 150. Leave blank if N/A."/>
-                                    {errors.items?.[index]?.pricePrinted && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.pricePrinted?.message}</p>}
+                                    <Label>Specific Description (Optional)</Label>
+                                    <Textarea {...register(`items.${index}.description`)} placeholder="Describe this specific note type."/>
+                                </div>
+                                <div>
+                                    <Label>Specific Image URL (Optional)</Label>
+                                    <Input {...register(`items.${index}.imageUrl`)} placeholder="Overrides main image for this type" />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <Label>PDF Price (₹)</Label>
+                                        <Input type="number" step="0.01" {...register(`items.${index}.pricePDF`)} placeholder="e.g., 50 or 0 for free. Leave blank if N/A."/>
+                                        {errors.items?.[index]?.pricePDF && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.pricePDF?.message}</p>}
+                                    </div>
+                                    <div>
+                                        <Label>Printed Price (₹)</Label>
+                                        <Input type="number" step="0.01" {...register(`items.${index}.pricePrinted`)} placeholder="e.g., 150. Leave blank if N/A."/>
+                                        {errors.items?.[index]?.pricePrinted && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.pricePrinted?.message}</p>}
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                ))}
-                <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => append({ id: nanoid(), name: '', description: '', imageUrl: '', pricePDF: '', pricePrinted: ''})}
-                >
-                    <PlusCircle className="mr-2 h-4 w-4" /> Add Another Note Type
-                </Button>
+                    ))}
+                    <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => append({ id: nanoid(), name: '', description: '', imageUrl: '', pricePDF: '', pricePrinted: ''})}
+                    >
+                        <PlusCircle className="mr-2 h-4 w-4" /> Add Another Note Type
+                    </Button>
+                </div>
              </AccordionContent>
         </AccordionItem>
       </Accordion>
