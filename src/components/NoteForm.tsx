@@ -13,11 +13,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 import { PlusCircle, Trash2, AlertCircle } from 'lucide-react';
 import { nanoid } from 'nanoid';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 const PriceSchema = z.string().refine(val => val === '' || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0), {
     message: 'Price must be a non-negative number or empty.',
@@ -61,7 +61,7 @@ const subjectsData: Subject[] = [
 function SubmitButton({ isSubmitting }: { isSubmitting: boolean }) {
   return (
     <Button type="submit" disabled={isSubmitting} className="w-full mt-4">
-      {isSubmitting ? 'Adding Note...' : 'Add Note'}
+      {isSubmitting ? 'Adding Note...' : 'Add Note to Catalog'}
     </Button>
   );
 }
@@ -98,11 +98,10 @@ export function NoteForm({ onSuccess }: NoteFormProps) {
             const selectedSubject = JSON.parse(selectedSubjectJSON) as Subject;
             setSubcategories(selectedSubject.subcategories || []);
             const currentSubcategoryJSON = watch('subcategory');
-            // If there's a subcategory selected, check if it belongs to the new subject
             if (currentSubcategoryJSON) {
                 const currentSubcategory = JSON.parse(currentSubcategoryJSON);
                 if (!selectedSubject.subcategories.some(sc => sc.id === currentSubcategory.id)) {
-                    setValue('subcategory', ''); // Reset if not valid for the current subject
+                    setValue('subcategory', '');
                 }
             }
         } catch (e) {
@@ -138,132 +137,136 @@ export function NoteForm({ onSuccess }: NoteFormProps) {
   };
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit(processForm)} className="space-y-4">
+    <form ref={formRef} onSubmit={handleSubmit(processForm)} className="space-y-6">
        {formError && (
           <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
+              <AlertTitle>An Error Occurred</AlertTitle>
               <AlertDescription className="font-mono whitespace-pre-wrap">{formError}</AlertDescription>
           </Alert>
         )}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label>Subject</Label>
-          <Controller
-            name="subject"
-            control={control}
-            render={({ field }) => (
-              <Select 
-                value={field.value}
-                onValueChange={(value) => {
-                  field.onChange(value);
-                  setValue('subcategory', ''); // Reset subcategory on subject change
-                }}
-              >
-                <SelectTrigger><SelectValue placeholder="Select a subject" /></SelectTrigger>
-                <SelectContent>
-                  {subjectsData.map((s) => (
-                    <SelectItem key={s.id} value={JSON.stringify(s)}>{s.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
-           {errors.subject && <p className="text-sm text-destructive mt-1">{errors.subject.message}</p>}
-        </div>
-        <div>
-          <Label>Subcategory</Label>
-          <Controller
-            name="subcategory"
-            control={control}
-            render={({ field }) => (
-              <Select 
-                value={field.value}
-                onValueChange={field.onChange}
-                disabled={!selectedSubjectJSON}
-              >
-                <SelectTrigger><SelectValue placeholder="Select a subcategory" /></SelectTrigger>
-                <SelectContent>
-                  {subcategories.map((sc) => (
-                    <SelectItem key={sc.id} value={JSON.stringify(sc)}>{sc.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
-          {errors.subcategory && <p className="text-sm text-destructive mt-1">{errors.subcategory.message}</p>}
-        </div>
-      </div>
-      <div>
-        <Label htmlFor="chapterName">Chapter Name</Label>
-        <Input id="chapterName" {...register('chapterName')} />
-        {errors.chapterName && <p className="text-sm text-destructive mt-1">{errors.chapterName.message}</p>}
-      </div>
-       
-      <div>
-        <Label htmlFor="description">Main Description</Label>
-        <Textarea id="description" {...register('description')} placeholder="This description applies to the whole chapter entry."/>
-        {errors.description && <p className="text-sm text-destructive mt-1">{errors.description.message}</p>}
-      </div>
-      <div>
-        <Label htmlFor="imageUrl">Main Image URL (Optional)</Label>
-        <Input id="imageUrl" {...register('imageUrl')} placeholder="https://... (used as a fallback for all note types)" />
-        {errors.imageUrl && <p className="text-sm text-destructive mt-1">{errors.imageUrl.message}</p>}
-      </div>
+      <Accordion type="multiple" defaultValue={["step1", "step2"]} className="w-full">
+        <AccordionItem value="step1">
+            <AccordionTrigger className="text-lg font-semibold">Step 1: Chapter Details</AccordionTrigger>
+            <AccordionContent className="pt-4 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <Label>Subject</Label>
+                        <Controller
+                            name="subject"
+                            control={control}
+                            render={({ field }) => (
+                            <Select 
+                                value={field.value}
+                                onValueChange={(value) => {
+                                    field.onChange(value);
+                                    setValue('subcategory', '');
+                                }}
+                            >
+                                <SelectTrigger><SelectValue placeholder="Select a subject" /></SelectTrigger>
+                                <SelectContent>
+                                {subjectsData.map((s) => (
+                                    <SelectItem key={s.id} value={JSON.stringify(s)}>{s.name}</SelectItem>
+                                ))}
+                                </SelectContent>
+                            </Select>
+                            )}
+                        />
+                        {errors.subject && <p className="text-sm text-destructive mt-1">{errors.subject.message}</p>}
+                    </div>
+                    <div>
+                        <Label>Subcategory</Label>
+                        <Controller
+                            name="subcategory"
+                            control={control}
+                            render={({ field }) => (
+                            <Select 
+                                value={field.value}
+                                onValueChange={field.onChange}
+                                disabled={!selectedSubjectJSON}
+                            >
+                                <SelectTrigger><SelectValue placeholder="Select a subcategory" /></SelectTrigger>
+                                <SelectContent>
+                                {subcategories.map((sc) => (
+                                    <SelectItem key={sc.id} value={JSON.stringify(sc)}>{sc.name}</SelectItem>
+                                ))}
+                                </SelectContent>
+                            </Select>
+                            )}
+                        />
+                        {errors.subcategory && <p className="text-sm text-destructive mt-1">{errors.subcategory.message}</p>}
+                    </div>
+                </div>
+                <div>
+                    <Label htmlFor="chapterName">Chapter Name</Label>
+                    <Input id="chapterName" {...register('chapterName')} />
+                    {errors.chapterName && <p className="text-sm text-destructive mt-1">{errors.chapterName.message}</p>}
+                </div>
+                
+                <div>
+                    <Label htmlFor="description">Main Description</Label>
+                    <Textarea id="description" {...register('description')} placeholder="This description applies to the whole chapter entry."/>
+                    {errors.description && <p className="text-sm text-destructive mt-1">{errors.description.message}</p>}
+                </div>
+                <div>
+                    <Label htmlFor="imageUrl">Main Image URL (Optional)</Label>
+                    <Input id="imageUrl" {...register('imageUrl')} placeholder="https://... (used as a fallback for all note types)" />
+                    {errors.imageUrl && <p className="text-sm text-destructive mt-1">{errors.imageUrl.message}</p>}
+                </div>
+            </AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="step2">
+             <AccordionTrigger className="text-lg font-semibold">Step 2: Add Note Types</AccordionTrigger>
+             <AccordionContent className="pt-4 space-y-4">
+                {errors.items?.root && <p className="text-sm text-destructive my-2">{errors.items.root.message}</p>}
+                {errors.items && !errors.items.root && <p className="text-sm text-destructive my-2">Please check the errors in the note types below.</p>}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Note Types</CardTitle>
-          <CardDescription>Add one or more note types for this chapter, like "Summary", "Question Bank", etc.</CardDescription>
-          {errors.items?.root && <p className="text-sm text-destructive mt-2">{errors.items.root.message}</p>}
-          {errors.items && !errors.items.root && <p className="text-sm text-destructive mt-2">Please check the errors in the note types below.</p>}
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {fields.map((field, index) => (
-            <div key={field.id} className="p-4 border rounded-lg space-y-3 relative">
-                {fields.length > 1 && (
-                    <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                )}
-              <div>
-                <Label>Note Type Name</Label>
-                <Input {...register(`items.${index}.name`)} placeholder='e.g., Handwritten Notes, Summary' />
-                 {errors.items?.[index]?.name && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.name?.message}</p>}
-                 {errors.items?.[index]?.root && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.root?.message}</p>}
-              </div>
-              <div>
-                <Label>Specific Description (Optional)</Label>
-                <Textarea {...register(`items.${index}.description`)} placeholder="Describe this specific note type."/>
-              </div>
-              <div>
-                <Label>Specific Image URL (Optional)</Label>
-                <Input {...register(`items.${index}.imageUrl`)} placeholder="Overrides main image for this type" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                  <div>
-                      <Label>PDF Price (₹)</Label>
-                      <Input type="number" step="0.01" {...register(`items.${index}.pricePDF`)} placeholder="e.g., 50 or 0 for free. Leave blank if N/A."/>
-                      {errors.items?.[index]?.pricePDF && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.pricePDF?.message}</p>}
-                  </div>
-                  <div>
-                      <Label>Printed Price (₹)</Label>
-                      <Input type="number" step="0.01" {...register(`items.${index}.pricePrinted`)} placeholder="e.g., 150. Leave blank if N/A."/>
-                      {errors.items?.[index]?.pricePrinted && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.pricePrinted?.message}</p>}
-                  </div>
-              </div>
-            </div>
-          ))}
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={() => append({ id: nanoid(), name: '', description: '', imageUrl: '', pricePDF: '', pricePrinted: ''})}
-          >
-            <PlusCircle className="mr-2 h-4 w-4" /> Add Note Type
-          </Button>
-        </CardContent>
-      </Card>
+                {fields.map((field, index) => (
+                    <div key={field.id} className="p-4 border rounded-lg space-y-3 relative bg-muted/50">
+                        {fields.length > 1 && (
+                            <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                        )}
+                        <div>
+                            <Label>Note Type Name</Label>
+                            <Input {...register(`items.${index}.name`)} placeholder='e.g., Handwritten Notes, Summary' />
+                            {errors.items?.[index]?.name && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.name?.message}</p>}
+                            {errors.items?.[index]?.root && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.root?.message}</p>}
+                        </div>
+                        <div>
+                            <Label>Specific Description (Optional)</Label>
+                            <Textarea {...register(`items.${index}.description`)} placeholder="Describe this specific note type."/>
+                        </div>
+                        <div>
+                            <Label>Specific Image URL (Optional)</Label>
+                            <Input {...register(`items.${index}.imageUrl`)} placeholder="Overrides main image for this type" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <Label>PDF Price (₹)</Label>
+                                <Input type="number" step="0.01" {...register(`items.${index}.pricePDF`)} placeholder="e.g., 50 or 0 for free. Leave blank if N/A."/>
+                                {errors.items?.[index]?.pricePDF && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.pricePDF?.message}</p>}
+                            </div>
+                            <div>
+                                <Label>Printed Price (₹)</Label>
+                                <Input type="number" step="0.01" {...register(`items.${index}.pricePrinted`)} placeholder="e.g., 150. Leave blank if N/A."/>
+                                {errors.items?.[index]?.pricePrinted && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.pricePrinted?.message}</p>}
+                            </div>
+                        </div>
+                    </div>
+                ))}
+                <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => append({ id: nanoid(), name: '', description: '', imageUrl: '', pricePDF: '', pricePrinted: ''})}
+                >
+                    <PlusCircle className="mr-2 h-4 w-4" /> Add Another Note Type
+                </Button>
+             </AccordionContent>
+        </AccordionItem>
+      </Accordion>
       
       <SubmitButton isSubmitting={isSubmitting} />
     </form>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { NoteForm } from './NoteForm';
@@ -5,10 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 
 export function NoteUploader() {
   return (
-    <Card>
+    <Card className="max-w-4xl mx-auto">
       <CardHeader>
-        <CardTitle>Add New Note</CardTitle>
-        <CardDescription>Fill out the form to add a new note to the catalog. If a note for the same chapter and path exists, new items will be added to it.</CardDescription>
+        <CardTitle>Add New Chapter Notes</CardTitle>
+        <CardDescription>
+          A two-step process to add a new chapter and its associated study materials to the catalog.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <NoteForm />
