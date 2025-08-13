@@ -117,7 +117,7 @@ export function NoteManager({ notes }: NoteManagerProps) {
     );
   }
   
-  const findParentNoteForItem = (itemId: string) => notes.find(n => n.items.some(i => i.id === itemId));
+  const findParentNoteForItem = (itemId: string) => notes.find(n => Array.isArray(n.items) && n.items.some(i => i.id === itemId));
 
   return (
     <div className="space-y-4">
@@ -174,24 +174,24 @@ export function NoteManager({ notes }: NoteManagerProps) {
         return (
           <Collapsible key={note.id} open={isOpen} onOpenChange={(open) => setOpenCollapsibleId(open ? note.id : null)}>
             <Card>
-              <CollapsibleTrigger className="w-full">
-                 <CardHeader className="flex flex-row items-center justify-between hover:bg-accent/50 transition-colors rounded-t-lg p-4">
-                    <div className="text-left">
-                        <CardTitle className="text-xl">{note.chapter}</CardTitle>
-                        <CardDescription className="mt-1">
-                            <Badge variant="outline">{note.subjectName} / {note.subcategoryName}</Badge>
-                            <span className="ml-2 text-xs">({note.items.length} item{note.items.length === 1 ? '' : 's'})</span>
-                        </CardDescription>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); setEditingChapter(note); }}>
-                            <FilePenLine className="h-4 w-4" />
-                            <span className="sr-only">Edit Chapter</span>
-                        </Button>
-                        <ChevronDown className={`h-5 w-5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                    </div>
-                 </CardHeader>
-              </CollapsibleTrigger>
+                <CardHeader className="flex flex-row items-center justify-between p-4">
+                    <CollapsibleTrigger className="flex-grow text-left hover:bg-accent/50 -m-4 p-4 rounded-l-lg transition-colors">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <CardTitle className="text-xl">{note.chapter}</CardTitle>
+                                <CardDescription className="mt-1">
+                                    <Badge variant="outline">{note.subjectName} / {note.subcategoryName}</Badge>
+                                    <span className="ml-2 text-xs">({note.items.length} item{note.items.length === 1 ? '' : 's'})</span>
+                                </CardDescription>
+                            </div>
+                            <ChevronDown className={`h-5 w-5 transition-transform ${isOpen ? 'rotate-180' : ''} ml-4`} />
+                        </div>
+                    </CollapsibleTrigger>
+                     <Button variant="ghost" size="icon" className="ml-2 flex-shrink-0" onClick={(e) => { e.stopPropagation(); setEditingChapter(note); }}>
+                        <FilePenLine className="h-4 w-4" />
+                        <span className="sr-only">Edit Chapter</span>
+                    </Button>
+                </CardHeader>
               <CollapsibleContent>
                 <CardContent className="border-t pt-4">
                   <div className="space-y-4">
