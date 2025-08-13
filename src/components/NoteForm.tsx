@@ -3,40 +3,42 @@
 
 import { useRef, useState, useEffect } from 'react';
 import { z } from 'zod';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { addNoteAction, updateNoteAction } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
-import type { Subject, SubCategory, NoteMaterial, NotePrices } from '@/types';
+import type { Subject, SubCategory, NoteMaterial, NoteItem } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
+import { PlusCircle, Trash2 } from 'lucide-react';
+import { nanoid } from 'nanoid';
 
-const PriceSchema = z.coerce.number().min(0, 'Price must be non-negative').optional();
+const PriceSchema = z.coerce.number().min(0, 'Price must be non-negative').optional().or(z.literal(''));
+
+const NoteItemSchema = z.object({
+    id: z.string(),
+    name: z.string().min(1, 'Note type name is required.'),
+    description: z.string().optional(),
+    imageUrl: z.string().url({ message: 'Please enter a valid image URL.' }).optional().or(z.literal('')),
+    pricePDF: PriceSchema,
+    pricePrinted: PriceSchema,
+}).refine(data => data.pricePDF || data.pricePrinted, {
+    message: 'At least one price (PDF or Printed) is required for this note type.',
+    path: ['name'],
+});
 
 const NoteFormSchema = z.object({
   subject: z.string().min(1, 'Please select a subject'),
   subcategory: z.string().min(1, 'Please select a subcategory'),
   chapterName: z.string().min(1, 'Chapter name is required'),
-  description: z.string().min(1, 'Description is required'),
-  imageUrl: z.string().url({ message: 'Please enter a valid image URL.' }).optional().or(z.literal('')),
-  priceHandwrittenPDF: PriceSchema,
-  priceHandwrittenPrinted: PriceSchema,
-  priceTypedPDF: PriceSchema,
-  priceTypedPrinted: PriceSchema,
-  priceQuestionBankPDF: PriceSchema,
-  priceQuestionBankPrinted: PriceSchema,
-}).refine(data => {
-    return data.priceHandwrittenPDF || data.priceHandwrittenPrinted ||
-           data.priceTypedPDF || data.priceTypedPrinted ||
-           data.priceQuestionBankPDF || data.priceQuestionBankPrinted;
-}, {
-    message: "At least one price must be entered.",
-    path: ["priceHandwrittenPDF"], 
+  description: z.string().min(1, 'A main description is required'),
+  imageUrl: z.string().url({ message: 'Please enter a valid main image URL.' }).optional().or(z.literal('')),
+  items: z.array(NoteItemSchema).min(1, 'You must add at least one note type.'),
 });
 
 
@@ -68,7 +70,7 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
 
-  const { register, watch, setValue, reset, handleSubmit, formState: { errors, isSubmitting } } = useForm<NoteFormInputs>({
+  const { register, control, watch, setValue, reset, handleSubmit, formState: { errors, isSubmitting } } = useForm<NoteFormInputs>({
     resolver: zodResolver(NoteFormSchema),
     defaultValues: {
       subject: note ? JSON.stringify({ id: note.subjectId, name: note.subjectName, subcategories: subjectsData.find(s => s.id === note.subjectId)?.subcategories }) : '',
@@ -76,13 +78,20 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
       chapterName: note?.chapter || '',
       description: note?.description || '',
       imageUrl: note?.imageUrl || '',
-      priceHandwrittenPDF: note?.prices?.handwritten?.pdf || undefined,
-      priceHandwrittenPrinted: note?.prices?.handwritten?.printed || undefined,
-      priceTypedPDF: note?.prices?.typed?.pdf || undefined,
-      priceTypedPrinted: note?.prices?.typed?.printed || undefined,
-      priceQuestionBankPDF: note?.prices?.questionBank?.pdf || undefined,
-      priceQuestionBankPrinted: note?.prices?.questionBank?.printed || undefined,
+      items: note?.items.map(item => ({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        imageUrl: item.imageUrl,
+        pricePDF: item.prices.pdf,
+        pricePrinted: item.prices.printed,
+      })) || [],
     }
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "items",
   });
   
   const [subcategories, setSubcategories] = useState<SubCategory[]>([]);
@@ -107,15 +116,17 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
   const processForm = async (data: NoteFormInputs) => {
     const action = isEditing ? updateNoteAction : addNoteAction;
     
+    // Convert form data to a format that can be sent via FormData
     const formData = new FormData(formRef.current!);
-    
+    formData.set('items', JSON.stringify(data.items));
+
     const result = await action(null, formData);
 
     if (result.success) {
       toast({ title: 'Success!', description: result.message });
       router.refresh();
       if (!isEditing) {
-        reset();
+        reset({ subject: '', subcategory: '', chapterName: '', description: '', imageUrl: '', items: [] });
         formRef.current?.reset();
         setSubcategories([]);
       }
@@ -170,62 +181,63 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
       </div>
        
       <div>
-        <Label htmlFor="description">Description</Label>
-        <Textarea id="description" {...register('description')} />
+        <Label htmlFor="description">Main Description</Label>
+        <Textarea id="description" {...register('description')} placeholder="This description applies to the whole chapter entry."/>
         {errors.description && <p className="text-sm text-destructive mt-1">{errors.description.message}</p>}
       </div>
       <div>
-        <Label htmlFor="imageUrl">Image URL (Optional)</Label>
-        <Input id="imageUrl" {...register('imageUrl')} placeholder="https://..." />
+        <Label htmlFor="imageUrl">Main Image URL (Optional)</Label>
+        <Input id="imageUrl" {...register('imageUrl')} placeholder="https://... (used as a fallback for all note types)" />
         {errors.imageUrl && <p className="text-sm text-destructive mt-1">{errors.imageUrl.message}</p>}
       </div>
 
-      <Card className="pt-4">
-          <CardHeader>
-              <CardTitle>Pricing (₹)</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-               {errors.priceHandwrittenPDF && <p className="text-sm text-destructive mt-1">{errors.priceHandwrittenPDF.message}</p>}
-              <div className="space-y-2">
-                  <h4 className="font-semibold">Handwritten Notes</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                      <div>
-                          <Label htmlFor="priceHandwrittenPDF">PDF Price</Label>
-                          <Input id="priceHandwrittenPDF" type="number" {...register('priceHandwrittenPDF')} placeholder="e.g., 50"/>
-                      </div>
-                      <div>
-                          <Label htmlFor="priceHandwrittenPrinted">Printed Price</Label>
-                          <Input id="priceHandwrittenPrinted" type="number" {...register('priceHandwrittenPrinted')} placeholder="e.g., 150"/>
-                      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Note Types</CardTitle>
+          <CardDescription>Add one or more note types for this chapter, like "Summary", "Question Bank", etc.</CardDescription>
+          {errors.items?.root && <p className="text-sm text-destructive mt-2">{errors.items.root.message}</p>}
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {fields.map((field, index) => (
+            <div key={field.id} className="p-4 border rounded-lg space-y-3 relative">
+              <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)}>
+                <Trash2 className="h-4 w-4 text-destructive" />
+              </Button>
+              <div>
+                <Label>Note Type Name</Label>
+                <Input {...register(`items.${index}.name`)} placeholder='e.g., Handwritten Notes, Summary' />
+                 {errors.items?.[index]?.name && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.name?.message}</p>}
+                 {errors.items?.[index]?.root && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.root?.message}</p>}
+              </div>
+              <div>
+                <Label>Specific Description (Optional)</Label>
+                <Textarea {...register(`items.${index}.description`)} placeholder="Describe this specific note type."/>
+              </div>
+              <div>
+                <Label>Specific Image URL (Optional)</Label>
+                <Input {...register(`items.${index}.imageUrl`)} placeholder="Overrides main image for this type" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                  <div>
+                      <Label>PDF Price (₹)</Label>
+                      <Input type="number" {...register(`items.${index}.pricePDF`)} placeholder="e.g., 50"/>
+                  </div>
+                  <div>
+                      <Label>Printed Price (₹)</Label>
+                      <Input type="number" {...register(`items.${index}.pricePrinted`)} placeholder="e.g., 150"/>
                   </div>
               </div>
-              <div className="space-y-2">
-                  <h4 className="font-semibold">Typed Notes</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                      <div>
-                          <Label htmlFor="priceTypedPDF">PDF Price</Label>
-                          <Input id="priceTypedPDF" type="number" {...register('priceTypedPDF')} placeholder="e.g., 40"/>
-                      </div>
-                      <div>
-                          <Label htmlFor="priceTypedPrinted">Printed Price</Label>
-                          <Input id="priceTypedPrinted" type="number" {...register('priceTypedPrinted')} placeholder="e.g., 120"/>
-                      </div>
-                  </div>
-              </div>
-              <div className="space-y-2">
-                  <h4 className="font-semibold">Question Bank</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                      <div>
-                          <Label htmlFor="priceQuestionBankPDF">PDF Price</Label>
-                          <Input id="priceQuestionBankPDF" type="number" {...register('priceQuestionBankPDF')} placeholder="e.g., 60"/>
-                      </div>
-                      <div>
-                          <Label htmlFor="priceQuestionBankPrinted">Printed Price</Label>
-                          <Input id="priceQuestionBankPrinted" type="number" {...register('priceQuestionBankPrinted')} placeholder="e.g., 180"/>
-                      </div>
-                  </div>
-              </div>
-          </CardContent>
+            </div>
+          ))}
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={() => append({ id: nanoid(), name: '', description: '', imageUrl: '', pricePDF: '', pricePrinted: ''})}
+          >
+            <PlusCircle className="mr-2 h-4 w-4" /> Add Note Type
+          </Button>
+        </CardContent>
       </Card>
       
       <SubmitButton isEditing={isEditing} isSubmitting={isSubmitting} />

@@ -16,7 +16,7 @@ import {
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Edit, Eye, EyeOff, ChevronDown } from 'lucide-react';
+import { Trash2, Edit, Eye, EyeOff, ChevronDown, BookOpen } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import {
@@ -43,10 +43,15 @@ export function NoteManager({ notes }: NoteManagerProps) {
   const [openCollapsibleId, setOpenCollapsibleId] = useState<string | null>(null);
 
   const getFormattedTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const time = format(date, 'p');
-    const day = format(date, 'PPP');
-    return `${time}, ${day} UTC`;
+    if (!dateString) return 'N/A';
+    try {
+        const date = new Date(dateString);
+        const time = format(date, 'p');
+        const day = format(date, 'PPP');
+        return `${time}, ${day} UTC`;
+    } catch {
+        return 'Invalid Date';
+    }
   };
   
   const handleDelete = (note: NoteMaterial) => {
@@ -97,7 +102,7 @@ export function NoteManager({ notes }: NoteManagerProps) {
                       <NoteImage
                           src={note.imageUrl}
                           alt={note.chapter}
-                          fallbackIcon={<Trash2 className="h-10 w-10 text-muted-foreground" />}
+                          fallbackIcon={<BookOpen className="h-10 w-10 text-muted-foreground" />}
                       />
                     </div>
                   <div className="flex-grow">
@@ -109,10 +114,14 @@ export function NoteManager({ notes }: NoteManagerProps) {
                     <p className="text-xs text-muted-foreground mt-2">
                       Uploaded on: {getFormattedTime(note.createdAt as any)}
                     </p>
-                     <div className="font-semibold text-sm flex flex-col mt-2 gap-2">
-                          {note.prices?.handwritten && (note.prices.handwritten.pdf || note.prices.handwritten.printed) && <p><b>Handwritten:</b> PDF: ₹{note.prices.handwritten.pdf || 'N/A'} / Printed: ₹{note.prices.handwritten.printed || 'N/A'}</p>}
-                          {note.prices?.typed && (note.prices.typed.pdf || note.prices.typed.printed) && <p><b>Typed:</b> PDF: ₹{note.prices.typed.pdf || 'N/A'} / Printed: ₹{note.prices.typed.printed || 'N/A'}</p>}
-                          {note.prices?.questionBank && (note.prices.questionBank.pdf || note.prices.questionBank.printed) && <p><b>Question Bank:</b> PDF: ₹{note.prices.questionBank.pdf || 'N/A'} / Printed: ₹{note.prices.questionBank.printed || 'N/A'}</p>}
+                     <div className="font-semibold text-sm flex flex-col mt-2 gap-1">
+                        {note.items?.map(item => (
+                            <p key={item.id} className="text-xs">
+                                <b>{item.name}:</b>
+                                {item.prices.pdf !== undefined ? ` PDF: ₹${item.prices.pdf}` : ''}
+                                {item.prices.printed !== undefined ? ` / Printed: ₹${item.prices.printed}` : ''}
+                            </p>
+                        ))}
                      </div>
                   </div>
                 </div>

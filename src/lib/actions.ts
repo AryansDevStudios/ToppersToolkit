@@ -2,7 +2,7 @@
 'use server';
 
 import { z } from 'zod';
-import { CartItem, Subject, SubCategory, NoteMaterial, NotePrices } from '@/types';
+import { CartItem, Subject, SubCategory, NoteMaterial, NoteItem } from '@/types';
 import { saveOrder, saveNoteMaterial, updateOrderStatus, deleteNoteMaterial, updateNoteMaterial } from './data';
 import { Timestamp } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
@@ -58,44 +58,48 @@ export async function placeOrderAction(prevState: any, formData: FormData) {
   }
 }
 
-const PriceSchema = z.coerce.number().min(0).optional();
+const PriceSchema = z.coerce.number().min(0).optional().or(z.literal(''));
 
-const addNoteSchema = z.object({
-    subject: z.string().min(1, 'Subject is required'),
-    subcategory: z.string().min(1, 'Subcategory is required'),
-    chapterName: z.string().min(1, 'Chapter name is required'),
-    description: z.string().min(1, 'Description is required'),
+const NoteItemSchema = z.object({
+    id: z.string(),
+    name: z.string().min(1),
+    description: z.string().optional(),
     imageUrl: z.string().url().optional().or(z.literal('')),
-    priceHandwrittenPDF: PriceSchema,
-    priceHandwrittenPrinted: PriceSchema,
-    priceTypedPDF: PriceSchema,
-    priceTypedPrinted: PriceSchema,
-    priceQuestionBankPDF: PriceSchema,
-    priceQuestionBankPrinted: PriceSchema,
+    pricePDF: PriceSchema,
+    pricePrinted: PriceSchema,
 });
+
+const NoteFormSchema = z.object({
+    subject: z.string().min(1),
+    subcategory: z.string().min(1),
+    chapterName: z.string().min(1),
+    description: z.string().min(1),
+    imageUrl: z.string().url().optional().or(z.literal('')),
+    items: z.string(), // JSON string of NoteItem array
+});
+
+const parseAndTransformNoteItems = (itemsJSON: string): NoteItem[] => {
+    const parsedItems = z.array(NoteItemSchema).parse(JSON.parse(itemsJSON));
+    return parsedItems.map(item => ({
+        id: item.id,
+        name: item.name,
+        description: item.description || '',
+        imageUrl: item.imageUrl || '',
+        prices: {
+            pdf: item.pricePDF || undefined,
+            printed: item.pricePrinted || undefined,
+        },
+    }));
+};
 
 export async function addNoteAction(prevState: any, formData: FormData) {
     noStore();
     try {
-        const parsed = addNoteSchema.parse(Object.fromEntries(formData.entries()));
+        const parsed = NoteFormSchema.parse(Object.fromEntries(formData.entries()));
 
         const subject: Subject = JSON.parse(parsed.subject);
         const subcategory: SubCategory = JSON.parse(parsed.subcategory);
-
-        const prices: NotePrices = {
-            handwritten: {
-                pdf: parsed.priceHandwrittenPDF,
-                printed: parsed.priceHandwrittenPrinted,
-            },
-            typed: {
-                pdf: parsed.priceTypedPDF,
-                printed: parsed.priceTypedPrinted,
-            },
-            questionBank: {
-                pdf: parsed.priceQuestionBankPDF,
-                printed: parsed.priceQuestionBankPrinted,
-            }
-        };
+        const noteItems = parseAndTransformNoteItems(parsed.items);
 
         const newNote: Omit<NoteMaterial, 'id' | 'createdAt'> = {
             subjectId: subject.id,
@@ -106,7 +110,7 @@ export async function addNoteAction(prevState: any, formData: FormData) {
             description: parsed.description,
             imageUrl: parsed.imageUrl || 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true',
             status: 'published',
-            prices: prices,
+            items: noteItems,
         };
 
         await saveNoteMaterial(newNote);
@@ -117,13 +121,16 @@ export async function addNoteAction(prevState: any, formData: FormData) {
         return { success: true, message: 'Note added successfully!' };
 
     } catch (error) {
-        console.error(error);
+        console.error("Action Error:", error);
+        if (error instanceof z.ZodError) {
+            return { success: false, message: error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ') };
+        }
         const message = error instanceof Error ? error.message : 'Failed to add note.';
         return { success: false, message };
     }
 }
 
-const updateNoteSchema = addNoteSchema.extend({
+const updateNoteSchema = NoteFormSchema.extend({
     noteId: z.string().min(1),
 });
 
@@ -134,21 +141,7 @@ export async function updateNoteAction(prevState: any, formData: FormData) {
 
         const subject: Subject = JSON.parse(parsed.subject);
         const subcategory: SubCategory = JSON.parse(parsed.subcategory);
-
-        const prices: NotePrices = {
-            handwritten: {
-                pdf: parsed.priceHandwrittenPDF,
-                printed: parsed.priceHandwrittenPrinted,
-            },
-            typed: {
-                pdf: parsed.priceTypedPDF,
-                printed: parsed.priceTypedPrinted,
-            },
-            questionBank: {
-                pdf: parsed.priceQuestionBankPDF,
-                printed: parsed.priceQuestionBankPrinted,
-            }
-        };
+        const noteItems = parseAndTransformNoteItems(parsed.items);
 
         const updatedData: Partial<NoteMaterial> = {
             subjectId: subject.id,
@@ -158,7 +151,7 @@ export async function updateNoteAction(prevState: any, formData: FormData) {
             chapter: parsed.chapterName,
             description: parsed.description,
             imageUrl: parsed.imageUrl || 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true',
-            prices: prices,
+            items: noteItems,
         };
 
         await updateNoteMaterial(parsed.noteId, updatedData);
@@ -169,7 +162,10 @@ export async function updateNoteAction(prevState: any, formData: FormData) {
         return { success: true, message: 'Note updated successfully!' };
 
     } catch (error) {
-        console.error(error);
+        console.error("Action Error:", error);
+         if (error instanceof z.ZodError) {
+            return { success: false, message: error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ') };
+        }
         const message = error instanceof Error ? error.message : 'Failed to update note.';
         return { success: false, message };
     }

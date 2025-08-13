@@ -10,16 +10,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useCart } from '@/hooks/use-cart';
-import type { Chapter, NoteMaterial, PriceInfo } from '@/types';
+import type { Chapter, NoteMaterial, NoteItem, PriceInfo } from '@/types';
 import { ShoppingCart, IndianRupee } from 'lucide-react';
 
 type ChapterAccordionProps = {
   chapters: Chapter[];
-};
-
-type MaterialDisplayInfo = {
-  type: 'Handwritten Notes' | 'Typed Notes' | 'Question Bank';
-  prices?: PriceInfo;
 };
 
 export function ChapterAccordion({ chapters }: ChapterAccordionProps) {
@@ -28,27 +23,28 @@ export function ChapterAccordion({ chapters }: ChapterAccordionProps) {
 
   const handleAddToCart = (
     note: NoteMaterial,
-    type: 'Handwritten Notes' | 'Typed Notes' | 'Question Bank',
-    prices: PriceInfo
+    noteItem: NoteItem,
   ) => {
     // Default to PDF if available, otherwise Printed
-    const initialFormat = prices.pdf !== undefined ? 'PDF' : 'Printed';
-    const initialPrice = initialFormat === 'PDF' ? prices.pdf! : prices.printed!;
+    const initialFormat = noteItem.prices.pdf !== undefined ? 'PDF' : 'Printed';
+    const initialPrice = initialFormat === 'PDF' ? noteItem.prices.pdf! : noteItem.prices.printed!;
 
     const cartItem = {
-      id: `${note.id}-${type.replace(/\s+/g, '-')}`, // e.g., 'xyz-Handwritten-Notes'
+      id: `${note.id}-${noteItem.id}`, // e.g., 'chapterNoteId-summary-item'
       noteId: note.id,
+      noteItemId: noteItem.id,
       subjectName: note.subjectName,
       chapter: note.chapter,
-      type: type,
+      type: noteItem.name,
       price: initialPrice,
-      prices: prices,
+      prices: noteItem.prices,
       selectedFormat: initialFormat,
     };
+
     addToCart(cartItem);
     toast({
       title: 'Added to cart!',
-      description: `${type} for "${note.chapter}" has been added.`,
+      description: `${noteItem.name} for "${note.chapter}" has been added.`,
     });
   };
 
@@ -69,59 +65,52 @@ export function ChapterAccordion({ chapters }: ChapterAccordionProps) {
           </AccordionTrigger>
           <AccordionContent>
             <div className="space-y-6">
-              {chapter.materials.map((note) => {
-                const availableMaterials: MaterialDisplayInfo[] = [
-                  { type: 'Handwritten Notes', prices: note.prices?.handwritten },
-                  { type: 'Typed Notes', prices: note.prices?.typed },
-                  { type: 'Question Bank', prices: note.prices?.questionBank },
-                ];
-
-                return availableMaterials
-                  .filter(material => material.prices?.pdf !== undefined || material.prices?.printed !== undefined)
-                  .map(material => {
-                    const cartItemId = `${note.id}-${material.type.replace(/\s+/g, '-')}`;
+              {chapter.materials.map((note) => (
+                note.items
+                  .filter(item => item.prices.pdf !== undefined || item.prices.printed !== undefined)
+                  .map(noteItem => {
+                    const cartItemId = `${note.id}-${noteItem.id}`;
                     const isInCart = items.some(item => item.id === cartItemId);
-                    const validImageUrl = note.imageUrl || 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true';
                     
+                    const itemImage = noteItem.imageUrl || note.imageUrl || 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true';
+
                     return (
                       <div key={cartItemId} className="flex flex-col md:flex-row flex-wrap gap-4 p-4 rounded-lg border bg-card/50">
-                        {note.imageUrl && (
-                          <div className="relative w-full md:w-48 h-32 flex-shrink-0 rounded-md overflow-hidden">
-                            <img
-                              src={validImageUrl}
-                              alt={note.chapter}
-                              className="w-full h-full object-cover"
-                              data-ai-hint="notes study"
-                              onError={(e) => { e.currentTarget.src = 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true'; }}
-                            />
-                          </div>
-                        )}
+                        <div className="relative w-full md:w-48 h-32 flex-shrink-0 rounded-md overflow-hidden">
+                          <img
+                            src={itemImage}
+                            alt={note.chapter}
+                            className="w-full h-full object-cover"
+                            data-ai-hint="notes study"
+                            onError={(e) => { e.currentTarget.src = 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true'; }}
+                          />
+                        </div>
                         <div className="flex-grow">
-                          <h4 className="font-semibold text-lg">{material.type}</h4>
-                          <p className="text-muted-foreground text-sm mt-1">{note.description}</p>
+                          <h4 className="font-semibold text-lg">{noteItem.name}</h4>
+                          <p className="text-muted-foreground text-sm mt-1">{noteItem.description || note.description}</p>
                            <div className="flex items-end gap-4 mt-2">
-                            {material.prices?.pdf !== undefined && (
+                            {noteItem.prices?.pdf !== undefined && (
                                 <div className="flex flex-col">
                                     <span className="text-xs text-muted-foreground">PDF</span>
                                     <p className="font-semibold text-lg flex items-center">
                                         <IndianRupee className="h-4 w-4 mr-1" />
-                                        {material.prices.pdf.toFixed(2)}
+                                        {noteItem.prices.pdf.toFixed(2)}
                                     </p>
                                 </div>
                             )}
-                             {material.prices?.printed !== undefined && (
+                             {noteItem.prices?.printed !== undefined && (
                                 <div className="flex flex-col">
                                     <span className="text-xs text-muted-foreground">Printed</span>
                                     <p className="font-semibold text-lg flex items-center">
                                         <IndianRupee className="h-4 w-4 mr-1" />
-                                        {material.prices.printed.toFixed(2)}
+                                        {noteItem.prices.printed.toFixed(2)}
                                     </p>
                                 </div>
                             )}
                           </div>
                         </div>
                         <div className="flex-shrink-0 flex flex-col justify-center items-center">
-                          <Button onClick={() => handleAddToCart(note, material.type, material.prices!)} disabled={isInCart} className="w-full md:w-auto">
+                          <Button onClick={() => handleAddToCart(note, noteItem)} disabled={isInCart} className="w-full md:w-auto">
                             <ShoppingCart className="mr-2 h-4 w-4" />
                             {isInCart ? 'Added' : 'Add to Cart'}
                           </Button>
@@ -129,7 +118,7 @@ export function ChapterAccordion({ chapters }: ChapterAccordionProps) {
                       </div>
                     );
                   })
-              })}
+              ))}
             </div>
           </AccordionContent>
         </AccordionItem>

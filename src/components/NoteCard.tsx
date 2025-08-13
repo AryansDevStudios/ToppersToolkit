@@ -12,14 +12,16 @@ type NoteCardProps = {
 export function NoteCard({ note }: NoteCardProps) {
   const validImageUrl = note.imageUrl || 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true';
 
-  // Find the first available price to display
-  const firstAvailablePrice = 
-      note.prices?.handwritten?.pdf ??
-      note.prices?.typed?.pdf ??
-      note.prices?.questionBank?.pdf ??
-      note.prices?.handwritten?.printed ??
-      note.prices?.typed?.printed ??
-      note.prices?.questionBank?.printed;
+  // Find the first available price from all items to display
+  const findFirstPrice = () => {
+    for (const item of note.items) {
+      if (item.prices.pdf !== undefined) return item.prices.pdf;
+      if (item.prices.printed !== undefined) return item.prices.printed;
+    }
+    return undefined;
+  };
+
+  const firstAvailablePrice = findFirstPrice();
 
   return (
     <Link href={`/subjects/${note.subjectId}/${note.subcategoryId}`} className="group block">
