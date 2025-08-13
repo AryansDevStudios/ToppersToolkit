@@ -281,40 +281,40 @@ export function NoteForm({ onSuccess, notes }: NoteFormProps) {
                 {errors.items && !errors.items.root && <p className="text-sm text-destructive my-2">Please check the errors in the note types below.</p>}
 
                 {fields.map((field, index) => (
-                    <div key={field.id} className="p-4 border rounded-lg space-y-3 relative bg-muted/50">
-                        <div className="flex justify-between items-center mb-2">
-                           <h4 className="font-semibold text-md">Note Type #{index + 1}</h4>
-                           {fields.length > 1 && (
-                            <Button type="button" variant="ghost" size="icon" className="-mt-2 -mr-2" onClick={() => remove(index)}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                           )}
-                        </div>
+                    <div key={field.id} className="space-y-3">
+                         <h4 className="font-semibold text-md">Note Type #{index + 1}</h4>
+                        <div className="p-4 border rounded-lg space-y-3 relative bg-muted/50">
+                            {fields.length > 1 && (
+                                <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)}>
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                            )}
 
-                        <div>
-                            <Label>Note Type Name</Label>
-                            <Input {...register(`items.${index}.name`)} placeholder='e.g., Handwritten Notes, Summary' />
-                            {errors.items?.[index]?.name && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.name?.message}</p>}
-                            {errors.items?.[index]?.root && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.root?.message}</p>}
-                        </div>
-                        <div>
-                            <Label>Specific Description (Optional)</Label>
-                            <Textarea {...register(`items.${index}.description`)} placeholder="Describe this specific note type."/>
-                        </div>
-                        <div>
-                            <Label>Specific Image URL (Optional)</Label>
-                            <Input {...register(`items.${index}.imageUrl`)} placeholder="Overrides main image for this type" />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <Label>PDF Price (₹)</Label>
-                                <Input type="number" step="0.01" {...register(`items.${index}.pricePDF`)} placeholder="e.g., 50 or 0 for free. Leave blank if N/A."/>
-                                {errors.items?.[index]?.pricePDF && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.pricePDF?.message}</p>}
+                                <Label>Note Type Name</Label>
+                                <Input {...register(`items.${index}.name`)} placeholder='e.g., Handwritten Notes, Summary' />
+                                {errors.items?.[index]?.name && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.name?.message}</p>}
+                                {errors.items?.[index]?.root && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.root?.message}</p>}
                             </div>
                             <div>
-                                <Label>Printed Price (₹)</Label>
-                                <Input type="number" step="0.01" {...register(`items.${index}.pricePrinted`)} placeholder="e.g., 150. Leave blank if N/A."/>
-                                {errors.items?.[index]?.pricePrinted && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.pricePrinted?.message}</p>}
+                                <Label>Specific Description (Optional)</Label>
+                                <Textarea {...register(`items.${index}.description`)} placeholder="Describe this specific note type."/>
+                            </div>
+                            <div>
+                                <Label>Specific Image URL (Optional)</Label>
+                                <Input {...register(`items.${index}.imageUrl`)} placeholder="Overrides main image for this type" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <Label>PDF Price (₹)</Label>
+                                    <Input type="number" step="0.01" {...register(`items.${index}.pricePDF`)} placeholder="e.g., 50 or 0 for free. Leave blank if N/A."/>
+                                    {errors.items?.[index]?.pricePDF && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.pricePDF?.message}</p>}
+                                </div>
+                                <div>
+                                    <Label>Printed Price (₹)</Label>
+                                    <Input type="number" step="0.01" {...register(`items.${index}.pricePrinted`)} placeholder="e.g., 150. Leave blank if N/A."/>
+                                    {errors.items?.[index]?.pricePrinted && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.pricePrinted?.message}</p>}
+                                </div>
                             </div>
                         </div>
                     </div>
