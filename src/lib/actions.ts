@@ -58,7 +58,10 @@ export async function placeOrderAction(prevState: any, formData: FormData) {
   }
 }
 
-const PriceSchema = z.coerce.number().min(0, 'Price must be non-negative').optional().or(z.literal(''));
+// Allow empty string or a string that can be coerced to a non-negative number
+const PriceSchema = z.string().refine(val => val === '' || !isNaN(parseFloat(val)) && parseFloat(val) >= 0, {
+    message: 'Price must be a non-negative number or empty.',
+}).optional();
 
 const NoteItemSchema = z.object({
     id: z.string(),
@@ -90,10 +93,10 @@ const parseAndTransformNoteItems = (itemsJSON: string): NoteItem[] => {
         const prices: { pdf?: number; printed?: number } = {};
         // Only include the price if it's a valid number (including 0)
         if (item.pricePDF !== undefined && item.pricePDF !== '') {
-            prices.pdf = Number(item.pricePDF);
+            prices.pdf = parseFloat(item.pricePDF);
         }
         if (item.pricePrinted !== undefined && item.pricePrinted !== '') {
-            prices.printed = Number(item.pricePrinted);
+            prices.printed = parseFloat(item.pricePrinted);
         }
 
         return {

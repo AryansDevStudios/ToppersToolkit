@@ -19,7 +19,9 @@ import { PlusCircle, Trash2, AlertCircle } from 'lucide-react';
 import { nanoid } from 'nanoid';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
-const PriceSchema = z.coerce.number().min(0, 'Price must be non-negative').optional().or(z.literal(''));
+const PriceSchema = z.string().refine(val => val === '' || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0), {
+    message: 'Price must be a non-negative number or empty.',
+}).optional();
 
 const NoteItemSchema = z.object({
     id: z.string(),
@@ -28,7 +30,7 @@ const NoteItemSchema = z.object({
     imageUrl: z.string().url({ message: 'Please enter a valid image URL.' }).optional().or(z.literal('')),
     pricePDF: PriceSchema,
     pricePrinted: PriceSchema,
-}).refine(data => data.pricePDF !== undefined && data.pricePDF !== '' || data.pricePrinted !== undefined && data.pricePrinted !== '', {
+}).refine(data => (data.pricePDF !== undefined && data.pricePDF !== '') || (data.pricePrinted !== undefined && data.pricePrinted !== ''), {
     message: 'At least one price (PDF or Printed) is required for this note type.',
     path: ['name'],
 });
@@ -98,8 +100,8 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
         name: item.name,
         description: item.description,
         imageUrl: item.imageUrl,
-        pricePDF: item.prices.pdf,
-        pricePrinted: item.prices.printed,
+        pricePDF: item.prices.pdf !== undefined ? String(item.prices.pdf) : '',
+        pricePrinted: item.prices.printed !== undefined ? String(item.prices.printed) : '',
       })) || [],
     }
   });
@@ -269,11 +271,13 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
               <div className="grid grid-cols-2 gap-4">
                   <div>
                       <Label>PDF Price (₹)</Label>
-                      <Input type="number" step="0.01" {...register(`items.${index}.pricePDF`)} placeholder="e.g., 50"/>
+                      <Input type="number" step="0.01" {...register(`items.${index}.pricePDF`)} placeholder="e.g., 50 or 0 for free"/>
+                      {errors.items?.[index]?.pricePDF && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.pricePDF?.message}</p>}
                   </div>
                   <div>
                       <Label>Printed Price (₹)</Label>
                       <Input type="number" step="0.01" {...register(`items.${index}.pricePrinted`)} placeholder="e.g., 150"/>
+                      {errors.items?.[index]?.pricePrinted && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.pricePrinted?.message}</p>}
                   </div>
               </div>
             </div>
