@@ -74,7 +74,7 @@ export default function CartPage() {
                             <div className="flex items-center gap-4 self-end sm:self-center">
                                 <p className="font-semibold flex items-center">
                                   {item.price === 0 ? (
-                                    'Free'
+                                    <span className="text-primary">Free</span>
                                   ) : (
                                     <>
                                       <IndianRupee className="h-4 w-4 mr-1"/>

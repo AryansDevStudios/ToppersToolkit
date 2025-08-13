@@ -31,6 +31,16 @@ export function ChapterAccordion({ chapters }: ChapterAccordionProps) {
     const initialFormat = noteItem.prices.pdf !== undefined ? 'PDF' : 'Printed';
     const initialPrice = initialFormat === 'PDF' ? noteItem.prices.pdf! : noteItem.prices.printed!;
 
+    // This should not happen if the button is rendered correctly, but as a safeguard:
+    if (initialPrice === undefined) {
+      toast({
+        title: 'Error',
+        description: 'This item is not available for purchase.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
     const cartItem = {
       id: `${note.id}-${noteItem.id}`, // e.g., 'chapterNoteId-summary-item'
       noteId: note.id,

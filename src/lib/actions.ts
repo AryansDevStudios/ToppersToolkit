@@ -88,6 +88,7 @@ const parseAndTransformNoteItems = (itemsJSON: string): NoteItem[] => {
     
     return parsedItemsForValidation.map(item => {
         const prices: { pdf?: number; printed?: number } = {};
+        // Only include the price if it's a valid number (including 0)
         if (item.pricePDF !== undefined && item.pricePDF !== '') {
             prices.pdf = Number(item.pricePDF);
         }
