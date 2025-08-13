@@ -28,9 +28,10 @@ export function NoteCard({ note }: NoteCardProps) {
           </div>
         </CardHeader>
         <CardContent className="p-4 flex-grow">
-          <Badge variant="secondary" className="mb-2">{note.subjectName} - {note.type}</Badge>
+          <Badge variant="secondary" className="mb-2">{note.subjectName} / {note.subcategoryName}</Badge>
           <CardTitle className="text-lg font-bold leading-tight group-hover:text-primary transition-colors">{note.chapter}</CardTitle>
-          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{note.description}</p>
+          <p className="font-semibold text-primary text-sm">{note.type}</p>
+          <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{note.description}</p>
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between items-center">
             {note.price !== undefined ? (
