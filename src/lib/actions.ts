@@ -350,6 +350,8 @@ export async function addNoteItemAction(prevState: any, formData: FormData) {
 
 const ChapterEditSchema = z.object({
   noteIds: z.string().transform(ids => ids.split(',')),
+  subject: z.string().min(1, 'Please select a subject'),
+  subcategory: z.string().min(1, 'Please select a subcategory'),
   chapterName: z.string().min(1, 'Chapter name is required'),
   description: z.string().min(1, 'Description is required'),
   imageUrl: z.string().url({ message: 'Please enter a valid image URL.' }).optional().or(z.literal('')),
@@ -360,9 +362,15 @@ export async function updateChapterInfoAction(prevState: any, formData: FormData
     try {
         const rawData = Object.fromEntries(formData.entries());
         const parsed = ChapterEditSchema.parse(rawData);
+        const subject: Subject = JSON.parse(parsed.subject);
+        const subcategory: SubCategory = JSON.parse(parsed.subcategory);
 
         const batch = writeBatch(db);
         const updateData: Partial<NoteMaterial> = {
+            subjectId: subject.id,
+            subjectName: subject.name,
+            subcategoryId: subcategory.id,
+            subcategoryName: subcategory.name,
             chapter: parsed.chapterName,
             description: parsed.description,
         };
@@ -378,6 +386,8 @@ export async function updateChapterInfoAction(prevState: any, formData: FormData
         await batch.commit();
 
         revalidatePath('/admin');
+        revalidatePath('/subjects', 'layout');
+        revalidatePath('/');
         return { success: true, message: 'Chapter information updated successfully.' };
     } catch (error) {
         console.error("Action Error:", error);
