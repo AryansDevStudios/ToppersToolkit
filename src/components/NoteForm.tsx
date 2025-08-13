@@ -282,11 +282,15 @@ export function NoteForm({ onSuccess, notes }: NoteFormProps) {
 
                 {fields.map((field, index) => (
                     <div key={field.id} className="p-4 border rounded-lg space-y-3 relative bg-muted/50">
-                        {fields.length > 1 && (
-                            <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)}>
+                        <div className="flex justify-between items-center mb-2">
+                           <h4 className="font-semibold text-md">Note Type #{index + 1}</h4>
+                           {fields.length > 1 && (
+                            <Button type="button" variant="ghost" size="icon" className="-mt-2 -mr-2" onClick={() => remove(index)}>
                                 <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
-                        )}
+                           )}
+                        </div>
+
                         <div>
                             <Label>Note Type Name</Label>
                             <Input {...register(`items.${index}.name`)} placeholder='e.g., Handwritten Notes, Summary' />
