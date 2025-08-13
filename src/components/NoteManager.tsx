@@ -260,8 +260,8 @@ export function NoteManager({ notes }: NoteManagerProps) {
                                                         <div className="flex items-center p-2 pr-4">
                                                             <CollapsibleTrigger asChild>
                                                                 <Button variant="ghost" className="flex-grow justify-between h-auto py-2 px-3 hover:bg-muted/50">
-                                                                <div>
-                                                                    <p className="font-semibold text-base text-left">{note.chapter}</p>
+                                                                <div className="min-w-0">
+                                                                    <p className="font-semibold text-base text-left truncate">{note.chapter}</p>
                                                                     <p className="text-xs text-muted-foreground text-left">
                                                                         ({note.items.length} item{note.items.length === 1 ? '' : 's'})
                                                                     </p>
@@ -363,3 +363,5 @@ export function NoteManager({ notes }: NoteManagerProps) {
     </div>
   );
 }
+
+    
