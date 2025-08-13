@@ -42,9 +42,9 @@ export function NoteCard({ note }: NoteCardProps) {
                   <>
                     <IndianRupee className="h-5 w-5 mr-1 text-primary"/>
                     {note.price.toFixed(2)}
+                    <span className="text-sm font-normal text-muted-foreground ml-1">onwards</span>
                   </>
                 )}
-                <span className="text-sm font-normal text-muted-foreground ml-1">onwards</span>
               </p>
             ) : (
               <p className="text-sm font-semibold text-muted-foreground">Pricing inside</p>

@@ -404,3 +404,32 @@ export async function updateChapterInfoAction(prevState: any, formData: FormData
         return { success: false, message };
     }
 }
+
+
+export async function deleteChapterAction(noteIds: string[]) {
+    noStore();
+    try {
+        if (!noteIds || noteIds.length === 0) {
+            throw new Error('No note IDs provided for deletion.');
+        }
+
+        const batch = writeBatch(db);
+
+        noteIds.forEach(id => {
+            const noteRef = doc(db, 'noteMaterials', id);
+            batch.delete(noteRef);
+        });
+        
+        await batch.commit();
+
+        revalidatePath('/admin');
+        revalidatePath('/');
+        revalidatePath('/subjects', 'layout');
+        return { success: true, message: 'Chapter and all associated notes have been deleted.' };
+
+    } catch (error) {
+        console.error("Action Error:", error);
+        const message = error instanceof Error ? error.message : 'Failed to delete chapter.';
+        return { success: false, message };
+    }
+}
