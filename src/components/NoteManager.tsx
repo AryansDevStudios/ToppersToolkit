@@ -257,10 +257,10 @@ export function NoteManager({ notes }: NoteManagerProps) {
                                             return (
                                                 <Collapsible key={note.id} onOpenChange={() => setOpenCollapsibleId(isOpen ? null : note.id)} open={isOpen} asChild>
                                                     <div className="rounded-lg border">
-                                                        <div className="flex items-center p-2 pr-4">
+                                                        <div className="flex flex-wrap items-center justify-between p-2 pr-4">
                                                             <CollapsibleTrigger asChild>
-                                                                <Button variant="ghost" className="flex-grow justify-between h-auto py-2 px-3 hover:bg-muted/50">
-                                                                    <div className="flex-grow text-left">
+                                                                <Button variant="ghost" className="flex-1 justify-between h-auto py-2 px-3 hover:bg-muted/50 text-left">
+                                                                     <div className="flex-1">
                                                                         <p className="font-semibold text-base">{note.chapter}</p>
                                                                         <p className="text-xs text-muted-foreground">
                                                                             ({note.items.length} item{note.items.length === 1 ? '' : 's'})
@@ -363,5 +363,3 @@ export function NoteManager({ notes }: NoteManagerProps) {
     </div>
   );
 }
-
-    
