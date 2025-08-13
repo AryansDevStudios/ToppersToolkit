@@ -256,26 +256,21 @@ export function NoteManager({ notes }: NoteManagerProps) {
                                         return (
                                             <Collapsible key={note.id} onOpenChange={() => setOpenCollapsibleId(isOpen ? null : note.id)} open={isOpen} asChild>
                                                 <div className="rounded-lg border">
-                                                    <div className="flex flex-wrap items-center justify-between p-2 pr-4 gap-2">
-                                                        <CollapsibleTrigger asChild>
-                                                            <Button variant="ghost" className="flex-grow justify-between h-auto py-2 px-3 hover:bg-muted/50 text-left">
-                                                                 <div className="flex-1 min-w-0 mr-4">
-                                                                    <p className="font-semibold text-base truncate">{note.chapter}</p>
-                                                                    <p className="text-xs text-muted-foreground">
-                                                                        ({note.items.length} item{note.items.length === 1 ? '' : 's'})
-                                                                    </p>
-                                                                </div>
-                                                                <ChevronDown className={`h-5 w-5 transition-transform ${isOpen ? 'rotate-180' : ''} flex-shrink-0`} />
-                                                            </Button>
-                                                        </CollapsibleTrigger>
-                                                        <Button variant="ghost" size="icon" className="flex-shrink-0" onClick={() => setEditingChapter(note)}>
-                                                            <FilePenLine className="h-4 w-4" />
-                                                            <span className="sr-only">Edit Chapter</span>
+                                                    <CollapsibleTrigger asChild>
+                                                        <Button variant="ghost" className="w-full flex justify-between h-auto p-3 hover:bg-muted/50 text-left">
+                                                            <div className="flex-1 min-w-0 mr-4">
+                                                                <p className="font-semibold text-base truncate">{note.chapter}</p>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                    ({note.items.length} item{note.items.length === 1 ? '' : 's'})
+                                                                </p>
+                                                            </div>
+                                                            <ChevronDown className={`h-5 w-5 transition-transform ${isOpen ? 'rotate-180' : ''} flex-shrink-0`} />
                                                         </Button>
-                                                    </div>
+                                                    </CollapsibleTrigger>
+                                                    
                                                     <CollapsibleContent>
                                                         <div className="border-t p-4 space-y-4 bg-muted/20">
-                                                            {note.items.map((item) => {
+                                                            {note.items.length > 0 ? note.items.map((item) => {
                                                                 const parentNote = findParentNoteForItem(item.id);
                                                                 if (!parentNote) return null;
 
@@ -341,10 +336,22 @@ export function NoteManager({ notes }: NoteManagerProps) {
                                                                         </div>
                                                                     </div>
                                                                 );
-                                                            })}
-                                                            <Button variant="outline" className="w-full" onClick={() => setAddingToNote(note)}>
-                                                                <PlusCircle className="mr-2 h-4 w-4" /> Add Another Note Item to this Chapter
-                                                            </Button>
+                                                            }) : (
+                                                                <p className="text-center text-sm text-muted-foreground py-4">No items found in this chapter.</p>
+                                                            )}
+                                                            
+                                                            <div className="border-t pt-4">
+                                                                <h4 className="font-semibold text-center mb-2">Chapter Actions</h4>
+                                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                                    <Button variant="outline" className="w-full" onClick={() => setAddingToNote(note)}>
+                                                                        <PlusCircle className="mr-2 h-4 w-4" /> Add Item
+                                                                    </Button>
+                                                                    <Button variant="outline" className="w-full" onClick={() => setEditingChapter(note)}>
+                                                                        <FilePenLine className="mr-2 h-4 w-4" /> Edit Chapter
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+
                                                         </div>
                                                     </CollapsibleContent>
                                                 </div>
