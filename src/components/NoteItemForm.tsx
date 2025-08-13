@@ -56,7 +56,7 @@ export function NoteItemForm({ note, item, onSuccess }: NoteItemFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const { register, control, handleSubmit, formState: { errors, isSubmitting } } = useForm<NoteItemFormInputs>({
+  const { register, control, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<NoteItemFormInputs>({
     resolver: zodResolver(NoteItemFormSchema),
     defaultValues: {
       name: item?.name || '',
@@ -109,6 +109,7 @@ export function NoteItemForm({ note, item, onSuccess }: NoteItemFormProps) {
         <Label>Note Type Name</Label>
         <Input {...register('name')} placeholder='e.g., Handwritten Notes, Summary' />
         {errors.name && <p className="text-sm text-destructive mt-1">{errors.name.message}</p>}
+        {errors.root?.message && <p className="text-sm text-destructive mt-1">{errors.root.message}</p>}
       </div>
       <div>
         <Label>Specific Description (Optional)</Label>
