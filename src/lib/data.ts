@@ -1,5 +1,5 @@
 
-import type { Subject, NoteMaterial, Chapter, Order } from '@/types';
+import type { Subject, NoteMaterial, Chapter, Order, NoteItem } from '@/types';
 import { db } from './firebase';
 import { collection, getDocs, getDoc, doc, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, Timestamp } from 'firebase/firestore';
 import { unstable_noStore as noStore } from 'next/cache';
@@ -28,18 +28,48 @@ export async function getRecentNotes(count: number = 8): Promise<NoteMaterial[]>
     const notesQuery = query(
         collection(db, 'noteMaterials'), 
         orderBy('createdAt', 'desc'), 
-        limit(count * 2) // Fetch more to account for filtering
+        limit(count * 5) // Fetch more to account for grouping
     );
     const notesSnapshot = await getDocs(notesQuery);
-    const notesData =  notesSnapshot.docs.map(doc => {
+    
+    const allNotes = notesSnapshot.docs.map(doc => {
         const data = doc.data();
         return {
             ...data,
             id: doc.id,
             createdAt: data.createdAt.toDate().toISOString(),
         } as NoteMaterial
-    }).filter(note => {
-        // A note is considered available if it has at least one published item
+    });
+
+    // Group notes by chapter to avoid duplicates
+    const groupedByChapter = allNotes.reduce((acc, note) => {
+        const key = `${note.subjectId}-${note.subcategoryId}-${note.chapter}`;
+        if (!acc[key]) {
+            acc[key] = {
+                ...note,
+                items: [], // Start with an empty items array for the group
+            };
+        }
+        
+        // Add items from the current note document to the group
+        if (Array.isArray(note.items)) {
+            acc[key].items.push(...note.items);
+        }
+
+        // Ensure the group has the most recent createdAt timestamp
+        if (new Date(note.createdAt) > new Date(acc[key].createdAt)) {
+            acc[key].createdAt = note.createdAt;
+        }
+
+        return acc;
+    }, {} as Record<string, NoteMaterial>);
+
+    // Convert grouped object back to an array and sort by date
+    const uniqueRecentNotes = Object.values(groupedByChapter)
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    // Filter out notes that don't have any published items and take the required count
+    const notesData = uniqueRecentNotes.filter(note => {
         return Array.isArray(note.items) && note.items.some(item => item.status === 'published');
     }).slice(0, count);
 
@@ -171,3 +201,4 @@ export async function checkChapterExists({ subjectId, subcategoryId, chapter }: 
     const querySnapshot = await getDocs(q);
     return !querySnapshot.empty;
 }
+
