@@ -301,7 +301,7 @@ export function NoteForm({ onSuccess, notes }: NoteFormProps) {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <Label>PDF Price (₹)</Label>
-                                <Input type="number" step="0.01" {...register(`items.${index}.pricePDF`)} placeholder="e.g., 50 or 0 for free. Leave blank if N/A."/>
+                                <Input type="number" step="0.01" {...register(`items.${index}.pricePDF`)} placeholder="e.g., 50 or 0 for free"/>
                                 {errors.items?.[index]?.pricePDF && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.pricePDF?.message}</p>}
                             </div>
                             <div>
@@ -327,5 +327,7 @@ export function NoteForm({ onSuccess, notes }: NoteFormProps) {
     </form>
   );
 }
+
+    
 
     
