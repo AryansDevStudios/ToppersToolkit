@@ -61,10 +61,11 @@ export function NoteManager({ notes }: NoteManagerProps) {
     if (!acc[key]) {
       acc[key] = {
         ...note,
-        items: [],
+        items: [], // Start with an empty items array for the group
         noteIds: [],
       };
     }
+    
     // Aggregate items and original note IDs
     if (Array.isArray(note.items)) {
         acc[key].items.push(...note.items);
@@ -173,9 +174,9 @@ export function NoteManager({ notes }: NoteManagerProps) {
         return (
           <Collapsible key={note.id} open={isOpen} onOpenChange={(open) => setOpenCollapsibleId(open ? note.id : null)}>
             <Card>
-                <CardHeader className="flex flex-row items-center justify-between p-4">
-                    <CollapsibleTrigger className="flex-grow text-left">
-                       <div className="flex items-center justify-between cursor-pointer p-4 -m-4 rounded-l-lg hover:bg-accent/50 transition-colors">
+                 <div className="flex items-center p-4">
+                    <CollapsibleTrigger asChild>
+                       <div className="flex-grow flex items-center justify-between cursor-pointer rounded-l-lg p-2 -m-2 hover:bg-accent/50 transition-colors">
                             <div>
                                 <CardTitle className="text-xl">{note.chapter}</CardTitle>
                                 <CardDescription className="mt-1">
@@ -190,7 +191,7 @@ export function NoteManager({ notes }: NoteManagerProps) {
                         <FilePenLine className="h-4 w-4" />
                         <span className="sr-only">Edit Chapter</span>
                     </Button>
-                </CardHeader>
+                </div>
               <CollapsibleContent>
                 <CardContent className="border-t pt-4">
                   <div className="space-y-4">
