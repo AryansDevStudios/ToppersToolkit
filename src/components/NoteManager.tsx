@@ -61,18 +61,16 @@ export function NoteManager({ notes }: NoteManagerProps) {
     if (!acc[key]) {
       acc[key] = {
         ...note,
-        items: [], // Start with an empty items array for the group
+        items: [],
         noteIds: [],
       };
     }
     
-    // Aggregate items and original note IDs
     if (Array.isArray(note.items)) {
         acc[key].items.push(...note.items);
     }
     acc[key].noteIds.push(note.id);
     
-    // Use the details from the most recently created note as the representative details
     if (!acc[key].createdAt || note.createdAt > acc[key].createdAt) {
         acc[key].createdAt = note.createdAt;
         acc[key].description = note.description;
@@ -120,7 +118,14 @@ export function NoteManager({ notes }: NoteManagerProps) {
   const findParentNoteForItem = (itemId: string) => notes.find(n => Array.isArray(n.items) && n.items.some(i => i.id === itemId));
 
   return (
-    <div className="space-y-4">
+    <Card>
+      <CardHeader>
+        <CardTitle>Note Manager</CardTitle>
+        <CardDescription>
+          Manage all uploaded chapters and their individual note items.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-2">
         {/* Edit Chapter Dialog */}
         <Dialog open={!!editingChapter} onOpenChange={(open) => !open && setEditingChapter(null)}>
             <DialogContent>
@@ -172,29 +177,28 @@ export function NoteManager({ notes }: NoteManagerProps) {
         const isOpen = openCollapsibleId === note.id;
         
         return (
-          <Collapsible key={note.id} open={isOpen} onOpenChange={(open) => setOpenCollapsibleId(open ? note.id : null)}>
-            <Card>
-                 <div className="flex items-center p-4">
-                    <CollapsibleTrigger asChild>
-                       <div className="flex-grow flex items-center justify-between cursor-pointer rounded-l-lg p-2 -m-2 hover:bg-accent/50 transition-colors">
-                            <div>
-                                <CardTitle className="text-xl">{note.chapter}</CardTitle>
-                                <CardDescription className="mt-1">
-                                    <Badge variant="outline">{note.subjectName} / {note.subcategoryName}</Badge>
-                                    <span className="ml-2 text-xs">({note.items.length} item{note.items.length === 1 ? '' : 's'})</span>
-                                </CardDescription>
-                            </div>
-                            <ChevronDown className={`h-5 w-5 transition-transform ${isOpen ? 'rotate-180' : ''} ml-4 flex-shrink-0`} />
+          <Collapsible key={note.id} asChild>
+            <div className="rounded-lg border">
+                <div className="flex items-center p-2 pr-4">
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" className="flex-grow justify-between h-auto py-2 px-3">
+                      <div>
+                        <p className="font-semibold text-base text-left">{note.chapter}</p>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs">{note.subjectName} / {note.subcategoryName}</Badge>
+                          <span className="text-xs text-muted-foreground">({note.items.length} item{note.items.length === 1 ? '' : 's'})</span>
                         </div>
-                    </CollapsibleTrigger>
-                     <Button variant="ghost" size="icon" className="ml-2 flex-shrink-0" onClick={() => setEditingChapter(note)}>
-                        <FilePenLine className="h-4 w-4" />
-                        <span className="sr-only">Edit Chapter</span>
+                      </div>
+                      <ChevronDown className={`h-5 w-5 transition-transform ${isOpen ? 'rotate-180' : ''} ml-4 flex-shrink-0`} />
                     </Button>
-                </div>
+                  </CollapsibleTrigger>
+                  <Button variant="ghost" size="icon" className="ml-2 flex-shrink-0" onClick={() => setEditingChapter(note)}>
+                      <FilePenLine className="h-4 w-4" />
+                      <span className="sr-only">Edit Chapter</span>
+                  </Button>
+              </div>
               <CollapsibleContent>
-                <CardContent className="border-t pt-4">
-                  <div className="space-y-4">
+                <div className="border-t p-4 space-y-4">
                      {note.items.map((item) => {
                         const parentNote = findParentNoteForItem(item.id);
                         if (!parentNote) return null;
@@ -266,12 +270,12 @@ export function NoteManager({ notes }: NoteManagerProps) {
                         <PlusCircle className="mr-2 h-4 w-4" /> Add Another Note Item to this Chapter
                      </Button>
                   </div>
-                </CardContent>
               </CollapsibleContent>
-            </Card>
+            </div>
           </Collapsible>
         )
       })}
-    </div>
+    </CardContent>
+    </Card>
   );
 }

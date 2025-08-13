@@ -1,7 +1,15 @@
 
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { Order } from '@/types';
 import { format } from 'date-fns';
@@ -10,7 +18,14 @@ import { completeOrderAction } from '@/lib/actions';
 import { useTransition, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { IndianRupee, HandCoins, QrCode } from 'lucide-react';
+import { IndianRupee, HandCoins, QrCode, CheckCircle } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
 
 type OrderListProps = {
   orders: Order[];
@@ -53,57 +68,85 @@ export function OrderList({ orders }: OrderListProps) {
     }
 
   return (
-    <div className="space-y-4">
-      {activeOrders.map((order) => (
-        <Card key={order.id}>
-          <CardHeader>
-            <div className="flex justify-between items-start">
-              <div>
-                <CardTitle>{order.name}</CardTitle>
-                <CardDescription>Class: {order.userClass}</CardDescription>
-                 <p className="text-sm text-muted-foreground pt-2">{isClient ? `${format(new Date(order.createdAt), 'p, PPP')} UTC` : ''}</p>
-              </div>
-               <div className="text-right">
-                <Badge variant={order.status === 'new' ? 'destructive' : 'secondary'}>{order.status}</Badge>
-                 <p className="font-semibold text-xl flex items-center justify-end mt-2">
-                  <IndianRupee className="h-5 w-5 mr-1" />
-                  {order.totalPrice.toFixed(2)}
-                </p>
-                <div className="flex items-center justify-end text-sm text-muted-foreground mt-1 gap-2">
-                    {order.paymentMethod === 'COD' ? <HandCoins className="h-4 w-4" /> : <QrCode className="h-4 w-4" />}
-                    <span>{order.paymentMethod === 'COD' ? 'Cash on Delivery' : 'UPI'}</span>
-                </div>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div>
-              <h4 className="font-semibold mb-2">Ordered Items:</h4>
-              <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-                {order.items.map((item, index) => (
-                  <li key={index}>
-                    {item.subjectName} - {item.chapter} ({item.type} - {item.selectedFormat}) - ₹{item.price.toFixed(2)}
-                  </li>
+    <Card>
+        <CardHeader>
+            <CardTitle>Active Orders</CardTitle>
+            <CardDescription>Manage and fulfill incoming orders.</CardDescription>
+        </CardHeader>
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Details</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
+                    <TableHead className="text-center">Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {activeOrders.map((order) => (
+                    <TableRow key={order.id}>
+                        <TableCell>
+                            <div className="font-medium">{order.name}</div>
+                            <div className="text-sm text-muted-foreground">{order.userClass}</div>
+                        </TableCell>
+                        <TableCell>
+                           <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <span className="text-sm underline decoration-dashed cursor-pointer">
+                                            {order.items.length} item{order.items.length === 1 ? '' : 's'}
+                                        </span>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <ul className="list-disc list-inside space-y-1 text-xs">
+                                            {order.items.map((item, index) => (
+                                            <li key={index}>
+                                                {item.subjectName} - {item.chapter} ({item.type} - {item.selectedFormat})
+                                            </li>
+                                            ))}
+                                        </ul>
+                                         {order.instructions && (
+                                            <div className="mt-2 pt-2 border-t">
+                                                <p className="text-xs italic">"{order.instructions}"</p>
+                                            </div>
+                                        )}
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                            <div className="text-xs text-muted-foreground mt-1">
+                                {isClient ? `${format(new Date(order.createdAt), 'PPP p')}` : ''}
+                            </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                             <div className="font-semibold flex items-center justify-end">
+                                <IndianRupee className="h-4 w-4 mr-1"/>
+                                {order.totalPrice.toFixed(2)}
+                             </div>
+                             <div className="flex items-center justify-end text-xs text-muted-foreground mt-1 gap-1.5">
+                                {order.paymentMethod === 'COD' ? <HandCoins className="h-3 w-3" /> : <QrCode className="h-3 w-3" />}
+                                <span>{order.paymentMethod}</span>
+                             </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                            <Badge variant={order.status === 'new' ? 'destructive' : 'secondary'}>
+                                {order.status}
+                            </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                             <Button 
+                                size="sm"
+                                onClick={() => handleCompleteOrder(order.id)}
+                                disabled={isPending}
+                            >
+                                <CheckCircle className="mr-2 h-4 w-4" />
+                                {isPending ? 'Completing...' : 'Complete'}
+                            </Button>
+                        </TableCell>
+                    </TableRow>
                 ))}
-              </ul>
-            </div>
-            {order.instructions && (
-              <div className="mt-4">
-                <h4 className="font-semibold">Special Instructions:</h4>
-                <p className="text-sm text-muted-foreground italic">"{order.instructions}"</p>
-              </div>
-            )}
-          </CardContent>
-          <CardFooter className="flex justify-end">
-            <Button 
-                onClick={() => handleCompleteOrder(order.id)}
-                disabled={isPending}
-            >
-                {isPending ? 'Completing...' : 'Mark as Completed'}
-            </Button>
-          </CardFooter>
-        </Card>
-      ))}
-    </div>
+            </TableBody>
+        </Table>
+    </Card>
   );
 }
