@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { CartItem, Subject, SubCategory, NoteMaterial, NoteItem } from '@/types';
 import { db } from './firebase';
 import { saveOrder, saveNoteMaterial, updateOrderStatus, updateNoteMaterial } from './data';
-import { Timestamp, arrayUnion, collection, doc, getDocs, query, where, writeBatch } from 'firebase/firestore';
+import { Timestamp, arrayUnion, collection, doc, getDoc, getDocs, query, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
 import { unstable_noStore as noStore } from 'next/cache';
 import { nanoid } from 'nanoid';
@@ -107,6 +107,7 @@ const parseAndTransformNoteItems = (itemsJSON: string): NoteItem[] => {
             description: item.description || '',
             imageUrl: item.imageUrl || '',
             prices: prices,
+            status: 'published', // Default status
         };
     });
 };
@@ -148,7 +149,6 @@ export async function addNoteAction(prevState: any, formData: FormData) {
                 chapter: parsed.chapterName,
                 description: parsed.description,
                 imageUrl: parsed.imageUrl || 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true',
-                status: 'published',
                 items: noteItems,
             };
 
@@ -174,8 +174,8 @@ export async function deleteNoteItemAction(noteId: string, itemId: string) {
     noStore();
     try {
         const noteRef = doc(db, 'noteMaterials', noteId);
-        const noteSnapshot = await db.collection('noteMaterials').doc(noteId).get();
-        if (!noteSnapshot.exists) {
+        const noteSnapshot = await getDoc(noteRef);
+        if (!noteSnapshot.exists()) {
             throw new Error('Note document not found.');
         }
         
@@ -201,23 +201,26 @@ export async function deleteNoteItemAction(noteId: string, itemId: string) {
 }
 
 
-export async function toggleNoteStatusAction(noteIds: string[], newStatus: 'published' | 'hidden') {
+export async function updateNoteItemStatusAction(noteId: string, itemId: string, newStatus: 'published' | 'hidden') {
     noStore();
     try {
-        const batch = writeBatch(db);
-        noteIds.forEach(id => {
-            const noteRef = doc(db, 'noteMaterials', id);
-            batch.update(noteRef, { status: newStatus });
-        });
-        await batch.commit();
+        const noteRef = doc(db, "noteMaterials", noteId);
+        const noteSnapshot = await getDoc(noteRef);
+        if (!noteSnapshot.exists()) {
+            throw new Error("Note not found");
+        }
+        const noteData = noteSnapshot.data() as NoteMaterial;
+        const updatedItems = noteData.items.map(item => 
+            item.id === itemId ? { ...item, status: newStatus } : item
+        );
+        await updateDoc(noteRef, { items: updatedItems });
 
-        revalidatePath('/');
-        revalidatePath('/subjects', 'layout');
         revalidatePath('/admin');
-        return { success: true, message: `Note status updated to ${newStatus}.` };
+        revalidatePath('/subjects', 'layout');
+        return { success: true, message: `Item status updated to ${newStatus}.` };
     } catch (error) {
         console.error("Action Error:", error);
-        return { success: false, message: 'Failed to update note status.' };
+        return { success: false, message: 'Failed to update item status.' };
     }
 }
 
@@ -241,6 +244,7 @@ const ItemFormSchema = z.object({
   imageUrl: z.string().url({ message: 'Please enter a valid image URL.' }).optional().or(z.literal('')),
   pricePDF: PriceSchema,
   pricePrinted: PriceSchema,
+  status: z.enum(['published', 'hidden']),
 }).refine(data => (data.pricePDF !== undefined && data.pricePDF !== '') || (data.pricePrinted !== undefined && data.pricePrinted !== ''), {
     message: 'At least one price (PDF or Printed) is required.',
     path: ['name'],
@@ -253,8 +257,8 @@ export async function updateNoteItemAction(prevState: any, formData: FormData) {
         const parsed = ItemFormSchema.parse(rawData);
 
         const noteRef = doc(db, 'noteMaterials', parsed.noteId);
-        const noteSnapshot = await db.collection('noteMaterials').doc(parsed.noteId).get();
-        if (!noteSnapshot.exists) {
+        const noteSnapshot = await getDoc(noteRef);
+        if (!noteSnapshot.exists()) {
             throw new Error('Note document not found.');
         }
         
@@ -275,6 +279,7 @@ export async function updateNoteItemAction(prevState: any, formData: FormData) {
             description: parsed.description || '',
             imageUrl: parsed.imageUrl || '',
             prices: prices,
+            status: parsed.status,
         };
 
         const updatedItems = [...noteData.items];
@@ -301,6 +306,7 @@ const AddItemFormSchema = z.object({
   imageUrl: z.string().url({ message: 'Please enter a valid image URL.' }).optional().or(z.literal('')),
   pricePDF: PriceSchema,
   pricePrinted: PriceSchema,
+  status: z.enum(['published', 'hidden']),
 }).refine(data => (data.pricePDF !== undefined && data.pricePDF !== '') || (data.pricePrinted !== undefined && data.pricePrinted !== ''), {
     message: 'At least one price (PDF or Printed) is required.',
     path: ['name'],
@@ -322,6 +328,7 @@ export async function addNoteItemAction(prevState: any, formData: FormData) {
             description: parsed.description || '',
             imageUrl: parsed.imageUrl || '',
             prices: prices,
+            status: parsed.status,
         };
 
         await updateNoteMaterial(parsed.noteId, {
@@ -336,6 +343,48 @@ export async function addNoteItemAction(prevState: any, formData: FormData) {
             return { success: false, message: error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ') };
         }
         const message = error instanceof Error ? error.message : 'Failed to add note item.';
+        return { success: false, message };
+    }
+}
+
+
+const ChapterEditSchema = z.object({
+  noteIds: z.string().transform(ids => ids.split(',')),
+  chapterName: z.string().min(1, 'Chapter name is required'),
+  description: z.string().min(1, 'Description is required'),
+  imageUrl: z.string().url({ message: 'Please enter a valid image URL.' }).optional().or(z.literal('')),
+});
+
+export async function updateChapterInfoAction(prevState: any, formData: FormData) {
+    noStore();
+    try {
+        const rawData = Object.fromEntries(formData.entries());
+        const parsed = ChapterEditSchema.parse(rawData);
+
+        const batch = writeBatch(db);
+        const updateData: Partial<NoteMaterial> = {
+            chapter: parsed.chapterName,
+            description: parsed.description,
+        };
+        if (parsed.imageUrl) {
+            updateData.imageUrl = parsed.imageUrl;
+        }
+
+        parsed.noteIds.forEach(id => {
+            const noteRef = doc(db, 'noteMaterials', id);
+            batch.update(noteRef, updateData);
+        });
+        
+        await batch.commit();
+
+        revalidatePath('/admin');
+        return { success: true, message: 'Chapter information updated successfully.' };
+    } catch (error) {
+        console.error("Action Error:", error);
+         if (error instanceof z.ZodError) {
+            return { success: false, message: error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ') };
+        }
+        const message = error instanceof Error ? error.message : 'Failed to update chapter.';
         return { success: false, message };
     }
 }

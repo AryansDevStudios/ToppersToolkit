@@ -24,6 +24,7 @@ export type NoteItem = {
   description: string;
   imageUrl?: string; // Optional specific image for this item
   prices: PriceInfo;
+  status: 'published' | 'hidden'; // Individual status for the item
 };
 
 // Represents a collection of notes for a single chapter
@@ -36,7 +37,6 @@ export type NoteMaterial = {
   chapter: string;
   description: string; // Main description for the chapter notes
   imageUrl?: string; // Main image for the whole chapter notes collection
-  status: 'published' | 'hidden';
   createdAt: Timestamp | string; // Allow string for client-side representation
   items: NoteItem[]; // Array of different note types for this chapter
 };

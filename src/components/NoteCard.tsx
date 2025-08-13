@@ -17,8 +17,10 @@ export function NoteCard({ note }: NoteCardProps) {
   // Find the first available price from all items to display
   const findFirstPrice = () => {
     for (const item of items) {
-      if (item.prices.pdf !== undefined) return item.prices.pdf;
-      if (item.prices.printed !== undefined) return item.prices.printed;
+      if (item.status === 'published') {
+        if (item.prices.pdf !== undefined) return item.prices.pdf;
+        if (item.prices.printed !== undefined) return item.prices.printed;
+      }
     }
     return undefined;
   };

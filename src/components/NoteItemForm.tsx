@@ -3,7 +3,7 @@
 
 import { useRef, useState } from 'react';
 import { z } from 'zod';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from '@/hooks/use-toast';
 import type { NoteMaterial, NoteItem } from '@/types';
@@ -15,6 +15,7 @@ import { useRouter } from 'next/navigation';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { addNoteItemAction, updateNoteItemAction } from '@/lib/actions';
+import { Switch } from './ui/switch';
 
 const PriceSchema = z.string().refine(val => val === '' || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0), {
     message: 'Price must be a non-negative number or empty.',
@@ -26,6 +27,7 @@ const NoteItemFormSchema = z.object({
     imageUrl: z.string().url({ message: 'Please enter a valid image URL.' }).optional().or(z.literal('')),
     pricePDF: PriceSchema,
     pricePrinted: PriceSchema,
+    status: z.boolean(),
 }).refine(data => (data.pricePDF !== undefined && data.pricePDF !== '') || (data.pricePrinted !== undefined && data.pricePrinted !== ''), {
     message: 'At least one price (PDF or Printed) is required.',
     path: ['name'],
@@ -54,7 +56,7 @@ export function NoteItemForm({ note, item, onSuccess }: NoteItemFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<NoteItemFormInputs>({
+  const { register, control, handleSubmit, formState: { errors, isSubmitting } } = useForm<NoteItemFormInputs>({
     resolver: zodResolver(NoteItemFormSchema),
     defaultValues: {
       name: item?.name || '',
@@ -62,6 +64,7 @@ export function NoteItemForm({ note, item, onSuccess }: NoteItemFormProps) {
       imageUrl: item?.imageUrl || '',
       pricePDF: item?.prices.pdf !== undefined ? String(item.prices.pdf) : '',
       pricePrinted: item?.prices.printed !== undefined ? String(item.prices.printed) : '',
+      status: item?.status === 'published',
     }
   });
 
@@ -79,6 +82,7 @@ export function NoteItemForm({ note, item, onSuccess }: NoteItemFormProps) {
     formData.append('imageUrl', data.imageUrl || '');
     formData.append('pricePDF', data.pricePDF || '');
     formData.append('pricePrinted', data.pricePrinted || '');
+    formData.append('status', data.status ? 'published' : 'hidden');
 
     const result = await action(null, formData);
 
@@ -127,9 +131,27 @@ export function NoteItemForm({ note, item, onSuccess }: NoteItemFormProps) {
               {errors.pricePrinted && <p className="text-sm text-destructive mt-1">{errors.pricePrinted.message}</p>}
           </div>
       </div>
+       <div>
+            <Label>Status</Label>
+            <div className="flex items-center space-x-2 mt-2">
+                <Controller
+                    name="status"
+                    control={control}
+                    render={({ field }) => (
+                        <Switch
+                            id="item-status"
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                        />
+                    )}
+                />
+                <Label htmlFor="item-status">
+                    {watch('status') ? 'Published' : 'Hidden'}
+                </Label>
+            </div>
+        </div>
       
       <SubmitButton isEditing={isEditing} isSubmitting={isSubmitting} />
     </form>
   );
 }
-

@@ -38,8 +38,10 @@ export async function getRecentNotes(count: number = 8): Promise<NoteMaterial[]>
             id: doc.id,
             createdAt: data.createdAt.toDate().toISOString(),
         } as NoteMaterial
-    }).filter(note => note.status === 'published')
-      .slice(0, count);
+    }).filter(note => {
+        // A note is considered available if it has at least one published item
+        return Array.isArray(note.items) && note.items.some(item => item.status === 'published');
+    }).slice(0, count);
 
     return JSON.parse(JSON.stringify(notesData));
 }
@@ -66,7 +68,6 @@ export async function getChaptersForSubcategory(subjectId: string, subcategoryId
         collection(db, 'noteMaterials'), 
         where('subjectId', '==', subjectId), 
         where('subcategoryId', '==', subcategoryId),
-        where('status', '==', 'published')
     );
     const materialsSnapshot = await getDocs(materialsQuery);
     const materials = materialsSnapshot.docs.map(doc => {
@@ -76,6 +77,9 @@ export async function getChaptersForSubcategory(subjectId: string, subcategoryId
             id: doc.id,
             createdAt: data.createdAt.toDate().toISOString(),
         } as NoteMaterial
+    }).filter(note => {
+        // Only include notes that have at least one published item
+        return Array.isArray(note.items) && note.items.some(item => item.status === 'published');
     });
 
     const chaptersMap: { [key: string]: NoteMaterial[] } = {};
@@ -121,7 +125,7 @@ export async function saveNoteMaterial(note: Omit<NoteMaterial, 'id'>) {
     await addDoc(notesCollection, {...note, createdAt: Timestamp.now()});
 }
 
-export async function updateNoteMaterial(noteId: string, data: Partial<NoteMaterial>) {
+export async function updateNoteMaterial(noteId: string, data: Partial<Omit<NoteMaterial, 'id' | 'createdAt'>>) {
     const noteRef = doc(db, 'noteMaterials', noteId);
     await updateDoc(noteRef, data);
 }

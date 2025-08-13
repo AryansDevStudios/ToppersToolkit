@@ -79,7 +79,7 @@ export function ChapterAccordion({ chapters }: ChapterAccordionProps) {
             <div className="space-y-6">
               {chapter.materials.map((note) => (
                 note.items
-                  .filter(item => item.prices.pdf !== undefined || item.prices.printed !== undefined)
+                  .filter(item => item.status === 'published' && (item.prices.pdf !== undefined || item.prices.printed !== undefined))
                   .map(noteItem => {
                     const cartItemId = `${note.id}-${noteItem.id}`;
                     const isInCart = items.some(item => item.id === cartItemId);
