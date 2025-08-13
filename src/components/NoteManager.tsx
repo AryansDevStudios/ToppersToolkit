@@ -173,9 +173,9 @@ export function NoteManager({ notes }: NoteManagerProps) {
         return (
           <Collapsible key={note.id} open={isOpen} onOpenChange={(open) => setOpenCollapsibleId(open ? note.id : null)}>
             <Card>
-                <div className="flex flex-row items-center justify-between p-4">
-                    <CollapsibleTrigger asChild>
-                       <div className="flex-grow flex items-center justify-between cursor-pointer p-4 -m-4 rounded-l-lg hover:bg-accent/50 transition-colors">
+                <CardHeader className="flex flex-row items-center justify-between p-4">
+                    <CollapsibleTrigger className="flex-grow text-left">
+                       <div className="flex items-center justify-between cursor-pointer p-4 -m-4 rounded-l-lg hover:bg-accent/50 transition-colors">
                             <div>
                                 <CardTitle className="text-xl">{note.chapter}</CardTitle>
                                 <CardDescription className="mt-1">
@@ -186,11 +186,11 @@ export function NoteManager({ notes }: NoteManagerProps) {
                             <ChevronDown className={`h-5 w-5 transition-transform ${isOpen ? 'rotate-180' : ''} ml-4 flex-shrink-0`} />
                         </div>
                     </CollapsibleTrigger>
-                     <Button variant="ghost" size="icon" className="ml-2 flex-shrink-0" onClick={(e) => { e.stopPropagation(); setEditingChapter(note); }}>
+                     <Button variant="ghost" size="icon" className="ml-2 flex-shrink-0" onClick={() => setEditingChapter(note)}>
                         <FilePenLine className="h-4 w-4" />
                         <span className="sr-only">Edit Chapter</span>
                     </Button>
-                </div>
+                </CardHeader>
               <CollapsibleContent>
                 <CardContent className="border-t pt-4">
                   <div className="space-y-4">
