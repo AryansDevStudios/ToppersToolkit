@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { CartItem, Subject, SubCategory, NoteMaterial, NoteItem } from '@/types';
 import { db } from './firebase';
 import { saveOrder, saveNoteMaterial, updateOrderStatus, updateNoteMaterial } from './data';
-import { Timestamp, arrayUnion, collection, doc, getDoc, getDocs, query, updateDoc, where, writeBatch } from 'firebase/firestore';
+import { Timestamp, arrayUnion, collection, doc, getDoc, getDocs, query, updateDoc, where, writeBatch, deleteDoc } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
 import { unstable_noStore as noStore } from 'next/cache';
 import { nanoid } from 'nanoid';
@@ -187,7 +187,7 @@ export async function deleteNoteItemAction(noteId: string, itemId: string) {
         
         // If this was the last item, delete the whole document
         if (updatedItems.length === 0) {
-            await noteRef.delete();
+            await deleteDoc(noteRef);
         } else {
             await updateDoc(noteRef, { items: updatedItems });
         }
@@ -401,3 +401,5 @@ export async function updateChapterInfoAction(prevState: any, formData: FormData
         return { success: false, message };
     }
 }
+
+    
