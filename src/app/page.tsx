@@ -5,10 +5,11 @@ import { NoteCard } from '@/components/NoteCard';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowRight, Info } from 'lucide-react';
+import type { RecentNoteItem } from '@/types';
 
 export default async function Home() {
   const subjects = await getSubjects();
-  const recentNotes = await getRecentNotes(8);
+  const recentNotes: RecentNoteItem[] = await getRecentNotes(8);
 
   return (
     <div>
@@ -64,7 +65,7 @@ export default async function Home() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
             {recentNotes.map((note) => (
-              <NoteCard key={note.id} note={note} />
+              <NoteCard key={`${note.id}-${note.type}`} note={note} />
             ))}
           </div>
         </div>

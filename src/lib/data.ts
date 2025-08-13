@@ -1,5 +1,5 @@
 
-import type { Subject, NoteMaterial, Chapter, Order, NoteItem } from '@/types';
+import type { Subject, NoteMaterial, Chapter, Order, NoteItem, RecentNoteItem } from '@/types';
 import { db } from './firebase';
 import { collection, getDocs, getDoc, doc, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, Timestamp } from 'firebase/firestore';
 import { unstable_noStore as noStore } from 'next/cache';
@@ -9,7 +9,7 @@ import { unstable_noStore as noStore } from 'next/cache';
 export async function getSubjects(): Promise<Subject[]> {
     // Fallback to hardcoded data if Firestore is empty
     const subjectsData: Subject[] = [
-        { id: 'science', name: 'Science', subcategories: [{id: 'physics', name: 'Physics'}, {id: 'chemistry', name: 'Chemistry'}, {id: 'biology', name: 'Biology'}] },
+        { id: 'science', name: 'Science', subcategories: [{id: 'physics', name: 'Physics'}, {id: 'chemistry', name: 'Chemistry'}, {id: 'biology', 'name': 'Biology'}] },
         { id: 'sst', name: 'SST', subcategories: [{id: 'history', name: 'History'}, {id: 'civics', name: 'Civics'}, {id: 'geography', name: 'Geography'}, {id: 'economics', name: 'Economics'}] },
         { id: 'maths', name: 'Maths', subcategories: [{id: 'maths', name: 'Maths'}] },
         { id: 'english', name: 'English', subcategories: [{id: 'moments', name: 'Moments'}, {id: 'beehive', name: 'Beehive'}, {id: 'grammar', name: 'Grammar'}] },
@@ -23,58 +23,53 @@ export async function getSubjectById(id: string): Promise<Subject | undefined> {
   return subjects.find(s => s.id === id);
 }
 
-export async function getRecentNotes(count: number = 8): Promise<NoteMaterial[]> {
+export async function getRecentNotes(count: number = 8): Promise<RecentNoteItem[]> {
     noStore();
     const notesQuery = query(
         collection(db, 'noteMaterials'), 
-        orderBy('createdAt', 'desc'), 
-        limit(count * 5) // Fetch more to account for grouping
     );
     const notesSnapshot = await getDocs(notesQuery);
     
-    const allNotes = notesSnapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-            ...data,
-            id: doc.id,
-            createdAt: data.createdAt.toDate().toISOString(),
-        } as NoteMaterial
+    const allItems: RecentNoteItem[] = [];
+
+    notesSnapshot.forEach(doc => {
+        const note = doc.data() as NoteMaterial;
+        note.id = doc.id; // Assign document id
+
+        if (Array.isArray(note.items)) {
+            note.items.forEach(item => {
+                if (item.status === 'published') {
+                    const findFirstPrice = () => {
+                        if (item.prices.pdf !== undefined) return item.prices.pdf;
+                        if (item.prices.printed !== undefined) return item.prices.printed;
+                        return 0;
+                    };
+                    
+                    const itemCreatedAt = (item.createdAt as Timestamp)?.toDate() ?? (note.createdAt as Timestamp)?.toDate();
+                    
+                    if (itemCreatedAt) {
+                         allItems.push({
+                            ...note,
+                            createdAt: itemCreatedAt.toISOString(),
+                            type: item.name,
+                            description: item.description || note.description, // Use item description if available
+                            imageUrl: item.imageUrl || note.imageUrl, // Use item image if available
+                            price: findFirstPrice(),
+                        });
+                    }
+                }
+            });
+        }
     });
 
-    // Group notes by chapter to avoid duplicates
-    const groupedByChapter = allNotes.reduce((acc, note) => {
-        const key = `${note.subjectId}-${note.subcategoryId}-${note.chapter}`;
-        if (!acc[key]) {
-            acc[key] = {
-                ...note,
-                items: [], // Start with an empty items array for the group
-            };
-        }
-        
-        // Add items from the current note document to the group
-        if (Array.isArray(note.items)) {
-            acc[key].items.push(...note.items);
-        }
+    // Sort all collected items by date and take the most recent ones
+    const sortedItems = allItems.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    
+    const recentItems = sortedItems.slice(0, count);
 
-        // Ensure the group has the most recent createdAt timestamp
-        if (new Date(note.createdAt) > new Date(acc[key].createdAt)) {
-            acc[key].createdAt = note.createdAt;
-        }
-
-        return acc;
-    }, {} as Record<string, NoteMaterial>);
-
-    // Convert grouped object back to an array and sort by date
-    const uniqueRecentNotes = Object.values(groupedByChapter)
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-    // Filter out notes that don't have any published items and take the required count
-    const notesData = uniqueRecentNotes.filter(note => {
-        return Array.isArray(note.items) && note.items.some(item => item.status === 'published');
-    }).slice(0, count);
-
-    return JSON.parse(JSON.stringify(notesData));
+    return JSON.parse(JSON.stringify(recentItems));
 }
+
 
 export async function getAllNotes(): Promise<NoteMaterial[]> {
     noStore();
@@ -201,4 +196,3 @@ export async function checkChapterExists({ subjectId, subcategoryId, chapter }: 
     const querySnapshot = await getDocs(q);
     return !querySnapshot.empty;
 }
-

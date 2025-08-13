@@ -1,7 +1,7 @@
 
 import Link from 'next/link';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import type { NoteMaterial } from '@/types';
+import type { RecentNoteItem } from '@/types';
 import { Badge } from './ui/badge';
 import { ArrowRight, IndianRupee } from 'lucide-react';
 import { NoteImage } from './NoteImage';
@@ -9,24 +9,11 @@ import { BookOpen } from 'lucide-react';
 
 
 type NoteCardProps = {
-  note: NoteMaterial;
+  note: RecentNoteItem;
 };
 
 export function NoteCard({ note }: NoteCardProps) {
-  const items = Array.isArray(note.items) ? note.items : [];
-  // Find the first available price from all items to display
-  const findFirstPrice = () => {
-    for (const item of items) {
-      if (item.status === 'published') {
-        if (item.prices.pdf !== undefined) return item.prices.pdf;
-        if (item.prices.printed !== undefined) return item.prices.printed;
-      }
-    }
-    return undefined;
-  };
-
-  const firstAvailablePrice = findFirstPrice();
-
+  
   return (
     <Link href={`/subjects/${note.subjectId}/${note.subcategoryId}`} className="group block">
       <Card className="overflow-hidden h-full flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-2 bg-card hover:bg-accent/40">
@@ -41,19 +28,19 @@ export function NoteCard({ note }: NoteCardProps) {
           </div>
         </CardHeader>
         <CardContent className="p-4 flex-grow">
-          <Badge variant="secondary" className="mb-2">{note.subjectName} - {note.subcategoryName}</Badge>
+          <Badge variant="secondary" className="mb-2">{note.subjectName} - {note.type}</Badge>
           <CardTitle className="text-lg font-bold leading-tight group-hover:text-primary transition-colors">{note.chapter}</CardTitle>
           <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{note.description}</p>
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between items-center">
-            {firstAvailablePrice !== undefined ? (
+            {note.price !== undefined ? (
               <p className="font-bold text-lg flex items-center">
-                {firstAvailablePrice === 0 ? (
+                {note.price === 0 ? (
                    <span className="text-primary">Free</span>
                 ) : (
                   <>
                     <IndianRupee className="h-5 w-5 mr-1 text-primary"/>
-                    {firstAvailablePrice.toFixed(2)}
+                    {note.price.toFixed(2)}
                   </>
                 )}
                 <span className="text-sm font-normal text-muted-foreground ml-1">onwards</span>

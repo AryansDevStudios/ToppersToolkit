@@ -25,6 +25,7 @@ export type NoteItem = {
   imageUrl?: string; // Optional specific image for this item
   prices: PriceInfo;
   status: 'published' | 'hidden'; // Individual status for the item
+  createdAt: Timestamp | string; // Timestamp for when the item was added
 };
 
 // Represents a collection of notes for a single chapter
@@ -40,6 +41,13 @@ export type NoteMaterial = {
   createdAt: Timestamp | string; // Allow string for client-side representation
   items: NoteItem[]; // Array of different note types for this chapter
 };
+
+// Type for a flattened note item used for display purposes
+export type RecentNoteItem = Omit<NoteMaterial, 'items'> & {
+  type: string;
+  price: number;
+};
+
 
 export type CartItem = {
   id: string; // Combination of noteId and noteItemId, e.g., 'chapterNoteId-summary-item'

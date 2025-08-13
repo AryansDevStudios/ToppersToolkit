@@ -108,6 +108,7 @@ const parseAndTransformNoteItems = (itemsJSON: string): NoteItem[] => {
             imageUrl: item.imageUrl || '',
             prices: prices,
             status: 'published', // Default status
+            createdAt: Timestamp.now(), // Add timestamp here
         };
     });
 };
@@ -277,6 +278,7 @@ export async function updateNoteItemAction(prevState: any, formData: FormData) {
         if (parsed.pricePrinted) { prices.printed = parseFloat(parsed.pricePrinted); }
 
         const updatedItem: NoteItem = {
+            ...noteData.items[itemIndex], // Preserve original timestamp
             id: parsed.itemId,
             name: parsed.name,
             description: parsed.description || '',
@@ -332,6 +334,7 @@ export async function addNoteItemAction(prevState: any, formData: FormData) {
             imageUrl: parsed.imageUrl || '',
             prices: prices,
             status: parsed.status,
+            createdAt: Timestamp.now(), // Add timestamp here
         };
 
         await updateNoteMaterial(parsed.noteId, {
@@ -401,5 +404,3 @@ export async function updateChapterInfoAction(prevState: any, formData: FormData
         return { success: false, message };
     }
 }
-
-    
