@@ -19,6 +19,7 @@ import { nanoid } from 'nanoid';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { checkChapterExists } from '@/lib/data';
+import { AnimatePresence, motion } from 'framer-motion';
 
 const PriceSchema = z.string().refine(val => val === '' || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0), {
     message: 'Price must be a non-negative number or empty.',
