@@ -8,7 +8,7 @@ export function NoteUploader() {
     <Card>
       <CardHeader>
         <CardTitle>Add New Note</CardTitle>
-        <CardDescription>Fill out the form to add a new note to the catalog.</CardDescription>
+        <CardDescription>Fill out the form to add a new note to the catalog. If a note for the same chapter and path exists, new items will be added to it.</CardDescription>
       </CardHeader>
       <CardContent>
         <NoteForm />

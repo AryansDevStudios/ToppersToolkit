@@ -97,11 +97,12 @@ export function NoteForm({ onSuccess }: NoteFormProps) {
         try {
             const selectedSubject = JSON.parse(selectedSubjectJSON) as Subject;
             setSubcategories(selectedSubject.subcategories || []);
-            const currentSubcategory = watch('subcategory');
-            if (currentSubcategory) {
-                const parsedSubcategory = JSON.parse(currentSubcategory);
-                if (!selectedSubject.subcategories.some(sc => sc.id === parsedSubcategory.id)) {
-                    setValue('subcategory', '');
+            const currentSubcategoryJSON = watch('subcategory');
+            // If there's a subcategory selected, check if it belongs to the new subject
+            if (currentSubcategoryJSON) {
+                const currentSubcategory = JSON.parse(currentSubcategoryJSON);
+                if (!selectedSubject.subcategories.some(sc => sc.id === currentSubcategory.id)) {
+                    setValue('subcategory', ''); // Reset if not valid for the current subject
                 }
             }
         } catch (e) {
@@ -129,9 +130,7 @@ export function NoteForm({ onSuccess }: NoteFormProps) {
     if (result.success) {
       toast({ title: 'Success!', description: result.message });
       router.refresh();
-      reset({ subject: '', subcategory: '', chapterName: '', description: '', imageUrl: '', items: [] });
-      formRef.current?.reset();
-      setSubcategories([]);
+      reset();
       onSuccess?.();
     } else {
       setFormError(result.message);
