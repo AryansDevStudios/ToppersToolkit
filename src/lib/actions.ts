@@ -3,10 +3,13 @@
 
 import { z } from 'zod';
 import { CartItem, Subject, SubCategory, NoteMaterial, NoteItem } from '@/types';
-import { saveOrder, saveNoteMaterial, updateOrderStatus, deleteNoteMaterial, updateNoteMaterial } from './data';
-import { Timestamp } from 'firebase/firestore';
+import { db } from './firebase';
+import { saveOrder, saveNoteMaterial, updateOrderStatus, updateNoteMaterial } from './data';
+import { Timestamp, arrayUnion, collection, doc, getDocs, query, where, writeBatch } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
 import { unstable_noStore as noStore } from 'next/cache';
+import { nanoid } from 'nanoid';
+
 
 const placeOrderSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -71,8 +74,8 @@ const NoteItemSchema = z.object({
     pricePDF: PriceSchema,
     pricePrinted: PriceSchema,
 }).refine(data => (data.pricePDF !== undefined && data.pricePDF !== '') || (data.pricePrinted !== undefined && data.pricePrinted !== ''), {
-    message: 'At least one price (PDF or Printed) is required for this note type.',
-    path: ['name'], // Attach error to the name field of the item
+    message: 'At least one price (PDF or Printed) is required.',
+    path: ['name'],
 });
 
 
@@ -91,7 +94,6 @@ const parseAndTransformNoteItems = (itemsJSON: string): NoteItem[] => {
     
     return parsedItemsForValidation.map(item => {
         const prices: { pdf?: number; printed?: number } = {};
-        // Only include the price if it's a valid number (including 0)
         if (item.pricePDF !== undefined && item.pricePDF !== '') {
             prices.pdf = parseFloat(item.pricePDF);
         }
@@ -119,24 +121,40 @@ export async function addNoteAction(prevState: any, formData: FormData) {
         const subcategory: SubCategory = JSON.parse(parsed.subcategory);
         const noteItems = parseAndTransformNoteItems(parsed.items);
 
-        const newNote: Omit<NoteMaterial, 'id' | 'createdAt'> = {
-            subjectId: subject.id,
-            subjectName: subject.name,
-            subcategoryId: subcategory.id,
-            subcategoryName: subcategory.name,
-            chapter: parsed.chapterName,
-            description: parsed.description,
-            imageUrl: parsed.imageUrl || 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true',
-            status: 'published',
-            items: noteItems,
-        };
+        // Check if a note with the same chapter name and path already exists
+        const q = query(
+            collection(db, 'noteMaterials'),
+            where('subjectId', '==', subject.id),
+            where('subcategoryId', '==', subcategory.id),
+            where('chapter', '==', parsed.chapterName)
+        );
 
-        await saveNoteMaterial(newNote);
-        revalidatePath('/');
-        revalidatePath('/subjects', 'layout');
-        revalidatePath('/admin');
+        const querySnapshot = await getDocs(q);
         
-        return { success: true, message: 'Note added successfully!' };
+        if (!querySnapshot.empty) {
+            // It exists, update the first found document with the new items
+            const existingNoteDoc = querySnapshot.docs[0];
+            await updateNoteMaterial(existingNoteDoc.id, {
+                items: arrayUnion(...noteItems)
+            });
+             return { success: true, message: `Added new items to existing chapter: ${parsed.chapterName}` };
+        } else {
+            // It does not exist, create a new document
+            const newNote: Omit<NoteMaterial, 'id' | 'createdAt'> = {
+                subjectId: subject.id,
+                subjectName: subject.name,
+                subcategoryId: subcategory.id,
+                subcategoryName: subcategory.name,
+                chapter: parsed.chapterName,
+                description: parsed.description,
+                imageUrl: parsed.imageUrl || 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true',
+                status: 'published',
+                items: noteItems,
+            };
+
+            await saveNoteMaterial(newNote);
+            return { success: true, message: 'Note added successfully!' };
+        }
 
     } catch (error) {
         console.error("Action Error:", error);
@@ -145,48 +163,61 @@ export async function addNoteAction(prevState: any, formData: FormData) {
         }
         const message = error instanceof Error ? error.message : 'Failed to add note.';
         return { success: false, message };
-    }
-}
-
-const updateNoteSchema = NoteFormSchema.extend({
-    noteId: z.string().min(1),
-});
-
-export async function updateNoteAction(prevState: any, formData: FormData) {
-    noStore();
-    try {
-        const rawData = Object.fromEntries(formData.entries());
-        const parsed = updateNoteSchema.parse(rawData);
-
-        const subject: Subject = JSON.parse(parsed.subject);
-        const subcategory: SubCategory = JSON.parse(parsed.subcategory);
-        const noteItems = parseAndTransformNoteItems(parsed.items);
-
-        const updatedData: Partial<NoteMaterial> = {
-            subjectId: subject.id,
-            subjectName: subject.name,
-            subcategoryId: subcategory.id,
-            subcategoryName: subcategory.name,
-            chapter: parsed.chapterName,
-            description: parsed.description,
-            imageUrl: parsed.imageUrl || 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true',
-            items: noteItems,
-        };
-
-        await updateNoteMaterial(parsed.noteId, updatedData);
+    } finally {
         revalidatePath('/');
         revalidatePath('/subjects', 'layout');
         revalidatePath('/admin');
-        
-        return { success: true, message: 'Note updated successfully!' };
+    }
+}
 
+export async function deleteNoteItemAction(noteId: string, itemId: string) {
+    noStore();
+    try {
+        const noteRef = doc(db, 'noteMaterials', noteId);
+        const noteSnapshot = await db.collection('noteMaterials').doc(noteId).get();
+        if (!noteSnapshot.exists) {
+            throw new Error('Note document not found.');
+        }
+        
+        const noteData = noteSnapshot.data() as NoteMaterial;
+        const updatedItems = noteData.items.filter(item => item.id !== itemId);
+        
+        // If this was the last item, delete the whole document
+        if (updatedItems.length === 0) {
+            await noteRef.delete();
+        } else {
+            await updateDoc(noteRef, { items: updatedItems });
+        }
+
+        revalidatePath('/');
+        revalidatePath('/subjects', 'layout');
+        revalidatePath('/admin');
+        return { success: true, message: 'Note item deleted successfully.' };
     } catch (error) {
         console.error("Action Error:", error);
-         if (error instanceof z.ZodError) {
-            return { success: false, message: error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ') };
-        }
-        const message = error instanceof Error ? error.message : 'Failed to update note.';
+        const message = error instanceof Error ? error.message : 'Failed to delete note item.';
         return { success: false, message };
+    }
+}
+
+
+export async function toggleNoteStatusAction(noteIds: string[], newStatus: 'published' | 'hidden') {
+    noStore();
+    try {
+        const batch = writeBatch(db);
+        noteIds.forEach(id => {
+            const noteRef = doc(db, 'noteMaterials', id);
+            batch.update(noteRef, { status: newStatus });
+        });
+        await batch.commit();
+
+        revalidatePath('/');
+        revalidatePath('/subjects', 'layout');
+        revalidatePath('/admin');
+        return { success: true, message: `Note status updated to ${newStatus}.` };
+    } catch (error) {
+        console.error("Action Error:", error);
+        return { success: false, message: 'Failed to update note status.' };
     }
 }
 
@@ -202,29 +233,109 @@ export async function completeOrderAction(orderId: string) {
     }
 }
 
-export async function deleteNoteAction(noteId: string) {
+const ItemFormSchema = z.object({
+  noteId: z.string().min(1),
+  itemId: z.string().min(1),
+  name: z.string().min(1, 'Note type name is required.'),
+  description: z.string().optional(),
+  imageUrl: z.string().url({ message: 'Please enter a valid image URL.' }).optional().or(z.literal('')),
+  pricePDF: PriceSchema,
+  pricePrinted: PriceSchema,
+}).refine(data => (data.pricePDF !== undefined && data.pricePDF !== '') || (data.pricePrinted !== undefined && data.pricePrinted !== ''), {
+    message: 'At least one price (PDF or Printed) is required.',
+    path: ['name'],
+});
+
+export async function updateNoteItemAction(prevState: any, formData: FormData) {
     noStore();
     try {
-        await deleteNoteMaterial(noteId);
-        revalidatePath('/');
-        revalidatePath('/subjects', 'layout');
+        const rawData = Object.fromEntries(formData.entries());
+        const parsed = ItemFormSchema.parse(rawData);
+
+        const noteRef = doc(db, 'noteMaterials', parsed.noteId);
+        const noteSnapshot = await db.collection('noteMaterials').doc(parsed.noteId).get();
+        if (!noteSnapshot.exists) {
+            throw new Error('Note document not found.');
+        }
+        
+        const noteData = noteSnapshot.data() as NoteMaterial;
+        const itemIndex = noteData.items.findIndex(item => item.id === parsed.itemId);
+        
+        if (itemIndex === -1) {
+            throw new Error('Item not found in note.');
+        }
+
+        const prices: { pdf?: number; printed?: number } = {};
+        if (parsed.pricePDF !== undefined && parsed.pricePDF !== '') { prices.pdf = parseFloat(parsed.pricePDF); }
+        if (parsed.pricePrinted !== undefined && parsed.pricePrinted !== '') { prices.printed = parseFloat(parsed.pricePrinted); }
+
+        const updatedItem: NoteItem = {
+            id: parsed.itemId,
+            name: parsed.name,
+            description: parsed.description || '',
+            imageUrl: parsed.imageUrl || '',
+            prices: prices,
+        };
+
+        const updatedItems = [...noteData.items];
+        updatedItems[itemIndex] = updatedItem;
+
+        await updateDoc(noteRef, { items: updatedItems });
+
         revalidatePath('/admin');
-        return { success: true, message: 'Note deleted.' };
+        return { success: true, message: 'Note item updated successfully.' };
     } catch (error) {
-        return { success: false, message: 'Failed to delete note.' };
+        console.error("Action Error:", error);
+        if (error instanceof z.ZodError) {
+            return { success: false, message: error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ') };
+        }
+        const message = error instanceof Error ? error.message : 'Failed to update note item.';
+        return { success: false, message };
     }
 }
 
-export async function toggleNoteStatusAction(noteId: string, currentStatus: 'published' | 'hidden') {
+const AddItemFormSchema = z.object({
+  noteId: z.string().min(1),
+  name: z.string().min(1, 'Note type name is required.'),
+  description: z.string().optional(),
+  imageUrl: z.string().url({ message: 'Please enter a valid image URL.' }).optional().or(z.literal('')),
+  pricePDF: PriceSchema,
+  pricePrinted: PriceSchema,
+}).refine(data => (data.pricePDF !== undefined && data.pricePDF !== '') || (data.pricePrinted !== undefined && data.pricePrinted !== ''), {
+    message: 'At least one price (PDF or Printed) is required.',
+    path: ['name'],
+});
+
+export async function addNoteItemAction(prevState: any, formData: FormData) {
     noStore();
     try {
-        const newStatus = currentStatus === 'published' ? 'hidden' : 'published';
-        await updateNoteMaterial(noteId, { status: newStatus });
-        revalidatePath('/');
-        revalidatePath('/subjects', 'layout');
+        const rawData = Object.fromEntries(formData.entries());
+        const parsed = AddItemFormSchema.parse(rawData);
+
+        const prices: { pdf?: number; printed?: number } = {};
+        if (parsed.pricePDF !== undefined && parsed.pricePDF !== '') { prices.pdf = parseFloat(parsed.pricePDF); }
+        if (parsed.pricePrinted !== undefined && parsed.pricePrinted !== '') { prices.printed = parseFloat(parsed.pricePrinted); }
+
+        const newItem: NoteItem = {
+            id: nanoid(),
+            name: parsed.name,
+            description: parsed.description || '',
+            imageUrl: parsed.imageUrl || '',
+            prices: prices,
+        };
+
+        await updateNoteMaterial(parsed.noteId, {
+            items: arrayUnion(newItem)
+        });
+
         revalidatePath('/admin');
-        return { success: true, message: `Note status updated to ${newStatus}.` };
+        return { success: true, message: 'New note item added successfully.' };
     } catch (error) {
-        return { success: false, message: 'Failed to update note status.' };
+        console.error("Action Error:", error);
+         if (error instanceof z.ZodError) {
+            return { success: false, message: error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ') };
+        }
+        const message = error instanceof Error ? error.message : 'Failed to add note item.';
+        return { success: false, message };
     }
 }

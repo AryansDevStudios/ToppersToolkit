@@ -5,9 +5,9 @@ import { useRef, useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { addNoteAction, updateNoteAction } from '@/lib/actions';
+import { addNoteAction } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
-import type { Subject, SubCategory, NoteMaterial, NoteItem } from '@/types';
+import type { Subject, SubCategory } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -31,7 +31,7 @@ const NoteItemSchema = z.object({
     pricePDF: PriceSchema,
     pricePrinted: PriceSchema,
 }).refine(data => (data.pricePDF !== undefined && data.pricePDF !== '') || (data.pricePrinted !== undefined && data.pricePrinted !== ''), {
-    message: 'At least one price (PDF or Printed) is required for this note type.',
+    message: 'At least one price (PDF or Printed) is required.',
     path: ['name'],
 });
 
@@ -48,7 +48,6 @@ const NoteFormSchema = z.object({
 type NoteFormInputs = z.infer<typeof NoteFormSchema>;
 
 type NoteFormProps = {
-    note?: NoteMaterial;
     onSuccess?: () => void;
 }
 
@@ -59,50 +58,29 @@ const subjectsData: Subject[] = [
     { id: 'english', name: 'English', subcategories: [{id: 'moments', name: 'Moments'}, {id: 'beehive', name: 'Beehive'}, {id: 'grammar', name: 'Grammar'}] },
 ];
 
-function SubmitButton({ isEditing, isSubmitting }: { isEditing: boolean, isSubmitting: boolean }) {
+function SubmitButton({ isSubmitting }: { isSubmitting: boolean }) {
   return (
     <Button type="submit" disabled={isSubmitting} className="w-full mt-4">
-      {isSubmitting ? (isEditing ? 'Updating Note...' : 'Adding Note...') : (isEditing ? 'Update Note' : 'Add Note')}
+      {isSubmitting ? 'Adding Note...' : 'Add Note'}
     </Button>
   );
 }
 
-export function NoteForm({ note, onSuccess }: NoteFormProps) {
-  const isEditing = !!note;
+export function NoteForm({ onSuccess }: NoteFormProps) {
   const { toast } = useToast();
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const getInitialSubjectString = () => {
-    if (!note) return '';
-    const subject = subjectsData.find(s => s.id === note.subjectId);
-    return subject ? JSON.stringify(subject) : '';
-  };
-  
-  const getInitialSubcategoryString = () => {
-      if (!note) return '';
-      const subject = subjectsData.find(s => s.id === note.subjectId);
-      const subcategory = subject?.subcategories.find(sc => sc.id === note.subcategoryId);
-      return subcategory ? JSON.stringify(subcategory) : '';
-  };
-
   const { register, control, watch, setValue, reset, handleSubmit, formState: { errors, isSubmitting } } = useForm<NoteFormInputs>({
     resolver: zodResolver(NoteFormSchema),
     defaultValues: {
-      subject: getInitialSubjectString(),
-      subcategory: getInitialSubcategoryString(),
-      chapterName: note?.chapter || '',
-      description: note?.description || '',
-      imageUrl: note?.imageUrl || '',
-      items: note?.items.map(item => ({
-        id: item.id,
-        name: item.name,
-        description: item.description,
-        imageUrl: item.imageUrl,
-        pricePDF: item.prices.pdf !== undefined ? String(item.prices.pdf) : '',
-        pricePrinted: item.prices.printed !== undefined ? String(item.prices.printed) : '',
-      })) || [],
+      subject: '',
+      subcategory: '',
+      chapterName: '',
+      description: '',
+      imageUrl: '',
+      items: [{ id: nanoid(), name: '', description: '', imageUrl: '', pricePDF: '', pricePrinted: ''}],
     }
   });
 
@@ -138,8 +116,6 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
   
   const processForm = async (data: NoteFormInputs) => {
     setFormError(null);
-    const action = isEditing && note ? updateNoteAction : addNoteAction;
-    
     const formData = new FormData();
     formData.append('subject', data.subject);
     formData.append('subcategory', data.subcategory);
@@ -147,21 +123,15 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
     formData.append('description', data.description);
     formData.append('imageUrl', data.imageUrl || '');
     formData.append('items', JSON.stringify(data.items));
-
-    if (isEditing && note) {
-        formData.append('noteId', note.id);
-    }
     
-    const result = await action(null, formData);
+    const result = await addNoteAction(null, formData);
 
     if (result.success) {
       toast({ title: 'Success!', description: result.message });
       router.refresh();
-      if (!isEditing) {
-        reset({ subject: '', subcategory: '', chapterName: '', description: '', imageUrl: '', items: [] });
-        formRef.current?.reset();
-        setSubcategories([]);
-      }
+      reset({ subject: '', subcategory: '', chapterName: '', description: '', imageUrl: '', items: [] });
+      formRef.current?.reset();
+      setSubcategories([]);
       onSuccess?.();
     } else {
       setFormError(result.message);
@@ -247,13 +217,16 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
           <CardTitle>Note Types</CardTitle>
           <CardDescription>Add one or more note types for this chapter, like "Summary", "Question Bank", etc.</CardDescription>
           {errors.items?.root && <p className="text-sm text-destructive mt-2">{errors.items.root.message}</p>}
+          {errors.items && !errors.items.root && <p className="text-sm text-destructive mt-2">Please check the errors in the note types below.</p>}
         </CardHeader>
         <CardContent className="space-y-4">
           {fields.map((field, index) => (
             <div key={field.id} className="p-4 border rounded-lg space-y-3 relative">
-              <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)}>
-                <Trash2 className="h-4 w-4 text-destructive" />
-              </Button>
+                {fields.length > 1 && (
+                    <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                )}
               <div>
                 <Label>Note Type Name</Label>
                 <Input {...register(`items.${index}.name`)} placeholder='e.g., Handwritten Notes, Summary' />
@@ -271,12 +244,12 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
               <div className="grid grid-cols-2 gap-4">
                   <div>
                       <Label>PDF Price (₹)</Label>
-                      <Input type="number" step="0.01" {...register(`items.${index}.pricePDF`)} placeholder="e.g., 50 or 0 for free"/>
+                      <Input type="number" step="0.01" {...register(`items.${index}.pricePDF`)} placeholder="e.g., 50 or 0 for free. Leave blank if N/A."/>
                       {errors.items?.[index]?.pricePDF && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.pricePDF?.message}</p>}
                   </div>
                   <div>
                       <Label>Printed Price (₹)</Label>
-                      <Input type="number" step="0.01" {...register(`items.${index}.pricePrinted`)} placeholder="e.g., 150"/>
+                      <Input type="number" step="0.01" {...register(`items.${index}.pricePrinted`)} placeholder="e.g., 150. Leave blank if N/A."/>
                       {errors.items?.[index]?.pricePrinted && <p className="text-sm text-destructive mt-1">{errors.items?.[index]?.pricePrinted?.message}</p>}
                   </div>
               </div>
@@ -293,7 +266,7 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
         </CardContent>
       </Card>
       
-      <SubmitButton isEditing={isEditing} isSubmitting={isSubmitting} />
+      <SubmitButton isSubmitting={isSubmitting} />
     </form>
   );
 }
