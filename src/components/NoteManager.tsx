@@ -7,7 +7,6 @@ import { useToast } from '@/hooks/use-toast';
 import { 
     deleteNoteItemAction,
     updateNoteItemStatusAction,
-    updateChapterInfoAction,
 } from '@/lib/actions';
 import type { NoteMaterial, NoteItem } from '@/types';
 import {
@@ -18,7 +17,7 @@ import {
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Edit, Eye, EyeOff, ChevronDown, BookOpen, PlusCircle, Settings, FilePenLine } from 'lucide-react';
+import { Trash2, Edit, Eye, EyeOff, ChevronDown, BookOpen, PlusCircle, FilePenLine } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import {
@@ -174,9 +173,9 @@ export function NoteManager({ notes }: NoteManagerProps) {
         return (
           <Collapsible key={note.id} open={isOpen} onOpenChange={(open) => setOpenCollapsibleId(open ? note.id : null)}>
             <Card>
-                <CardHeader className="flex flex-row items-center justify-between p-4">
-                    <CollapsibleTrigger className="flex-grow text-left hover:bg-accent/50 -m-4 p-4 rounded-l-lg transition-colors">
-                        <div className="flex items-center justify-between">
+                <div className="flex flex-row items-center justify-between p-4">
+                    <CollapsibleTrigger asChild>
+                       <div className="flex-grow flex items-center justify-between cursor-pointer p-4 -m-4 rounded-l-lg hover:bg-accent/50 transition-colors">
                             <div>
                                 <CardTitle className="text-xl">{note.chapter}</CardTitle>
                                 <CardDescription className="mt-1">
@@ -184,14 +183,14 @@ export function NoteManager({ notes }: NoteManagerProps) {
                                     <span className="ml-2 text-xs">({note.items.length} item{note.items.length === 1 ? '' : 's'})</span>
                                 </CardDescription>
                             </div>
-                            <ChevronDown className={`h-5 w-5 transition-transform ${isOpen ? 'rotate-180' : ''} ml-4`} />
+                            <ChevronDown className={`h-5 w-5 transition-transform ${isOpen ? 'rotate-180' : ''} ml-4 flex-shrink-0`} />
                         </div>
                     </CollapsibleTrigger>
                      <Button variant="ghost" size="icon" className="ml-2 flex-shrink-0" onClick={(e) => { e.stopPropagation(); setEditingChapter(note); }}>
                         <FilePenLine className="h-4 w-4" />
                         <span className="sr-only">Edit Chapter</span>
                     </Button>
-                </CardHeader>
+                </div>
               <CollapsibleContent>
                 <CardContent className="border-t pt-4">
                   <div className="space-y-4">
