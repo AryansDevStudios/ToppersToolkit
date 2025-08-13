@@ -159,3 +159,15 @@ export async function getPassphrase(): Promise<string> {
 
     throw new Error("ADMIN_PASSPHRASE is not set. Please set it in your .env file or in Firestore at 'settings/admin'.");
 }
+
+export async function checkChapterExists({ subjectId, subcategoryId, chapter }: { subjectId: string, subcategoryId: string, chapter: string }): Promise<boolean> {
+    noStore();
+    const q = query(
+        collection(db, 'noteMaterials'),
+        where('subjectId', '==', subjectId),
+        where('subcategoryId', '==', subcategoryId),
+        where('chapter', '==', chapter)
+    );
+    const querySnapshot = await getDocs(q);
+    return !querySnapshot.empty;
+}

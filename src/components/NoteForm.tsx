@@ -1,23 +1,24 @@
 
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useTransition } from 'react';
 import { z } from 'zod';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { addNoteAction } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
-import type { Subject, SubCategory } from '@/types';
+import type { Subject, SubCategory, NoteMaterial } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { useRouter } from 'next/navigation';
-import { PlusCircle, Trash2, AlertCircle } from 'lucide-react';
+import { PlusCircle, Trash2, AlertCircle, Loader2 } from 'lucide-react';
 import { nanoid } from 'nanoid';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { checkChapterExists } from '@/lib/data';
 
 const PriceSchema = z.string().refine(val => val === '' || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0), {
     message: 'Price must be a non-negative number or empty.',
@@ -30,7 +31,7 @@ const NoteItemSchema = z.object({
     imageUrl: z.string().url({ message: 'Please enter a valid image URL.' }).optional().or(z.literal('')),
     pricePDF: PriceSchema,
     pricePrinted: PriceSchema,
-}).refine(data => (data.pricePDF !== undefined && data.pricePDF !== '') || (data.pricePrinted !== undefined && data.pricePrinted !== ''), {
+}).refine(data => data.pricePDF || data.pricePrinted, {
     message: 'At least one price (PDF or Printed) is required.',
     path: ['name'],
 });
@@ -39,7 +40,7 @@ const NoteFormSchema = z.object({
   subject: z.string().min(1, 'Please select a subject'),
   subcategory: z.string().min(1, 'Please select a subcategory'),
   chapterName: z.string().min(1, 'Chapter name is required'),
-  description: z.string().min(1, 'A main description is required'),
+  description: z.string(),
   imageUrl: z.string().url({ message: 'Please enter a valid main image URL.' }).optional().or(z.literal('')),
   items: z.array(NoteItemSchema).min(1, 'You must add at least one note type.'),
 });
@@ -49,6 +50,7 @@ type NoteFormInputs = z.infer<typeof NoteFormSchema>;
 
 type NoteFormProps = {
     onSuccess?: () => void;
+    notes: NoteMaterial[];
 }
 
 const subjectsData: Subject[] = [
@@ -58,15 +60,15 @@ const subjectsData: Subject[] = [
     { id: 'english', name: 'English', subcategories: [{id: 'moments', name: 'Moments'}, {id: 'beehive', name: 'Beehive'}, {id: 'grammar', name: 'Grammar'}] },
 ];
 
-function SubmitButton({ isSubmitting }: { isSubmitting: boolean }) {
+function SubmitButton({ isSubmitting, chapterExists }: { isSubmitting: boolean, chapterExists: boolean }) {
   return (
     <Button type="submit" disabled={isSubmitting} className="w-full mt-4">
-      {isSubmitting ? 'Adding Note...' : 'Add Note to Catalog'}
+      {isSubmitting ? 'Saving...' : (chapterExists ? 'Add Items to Existing Chapter' : 'Create New Chapter')}
     </Button>
   );
 }
 
-export function NoteForm({ onSuccess }: NoteFormProps) {
+export function NoteForm({ onSuccess, notes }: NoteFormProps) {
   const { toast } = useToast();
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
@@ -90,7 +92,12 @@ export function NoteForm({ onSuccess }: NoteFormProps) {
   });
   
   const [subcategories, setSubcategories] = useState<SubCategory[]>([]);
+  const [isChecking, startChecking] = useTransition();
+  const [chapterExists, setChapterExists] = useState(false);
+
   const selectedSubjectJSON = watch('subject');
+  const selectedSubcategoryJSON = watch('subcategory');
+  const chapterName = watch('chapterName');
 
   useEffect(() => {
     if (selectedSubjectJSON) {
@@ -113,9 +120,37 @@ export function NoteForm({ onSuccess }: NoteFormProps) {
         setValue('subcategory', '');
     }
   }, [selectedSubjectJSON, setValue, watch]);
-  
+
+  useEffect(() => {
+    const check = async () => {
+        if (selectedSubjectJSON && selectedSubcategoryJSON && chapterName) {
+            const subject: Subject = JSON.parse(selectedSubjectJSON);
+            const subcategory: SubCategory = JSON.parse(selectedSubcategoryJSON);
+            const exists = await checkChapterExists({
+                subjectId: subject.id,
+                subcategoryId: subcategory.id,
+                chapter: chapterName
+            });
+            setChapterExists(exists);
+        } else {
+            setChapterExists(false);
+        }
+    };
+
+    const handler = setTimeout(() => {
+        startChecking(check);
+    }, 500); // Debounce check
+
+    return () => clearTimeout(handler);
+  }, [selectedSubjectJSON, selectedSubcategoryJSON, chapterName]);
+
   const processForm = async (data: NoteFormInputs) => {
     setFormError(null);
+    if (!chapterExists && !data.description) {
+        setFormError("A main description is required for new chapters.");
+        return;
+    }
+
     const formData = new FormData();
     formData.append('subject', data.subject);
     formData.append('subcategory', data.subcategory);
@@ -199,20 +234,43 @@ export function NoteForm({ onSuccess }: NoteFormProps) {
                 </div>
                 <div>
                     <Label htmlFor="chapterName">Chapter Name</Label>
-                    <Input id="chapterName" {...register('chapterName')} />
+                    <div className="relative">
+                        <Input id="chapterName" {...register('chapterName')} />
+                        {isChecking && <Loader2 className="animate-spin h-4 w-4 absolute right-3 top-3 text-muted-foreground" />}
+                    </div>
                     {errors.chapterName && <p className="text-sm text-destructive mt-1">{errors.chapterName.message}</p>}
                 </div>
                 
-                <div>
-                    <Label htmlFor="description">Main Description</Label>
-                    <Textarea id="description" {...register('description')} placeholder="This description applies to the whole chapter entry."/>
-                    {errors.description && <p className="text-sm text-destructive mt-1">{errors.description.message}</p>}
-                </div>
-                <div>
-                    <Label htmlFor="imageUrl">Main Image URL (Optional)</Label>
-                    <Input id="imageUrl" {...register('imageUrl')} placeholder="https://... (used as a fallback for all note types)" />
-                    {errors.imageUrl && <p className="text-sm text-destructive mt-1">{errors.imageUrl.message}</p>}
-                </div>
+                <AnimatePresence>
+                    {!chapterExists && !isChecking && (
+                        <motion.div 
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="space-y-4 overflow-hidden"
+                        >
+                            <div>
+                                <Label htmlFor="description">Main Description</Label>
+                                <Textarea id="description" {...register('description')} placeholder="This description applies to the whole chapter entry."/>
+                                {errors.description && <p className="text-sm text-destructive mt-1">{errors.description.message}</p>}
+                            </div>
+                            <div>
+                                <Label htmlFor="imageUrl">Main Image URL (Optional)</Label>
+                                <Input id="imageUrl" {...register('imageUrl')} placeholder="https://... (used as a fallback for all note types)" />
+                                {errors.imageUrl && <p className="text-sm text-destructive mt-1">{errors.imageUrl.message}</p>}
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+                {chapterExists && !isChecking && (
+                    <Alert variant="default" className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+                        <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        <AlertTitle className="text-blue-800 dark:text-blue-300">Existing Chapter Found</AlertTitle>
+                        <AlertDescription className="text-blue-700 dark:text-blue-400">
+                            This chapter already exists. Any items you add below will be appended to it.
+                        </AlertDescription>
+                    </Alert>
+                )}
             </AccordionContent>
         </AccordionItem>
         <AccordionItem value="step2">
@@ -268,7 +326,7 @@ export function NoteForm({ onSuccess }: NoteFormProps) {
         </AccordionItem>
       </Accordion>
       
-      <SubmitButton isSubmitting={isSubmitting} />
+      <SubmitButton isSubmitting={isSubmitting} chapterExists={chapterExists} />
     </form>
   );
 }

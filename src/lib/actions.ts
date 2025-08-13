@@ -62,7 +62,7 @@ export async function placeOrderAction(prevState: any, formData: FormData) {
 }
 
 // Allow empty string or a string that can be coerced to a non-negative number
-const PriceSchema = z.string().refine(val => val === '' || !isNaN(parseFloat(val)) && parseFloat(val) >= 0, {
+const PriceSchema = z.string().refine(val => val === '' || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0), {
     message: 'Price must be a non-negative number or empty.',
 }).optional();
 
@@ -73,7 +73,7 @@ const NoteItemSchema = z.object({
     imageUrl: z.string().url({ message: 'Please enter a valid image URL.' }).optional().or(z.literal('')),
     pricePDF: PriceSchema,
     pricePrinted: PriceSchema,
-}).refine(data => (data.pricePDF !== undefined && data.pricePDF !== '') || (data.pricePrinted !== undefined && data.pricePrinted !== ''), {
+}).refine(data => data.pricePDF || data.pricePrinted, {
     message: 'At least one price (PDF or Printed) is required.',
     path: ['name'],
 });
@@ -83,7 +83,7 @@ const NoteFormSchema = z.object({
   subject: z.string().min(1, 'Please select a subject'),
   subcategory: z.string().min(1, 'Please select a subcategory'),
   chapterName: z.string().min(1, 'Chapter name is required'),
-  description: z.string().min(1, 'A main description is required'),
+  description: z.string(), // Not required for existing chapters
   imageUrl: z.string().url({ message: 'Please enter a valid main image URL.' }).optional().or(z.literal('')),
   items: z.string(), // This will be a JSON string
 });
@@ -94,10 +94,10 @@ const parseAndTransformNoteItems = (itemsJSON: string): NoteItem[] => {
     
     return parsedItemsForValidation.map(item => {
         const prices: { pdf?: number; printed?: number } = {};
-        if (item.pricePDF !== undefined && item.pricePDF !== '') {
+        if (item.pricePDF) {
             prices.pdf = parseFloat(item.pricePDF);
         }
-        if (item.pricePrinted !== undefined && item.pricePrinted !== '') {
+        if (item.pricePrinted) {
             prices.printed = parseFloat(item.pricePrinted);
         }
 
@@ -141,6 +141,9 @@ export async function addNoteAction(prevState: any, formData: FormData) {
              return { success: true, message: `Added new items to existing chapter: ${parsed.chapterName}` };
         } else {
             // It does not exist, create a new document
+            if (!parsed.description) {
+                throw new Error("Description is required for new chapters.");
+            }
             const newNote: Omit<NoteMaterial, 'id' | 'createdAt'> = {
                 subjectId: subject.id,
                 subjectName: subject.name,
@@ -245,7 +248,7 @@ const ItemFormSchema = z.object({
   pricePDF: PriceSchema,
   pricePrinted: PriceSchema,
   status: z.enum(['published', 'hidden']),
-}).refine(data => (data.pricePDF !== undefined && data.pricePDF !== '') || (data.pricePrinted !== undefined && data.pricePrinted !== ''), {
+}).refine(data => data.pricePDF || data.pricePrinted, {
     message: 'At least one price (PDF or Printed) is required.',
     path: ['name'],
 });
@@ -270,8 +273,8 @@ export async function updateNoteItemAction(prevState: any, formData: FormData) {
         }
 
         const prices: { pdf?: number; printed?: number } = {};
-        if (parsed.pricePDF !== undefined && parsed.pricePDF !== '') { prices.pdf = parseFloat(parsed.pricePDF); }
-        if (parsed.pricePrinted !== undefined && parsed.pricePrinted !== '') { prices.printed = parseFloat(parsed.pricePrinted); }
+        if (parsed.pricePDF) { prices.pdf = parseFloat(parsed.pricePDF); }
+        if (parsed.pricePrinted) { prices.printed = parseFloat(parsed.pricePrinted); }
 
         const updatedItem: NoteItem = {
             id: parsed.itemId,
@@ -307,7 +310,7 @@ const AddItemFormSchema = z.object({
   pricePDF: PriceSchema,
   pricePrinted: PriceSchema,
   status: z.enum(['published', 'hidden']),
-}).refine(data => (data.pricePDF !== undefined && data.pricePDF !== '') || (data.pricePrinted !== undefined && data.pricePrinted !== ''), {
+}).refine(data => data.pricePDF || data.pricePrinted, {
     message: 'At least one price (PDF or Printed) is required.',
     path: ['name'],
 });
@@ -319,8 +322,8 @@ export async function addNoteItemAction(prevState: any, formData: FormData) {
         const parsed = AddItemFormSchema.parse(rawData);
 
         const prices: { pdf?: number; printed?: number } = {};
-        if (parsed.pricePDF !== undefined && parsed.pricePDF !== '') { prices.pdf = parseFloat(parsed.pricePDF); }
-        if (parsed.pricePrinted !== undefined && parsed.pricePrinted !== '') { prices.printed = parseFloat(parsed.pricePrinted); }
+        if (parsed.pricePDF) { prices.pdf = parseFloat(parsed.pricePDF); }
+        if (parsed.pricePrinted) { prices.printed = parseFloat(parsed.pricePrinted); }
 
         const newItem: NoteItem = {
             id: nanoid(),

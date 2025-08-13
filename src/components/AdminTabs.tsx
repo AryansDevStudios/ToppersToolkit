@@ -1,3 +1,4 @@
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { OrderList } from '@/components/OrderList';
 import { NoteUploader } from '@/components/NoteUploader';
@@ -21,7 +22,7 @@ export async function AdminTabs() {
         <OrderList orders={orders} />
       </TabsContent>
       <TabsContent value="uploader">
-        <NoteUploader />
+        <NoteUploader notes={notes} />
       </TabsContent>
        <TabsContent value="manager">
         <NoteManager notes={notes} />
