@@ -15,8 +15,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
-import { PlusCircle, Trash2 } from 'lucide-react';
+import { PlusCircle, Trash2, AlertCircle } from 'lucide-react';
 import { nanoid } from 'nanoid';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 const PriceSchema = z.coerce.number().min(0, 'Price must be non-negative').optional().or(z.literal(''));
 
@@ -69,6 +70,7 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
   const { toast } = useToast();
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const getInitialSubjectString = () => {
     if (!note) return '';
@@ -115,8 +117,6 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
         try {
             const selectedSubject = JSON.parse(selectedSubjectJSON) as Subject;
             setSubcategories(selectedSubject.subcategories || []);
-            // This logic ensures that when the subject changes, the subcategory is reset,
-            // unless we are in edit mode and the subject is the note's original subject.
             const currentSubcategory = watch('subcategory');
             if (currentSubcategory) {
                 const parsedSubcategory = JSON.parse(currentSubcategory);
@@ -135,16 +135,16 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
   }, [selectedSubjectJSON, setValue, watch]);
   
   const processForm = async (data: NoteFormInputs) => {
+    setFormError(null);
     const action = isEditing && note ? updateNoteAction : addNoteAction;
     
-    // Create a new FormData object to send to the server action
     const formData = new FormData();
     formData.append('subject', data.subject);
     formData.append('subcategory', data.subcategory);
     formData.append('chapterName', data.chapterName);
     formData.append('description', data.description);
     formData.append('imageUrl', data.imageUrl || '');
-    formData.append('items', JSON.stringify(data.items)); // Send items as a JSON string
+    formData.append('items', JSON.stringify(data.items));
 
     if (isEditing && note) {
         formData.append('noteId', note.id);
@@ -162,12 +162,19 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
       }
       onSuccess?.();
     } else {
-      toast({ title: 'Error', description: result.message, variant: 'destructive' });
+      setFormError(result.message);
     }
   };
 
   return (
     <form ref={formRef} onSubmit={handleSubmit(processForm)} className="space-y-4">
+       {formError && (
+          <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription className="font-mono whitespace-pre-wrap">{formError}</AlertDescription>
+          </Alert>
+        )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label>Subject</Label>
@@ -177,7 +184,10 @@ export function NoteForm({ note, onSuccess }: NoteFormProps) {
             render={({ field }) => (
               <Select 
                 value={field.value}
-                onValueChange={field.onChange}
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  setValue('subcategory', ''); // Reset subcategory on subject change
+                }}
               >
                 <SelectTrigger><SelectValue placeholder="Select a subject" /></SelectTrigger>
                 <SelectContent>
