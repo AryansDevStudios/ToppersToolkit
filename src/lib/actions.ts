@@ -67,7 +67,7 @@ const NoteItemSchema = z.object({
     imageUrl: z.string().url({ message: 'Please enter a valid image URL.' }).optional().or(z.literal('')),
     pricePDF: PriceSchema,
     pricePrinted: PriceSchema,
-}).refine(data => data.pricePDF || data.pricePrinted, {
+}).refine(data => (data.pricePDF !== undefined && data.pricePDF !== '') || (data.pricePrinted !== undefined && data.pricePrinted !== ''), {
     message: 'At least one price (PDF or Printed) is required for this note type.',
     path: ['name'], // Attach error to the name field of the item
 });
@@ -85,16 +85,24 @@ const NoteFormSchema = z.object({
 
 const parseAndTransformNoteItems = (itemsJSON: string): NoteItem[] => {
     const parsedItemsForValidation = z.array(NoteItemSchema).min(1, 'You must add at least one note type.').parse(JSON.parse(itemsJSON));
-    return parsedItemsForValidation.map(item => ({
-        id: item.id,
-        name: item.name,
-        description: item.description || '',
-        imageUrl: item.imageUrl || '',
-        prices: {
-            pdf: item.pricePDF || undefined,
-            printed: item.pricePrinted || undefined,
-        },
-    }));
+    
+    return parsedItemsForValidation.map(item => {
+        const prices: { pdf?: number; printed?: number } = {};
+        if (item.pricePDF !== undefined && item.pricePDF !== '') {
+            prices.pdf = Number(item.pricePDF);
+        }
+        if (item.pricePrinted !== undefined && item.pricePrinted !== '') {
+            prices.printed = Number(item.pricePrinted);
+        }
+
+        return {
+            id: item.id,
+            name: item.name,
+            description: item.description || '',
+            imageUrl: item.imageUrl || '',
+            prices: prices,
+        };
+    });
 };
 
 export async function addNoteAction(prevState: any, formData: FormData) {

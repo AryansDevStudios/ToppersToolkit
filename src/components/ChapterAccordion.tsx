@@ -93,8 +93,14 @@ export function ChapterAccordion({ chapters }: ChapterAccordionProps) {
                                 <div className="flex flex-col">
                                     <span className="text-xs text-muted-foreground">PDF</span>
                                     <p className="font-semibold text-lg flex items-center">
-                                        <IndianRupee className="h-4 w-4 mr-1" />
-                                        {noteItem.prices.pdf.toFixed(2)}
+                                      {noteItem.prices.pdf === 0 ? (
+                                        <span className='text-primary'>Free</span>
+                                      ) : (
+                                        <>
+                                          <IndianRupee className="h-4 w-4 mr-1" />
+                                          {noteItem.prices.pdf.toFixed(2)}
+                                        </>
+                                      )}
                                     </p>
                                 </div>
                             )}
@@ -102,8 +108,14 @@ export function ChapterAccordion({ chapters }: ChapterAccordionProps) {
                                 <div className="flex flex-col">
                                     <span className="text-xs text-muted-foreground">Printed</span>
                                     <p className="font-semibold text-lg flex items-center">
-                                        <IndianRupee className="h-4 w-4 mr-1" />
-                                        {noteItem.prices.printed.toFixed(2)}
+                                      {noteItem.prices.printed === 0 ? (
+                                        <span className='text-primary'>Free</span>
+                                      ) : (
+                                        <>
+                                          <IndianRupee className="h-4 w-4 mr-1" />
+                                          {noteItem.prices.printed.toFixed(2)}
+                                        </>
+                                      )}
                                     </p>
                                 </div>
                             )}
