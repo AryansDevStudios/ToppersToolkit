@@ -60,7 +60,9 @@ export function NoteManager({ notes }: NoteManagerProps) {
       };
     }
     // Aggregate items and original note IDs
-    acc[key].items.push(...note.items);
+    if (Array.isArray(note.items)) {
+      acc[key].items.push(...note.items);
+    }
     acc[key].noteIds.push(note.id);
     // Use the status of the most recently created note as the representative status
     if (note.createdAt > (acc[key].createdAt || 0)) {
