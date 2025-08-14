@@ -77,3 +77,8 @@ export type Chapter = {
   name: string;
   materials: NoteMaterial[];
 }
+
+export type AdminSettings = {
+    passphrase?: string;
+    printPricePerPage?: number;
+}

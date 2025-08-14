@@ -3,11 +3,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { OrderList } from '@/components/OrderList';
 import { NoteUploader } from '@/components/NoteUploader';
 import { NoteManager } from '@/components/NoteManager';
-import { getOrders, getAllNotes } from '@/lib/data';
+import { SettingsManager } from '@/components/SettingsManager';
+import { getOrders, getAllNotes, getAdminSettings } from '@/lib/data';
 
 export async function AdminTabs() {
   const orders = await getOrders();
   const notes = await getAllNotes();
+  const settings = await getAdminSettings();
 
   return (
     <Tabs defaultValue="orders" className="w-full">
@@ -16,6 +18,7 @@ export async function AdminTabs() {
           <TabsTrigger value="orders">Order Management</TabsTrigger>
           <TabsTrigger value="uploader">Note Uploader</TabsTrigger>
           <TabsTrigger value="manager">Note Manager</TabsTrigger>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
       </div>
       <TabsContent value="orders">
@@ -26,6 +29,9 @@ export async function AdminTabs() {
       </TabsContent>
        <TabsContent value="manager">
         <NoteManager notes={notes} />
+      </TabsContent>
+      <TabsContent value="settings">
+        <SettingsManager settings={settings} />
       </TabsContent>
     </Tabs>
   );

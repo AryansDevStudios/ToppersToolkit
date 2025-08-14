@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { CartItem, Subject, SubCategory, NoteMaterial, NoteItem } from '@/types';
 import { db } from './firebase';
 import { saveOrder, saveNoteMaterial, updateOrderStatus, updateNoteMaterial } from './data';
-import { Timestamp, arrayUnion, collection, doc, getDoc, getDocs, query, updateDoc, where, writeBatch, deleteDoc } from 'firebase/firestore';
+import { Timestamp, arrayUnion, collection, doc, getDoc, getDocs, query, updateDoc, where, writeBatch, deleteDoc, setDoc } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
 import { unstable_noStore as noStore } from 'next/cache';
 import { nanoid } from 'nanoid';
@@ -451,6 +451,7 @@ export async function migrateNotesAction() {
             const noteRef = docSnapshot.ref;
             const noteData = docSnapshot.data() as NoteMaterial;
             
+            let hasChanges = false;
             const updatedItems = noteData.items.map(item => {
                 // If item already has a createdAt timestamp, don't change it.
                 if (item.createdAt) {
@@ -458,6 +459,7 @@ export async function migrateNotesAction() {
                 }
                 // Otherwise, add the parent document's createdAt timestamp.
                 itemsMigrated++;
+                hasChanges = true;
                 return {
                     ...item,
                     createdAt: noteData.createdAt || Timestamp.now(), // Fallback to now() if parent is missing it
@@ -465,7 +467,7 @@ export async function migrateNotesAction() {
             });
 
             // Only write to the batch if there were actual changes.
-            if (itemsMigrated > 0) {
+            if (hasChanges) {
                 batch.update(noteRef, { items: updatedItems });
             }
         });
@@ -486,4 +488,36 @@ export async function migrateNotesAction() {
         const message = error instanceof Error ? error.message : 'An unexpected error occurred during migration.';
         return { success: false, message };
     }
+}
+
+const SettingsSchema = z.object({
+  printPricePerPage: z.preprocess(
+    (val) => (val === "" ? undefined : Number(val)),
+    z.number().min(0, "Price must be a non-negative number.").optional()
+  ),
+});
+
+export async function updateSettingsAction(prevState: any, formData: FormData) {
+  noStore();
+  try {
+    const rawData = Object.fromEntries(formData.entries());
+    const parsed = SettingsSchema.parse(rawData);
+
+    const settingsRef = doc(db, 'settings', 'admin');
+    await setDoc(settingsRef, { 
+      printPricePerPage: parsed.printPricePerPage 
+    }, { merge: true });
+
+    revalidatePath('/admin');
+    revalidatePath('/print');
+
+    return { success: true, message: 'Settings updated successfully.' };
+  } catch (error) {
+    console.error("Action Error:", error);
+    if (error instanceof z.ZodError) {
+      return { success: false, message: error.errors[0].message };
+    }
+    const message = error instanceof Error ? error.message : 'Failed to update settings.';
+    return { success: false, message };
+  }
 }

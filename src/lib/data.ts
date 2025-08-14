@@ -1,5 +1,5 @@
 
-import type { Subject, NoteMaterial, Chapter, Order, NoteItem, RecentNoteItem } from '@/types';
+import type { Subject, NoteMaterial, Chapter, Order, NoteItem, RecentNoteItem, AdminSettings } from '@/types';
 import { db } from './firebase';
 import { collection, getDocs, getDoc, doc, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, Timestamp } from 'firebase/firestore';
 import { unstable_noStore as noStore } from 'next/cache';
@@ -165,24 +165,38 @@ export async function deleteNoteMaterial(noteId: string) {
     await deleteDoc(noteRef);
 }
 
-export async function getPassphrase(): Promise<string> {
+export async function getAdminSettings(): Promise<AdminSettings> {
+    noStore();
     try {
         const settingsRef = doc(db, 'settings', 'admin');
         const docSnap = await getDoc(settingsRef);
 
-        if (docSnap.exists() && docSnap.data().passphrase) {
-            return docSnap.data().passphrase;
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            return {
+                passphrase: data.passphrase,
+                printPricePerPage: data.printPricePerPage ?? 3.00, // Default price
+            };
         }
     } catch (error) {
-        console.error("Error fetching passphrase from Firestore:", error);
+        console.error("Error fetching admin settings from Firestore:", error);
     }
     
     // Fallback to environment variable if not in Firestore
     if (process.env.ADMIN_PASSPHRASE) {
-        return process.env.ADMIN_PASSPHRASE;
+        return {
+            passphrase: process.env.ADMIN_PASSPHRASE,
+            printPricePerPage: 3.00, // Default price
+        }
     }
 
     throw new Error("ADMIN_PASSPHRASE is not set. Please set it in your .env file or in Firestore at 'settings/admin'.");
+}
+
+
+export async function getPassphrase(): Promise<string> {
+    const settings = await getAdminSettings();
+    return settings.passphrase;
 }
 
 export async function checkChapterExists({ subjectId, subcategoryId, chapter }: { subjectId: string, subcategoryId: string, chapter: string }): Promise<boolean> {
