@@ -9,16 +9,24 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { IndianRupee, AlertCircle, CheckCircle, KeyRound } from 'lucide-react';
-import { useEffect } from 'react';
+import { IndianRupee, KeyRound } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
-function SubmitButton() {
+function PriceSubmitButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending} className="w-full">
-      {pending ? 'Saving...' : 'Save All Settings'}
+      {pending ? 'Saving...' : 'Save Price'}
+    </Button>
+  );
+}
+
+function PassphraseSubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" disabled={pending} className="w-full">
+      {pending ? 'Updating...' : 'Update Passphrase'}
     </Button>
   );
 }
@@ -29,27 +37,42 @@ type SettingsManagerProps = {
 
 export function SettingsManager({ settings }: SettingsManagerProps) {
   const { toast } = useToast();
-  const [state, formAction] = useActionState(updateSettingsAction, { success: false, message: '' });
+  const [priceState, priceFormAction] = useActionState(updateSettingsAction, { success: false, message: '' });
+  const [passphraseState, passphraseFormAction] = useActionState(updateSettingsAction, { success: false, message: '' });
+  const passphraseFormRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    if (state.message) {
+    if (priceState.message) {
       toast({
-        title: state.success ? 'Success!' : 'Error',
-        description: state.message,
-        variant: state.success ? 'default' : 'destructive',
+        title: priceState.success ? 'Success!' : 'Error',
+        description: priceState.message,
+        variant: priceState.success ? 'default' : 'destructive',
       });
     }
-  }, [state, toast]);
+  }, [priceState, toast]);
+
+  useEffect(() => {
+    if (passphraseState.message) {
+      toast({
+        title: passphraseState.success ? 'Success!' : 'Error',
+        description: passphraseState.message,
+        variant: passphraseState.success ? 'default' : 'destructive',
+      });
+      if (passphraseState.success) {
+        passphraseFormRef.current?.reset();
+      }
+    }
+  }, [passphraseState, toast]);
 
   return (
-    <div className="max-w-2xl mx-auto">
-        <form action={formAction} className="space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6">
+        <form action={priceFormAction}>
             <Card>
                 <CardHeader>
                     <CardTitle>Print on Demand</CardTitle>
                     <CardDescription>Manage pricing for the custom printing service.</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                     <div>
                         <Label htmlFor="printPricePerPage">Price Per Page (₹)</Label>
                         <div className="relative mt-2">
@@ -64,9 +87,12 @@ export function SettingsManager({ settings }: SettingsManagerProps) {
                             />
                         </div>
                     </div>
+                     <PriceSubmitButton />
                 </CardContent>
             </Card>
+        </form>
 
+        <form action={passphraseFormAction} ref={passphraseFormRef}>
             <Card>
                  <CardHeader>
                     <CardTitle>Admin Security</CardTitle>
@@ -85,6 +111,7 @@ export function SettingsManager({ settings }: SettingsManagerProps) {
                                 type="password"
                                 placeholder="Enter new passphrase"
                                 className="pl-8"
+                                autoComplete="new-password"
                             />
                         </div>
                     </div>
@@ -101,19 +128,9 @@ export function SettingsManager({ settings }: SettingsManagerProps) {
                             />
                         </div>
                     </div>
+                    <PassphraseSubmitButton />
                 </CardContent>
             </Card>
-
-
-            {state.message && (
-                <Alert variant={state.success ? 'default' : 'destructive'}>
-                    {state.success ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
-                    <AlertTitle>{state.success ? 'Success' : 'Error'}</AlertTitle>
-                    <AlertDescription>{state.message}</AlertDescription>
-                </Alert>
-            )}
-
-            <SubmitButton />
         </form>
     </div>
   )
