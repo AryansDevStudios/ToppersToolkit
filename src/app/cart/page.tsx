@@ -21,7 +21,7 @@ export default function CartPage() {
        <Alert className="max-w-3xl mx-auto mb-8 bg-muted/50">
           <Info className="h-4 w-4" />
           <AlertDescription>
-            This website is for ordering notes. After purchase, digital items (PDFs) will be accessible for viewing on our secure <a href="https://topperstoolkitviewer.netlify.app/" className="text-primary font-semibold hover:underline">E-Library platform</a>.
+            This website is for ordering notes. After purchase, digital items (PDFs) will be accessible for viewing on our secure <a href="https://topperstoolkitviewer.netlify.app/" className="text-primary font-semibold hover:underline">Library platform</a>.
           </AlertDescription>
         </Alert>
 
