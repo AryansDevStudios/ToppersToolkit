@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
@@ -37,8 +37,6 @@ type PrintFormInputs = z.infer<typeof PrintFormSchema>;
 const PRICE_PER_PAGE = 3.00;
 
 export default function PrintPage() {
-    const [isPdf, setIsPdf] = useState(true);
-
     const { register, control, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<PrintFormInputs>({
         resolver: zodResolver(PrintFormSchema),
         defaultValues: {
@@ -47,6 +45,8 @@ export default function PrintPage() {
             imageUrls: [{ value: '' }],
         }
     });
+
+    const isPdf = watch('isPdf');
 
     const { fields, append, remove } = useFieldArray({
         control,
@@ -111,10 +111,7 @@ export default function PrintPage() {
                                         <Switch
                                             id="format-switch"
                                             checked={field.value}
-                                            onCheckedChange={(checked) => {
-                                                field.onChange(checked);
-                                                setIsPdf(checked);
-                                            }}
+                                            onCheckedChange={field.onChange}
                                         />
                                     )}
                                 />
