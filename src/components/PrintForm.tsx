@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useActionState, useEffect, useRef, useState } from 'react';
-import { useForm, Controller, useFieldArray } from 'react-hook-form';
+import { useActionState, useEffect, useRef } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { useFormStatus } from 'react-dom';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,30 +12,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
-import { Trash2, PlusCircle, IndianRupee, QrCode, Copy } from 'lucide-react';
+import { IndianRupee, QrCode, Copy, UploadCloud, ArrowRight } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import Link from 'next/link';
 import { placePrintOrderAction } from '@/lib/actions';
 
 const PrintFormSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   userClass: z.string().min(1, 'Class is required'),
   instructions: z.string().optional(),
-  isPdf: z.boolean(),
   paymentMethod: z.enum(['COD', 'UPI']),
-  pdfUrl: z.string().optional(),
-  imageUrls: z.array(z.object({ value: z.string() })).optional(),
-}).refine((data) => {
-    if (data.isPdf) {
-        return !!data.pdfUrl && z.string().url("Please enter a valid PDF URL.").safeParse(data.pdfUrl).success;
-    }
-    return !!data.imageUrls && data.imageUrls.length > 0 && data.imageUrls.every(url => z.string().url("Each image link must be a valid URL.").safeParse(url.value).success);
-}, {
-    message: "Please provide a valid URL for the selected format.",
-    path: ['pdfUrl'],
+  wormholeUrl: z.string().url("Please provide a valid Wormhole link."),
 });
 
 type PrintFormInputs = z.infer<typeof PrintFormSchema>;
@@ -53,7 +41,6 @@ function SubmitButton() {
     );
 }
 
-
 export function PrintForm({ pricePerPage }: PrintFormProps) {
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
@@ -62,18 +49,9 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
     const { register, control, handleSubmit, watch, formState: { errors } } = useForm<PrintFormInputs>({
         resolver: zodResolver(PrintFormSchema),
         defaultValues: {
-            isPdf: true,
-            pdfUrl: '',
-            imageUrls: [{ value: '' }],
             paymentMethod: 'COD',
+            wormholeUrl: '',
         }
-    });
-
-    const isPdf = watch('isPdf');
-
-    const { fields, append, remove } = useFieldArray({
-        control,
-        name: 'imageUrls',
     });
 
     useEffect(() => {
@@ -110,17 +88,12 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
         <Card>
             <CardHeader>
                 <CardTitle>Submit Your Notes</CardTitle>
-                <CardDescription>Fill out your details and provide the link to your notes.</CardDescription>
+                <CardDescription>Upload your files, provide the link, and we'll handle the rest.</CardDescription>
             </CardHeader>
             <CardContent>
                 <form 
                     ref={formRef}
-                    action={(formData) => {
-                        const values = watch();
-                        formData.append('isPdf', String(values.isPdf));
-                        formData.append('imageUrls', JSON.stringify(values.imageUrls));
-                        formAction(formData);
-                    }}
+                    action={formAction}
                     className="space-y-6"
                 >
                     {/* User Details */}
@@ -140,51 +113,30 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
 
                     <Separator />
 
-                    {/* Note Source */}
+                    {/* File Upload Section */}
                     <div className="space-y-4">
-                        <h3 className="font-semibold text-lg">Note Source</h3>
-                         <div className="flex items-center space-x-2">
-                            <Label htmlFor="format-switch">Images</Label>
-                            <Controller
-                                name="isPdf"
-                                control={control}
-                                render={({ field }) => (
-                                    <Switch
-                                        id="format-switch"
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                )}
-                            />
-                            <Label htmlFor="format-switch">PDF</Label>
+                        <h3 className="font-semibold text-lg">Upload Your Notes</h3>
+                        <div className="p-4 rounded-lg border bg-muted/50 space-y-3 text-sm">
+                            <p className="flex items-start gap-2"><span className="font-bold text-primary">1.</span> <span>Drag & drop your files (PDF, images, etc.) into the box below.</span></p>
+                            <p className="flex items-start gap-2"><span className="font-bold text-primary">2.</span> <span>Wait for Wormhole to generate a share link.</span></p>
+                            <p className="flex items-start gap-2"><span className="font-bold text-primary">3.</span> <span>Click the "Copy" button to copy the link.</span></p>
+                            <p className="flex items-start gap-2"><span className="font-bold text-primary">4.</span> <span>Paste the link into the "Wormhole Link" field below.</span></p>
                         </div>
-                        
-                        {isPdf ? (
-                            <div>
-                                <Label htmlFor="pdfUrl">PDF URL</Label>
-                                <Input id="pdfUrl" {...register('pdfUrl')} placeholder="https://example.com/notes.pdf" />
-                                {errors.pdfUrl && <p className="text-sm text-destructive mt-1">{errors.pdfUrl.message}</p>}
-                            </div>
-                        ) : (
-                            <div className="space-y-3">
-                                <Label>Image URLs</Label>
-                                {fields.map((field, index) => (
-                                    <div key={field.id} className="flex items-center gap-2">
-                                        <Input {...register(`imageUrls.${index}.value`)} placeholder="https://example.com/image.png" />
-                                        {fields.length > 1 && (
-                                            <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
-                                                <Trash2 className="h-4 w-4 text-destructive" />
-                                            </Button>
-                                        )}
-                                    </div>
-                                ))}
-                                {errors.imageUrls && <p className="text-sm text-destructive mt-1">Please provide a valid URL for each image.</p>}
-                                <Button type="button" variant="outline" className="w-full" onClick={() => append({ value: '' })}>
-                                    <PlusCircle className="mr-2 h-4 w-4" /> Add another image
-                                </Button>
-                            </div>
-                        )}
-                        {errors.isPdf && <p className="text-sm text-destructive mt-1">{errors.isPdf.message}</p>}
+
+                        <div className="aspect-video w-full rounded-lg overflow-hidden border">
+                            <iframe 
+                                src="https://wormhole.app/"
+                                width="100%"
+                                height="100%"
+                                className="border-0"
+                            ></iframe>
+                        </div>
+
+                        <div>
+                            <Label htmlFor="wormholeUrl">Wormhole Link</Label>
+                            <Input id="wormholeUrl" {...register('wormholeUrl')} placeholder="https://wormhole.app/..." />
+                            {errors.wormholeUrl && <p className="text-sm text-destructive mt-1">{errors.wormholeUrl.message}</p>}
+                        </div>
                     </div>
 
                     <Separator />
@@ -236,7 +188,6 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                         </Alert>
                     )}
 
-
                     <Separator />
 
                     {/* Instructions */}
@@ -252,4 +203,3 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
     </>
   );
 }
-

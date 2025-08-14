@@ -551,10 +551,8 @@ const PrintFormSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   userClass: z.string().min(1, 'Class is required'),
   instructions: z.string().optional(),
-  isPdf: z.string(), // 'true' or 'false'
   paymentMethod: z.enum(['COD', 'UPI']),
-  pdfUrl: z.string().optional(),
-  imageUrls: z.string().optional(),
+  wormholeUrl: z.string().url("A valid Wormhole link is required."),
 });
 
 export async function placePrintOrderAction(prevState: any, formData: FormData) {
@@ -562,33 +560,18 @@ export async function placePrintOrderAction(prevState: any, formData: FormData) 
     try {
         const rawData = Object.fromEntries(formData.entries());
         const parsed = PrintFormSchema.parse(rawData);
-
-        const isPdf = parsed.isPdf === 'true';
-        let instructions = parsed.instructions || '';
-        const urls: string[] = [];
-
-        if (isPdf) {
-            if (!parsed.pdfUrl || !z.string().url().safeParse(parsed.pdfUrl).success) {
-                throw new Error("A valid PDF URL is required.");
-            }
-            urls.push(parsed.pdfUrl);
-        } else {
-            const imageUrls = JSON.parse(parsed.imageUrls || '[]') as { value: string }[];
-            if (imageUrls.length === 0 || !imageUrls.every(img => z.string().url().safeParse(img.value).success)) {
-                throw new Error("At least one valid image URL is required.");
-            }
-            urls.push(...imageUrls.map(img => img.value));
-        }
         
-        const noteLinks = urls.join('\n');
-        instructions = `Print Request Links:\n${noteLinks}\n\nUser Instructions: ${instructions}`;
+        let instructions = parsed.instructions || '';
+        
+        const noteLinks = `Wormhole Link: ${parsed.wormholeUrl}`;
+        instructions = `Print Request:\n${noteLinks}\n\nUser Instructions: ${instructions}`;
         
         const printOrderItem: CartItem = {
             id: `print-${nanoid()}`,
             noteId: 'custom-print',
             noteItemId: 'custom-print-item',
             subjectName: 'Print on Demand',
-            chapter: isPdf ? 'PDF Document' : `${urls.length} Images`,
+            chapter: 'Custom Document',
             type: 'Custom Print',
             price: 0, // Price is determined offline
             prices: { pdf: 0, printed: 0 },
