@@ -18,7 +18,7 @@ export function NoteCard({ note }: NoteCardProps) {
     <Link href={`/subjects/${note.subjectId}/${note.subcategoryId}`} className="group block">
       <Card className="overflow-hidden h-full flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-2 bg-card hover:bg-accent/40">
         <CardHeader className="p-0">
-          <div className="relative h-48 w-full bg-muted flex items-center justify-center">
+          <div className="relative aspect-[4/3] w-full bg-muted flex items-center justify-center">
             <NoteImage 
               src={note.imageUrl}
               alt={note.chapter}

@@ -88,7 +88,7 @@ export function ChapterAccordion({ chapters }: ChapterAccordionProps) {
 
                     return (
                       <div key={cartItemId} className="flex flex-col md:flex-row flex-wrap gap-4 p-4 rounded-lg border bg-card/50">
-                        <div className="relative w-full md:w-48 h-32 flex-shrink-0 rounded-md overflow-hidden bg-muted flex items-center justify-center">
+                        <div className="relative w-full md:w-48 aspect-[4/3] flex-shrink-0 rounded-md overflow-hidden bg-muted flex items-center justify-center">
                           <NoteImage
                             src={itemImage}
                             alt={note.chapter}
