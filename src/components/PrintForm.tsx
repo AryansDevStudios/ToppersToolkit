@@ -141,7 +141,7 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
 
                         <div>
                             <Label htmlFor="wormholeUrl">Wormhole Share Link</Label>
-                            <Input id="wormholeUrl" name="wormholeUrl" placeholder="https://wormhole.app/..." />
+                            <Input id="wormholeUrl" name="wormholeUrl" placeholder="https://wormhole.app/..." autoComplete="off" />
                             {errors.wormholeUrl && <p className="text-sm text-destructive mt-1">{errors.wormholeUrl.message}</p>}
                         </div>
                     </div>
