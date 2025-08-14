@@ -2,7 +2,7 @@
 'use server';
 
 import { z } from 'zod';
-import { CartItem, Subject, SubCategory, NoteMaterial, NoteItem } from '@/types';
+import { CartItem, Subject, SubCategory, NoteMaterial, NoteItem, Order, PriceInfo } from '@/types';
 import { db } from './firebase';
 import { saveOrder, saveNoteMaterial, updateOrderStatus, updateNoteMaterial } from './data';
 import { Timestamp, arrayUnion, collection, doc, getDoc, getDocs, query, updateDoc, where, writeBatch, deleteDoc, setDoc } from 'firebase/firestore';
@@ -544,4 +544,79 @@ export async function updateSettingsAction(prevState: any, formData: FormData) {
     const message = error instanceof Error ? error.message : 'Failed to update settings.';
     return { success: false, message };
   }
+}
+
+
+const PrintFormSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  userClass: z.string().min(1, 'Class is required'),
+  instructions: z.string().optional(),
+  isPdf: z.string(), // 'true' or 'false'
+  paymentMethod: z.enum(['COD', 'UPI']),
+  pdfUrl: z.string().optional(),
+  imageUrls: z.string().optional(),
+});
+
+export async function placePrintOrderAction(prevState: any, formData: FormData) {
+    noStore();
+    try {
+        const rawData = Object.fromEntries(formData.entries());
+        const parsed = PrintFormSchema.parse(rawData);
+
+        const isPdf = parsed.isPdf === 'true';
+        let instructions = parsed.instructions || '';
+        const urls: string[] = [];
+
+        if (isPdf) {
+            if (!parsed.pdfUrl || !z.string().url().safeParse(parsed.pdfUrl).success) {
+                throw new Error("A valid PDF URL is required.");
+            }
+            urls.push(parsed.pdfUrl);
+        } else {
+            const imageUrls = JSON.parse(parsed.imageUrls || '[]') as { value: string }[];
+            if (imageUrls.length === 0 || !imageUrls.every(img => z.string().url().safeParse(img.value).success)) {
+                throw new Error("At least one valid image URL is required.");
+            }
+            urls.push(...imageUrls.map(img => img.value));
+        }
+        
+        const noteLinks = urls.join('\n');
+        instructions = `Print Request Links:\n${noteLinks}\n\nUser Instructions: ${instructions}`;
+        
+        const printOrderItem: CartItem = {
+            id: `print-${nanoid()}`,
+            noteId: 'custom-print',
+            noteItemId: 'custom-print-item',
+            subjectName: 'Print on Demand',
+            chapter: isPdf ? 'PDF Document' : `${urls.length} Images`,
+            type: 'Custom Print',
+            price: 0, // Price is determined offline
+            prices: { pdf: 0, printed: 0 },
+            selectedFormat: 'Printed',
+        };
+
+        const newOrder: Omit<Order, 'id'> = {
+            name: parsed.name,
+            userClass: parsed.userClass,
+            instructions: instructions,
+            items: [printOrderItem],
+            createdAt: Timestamp.now(),
+            status: 'new',
+            totalPrice: 0, // Price is determined offline
+            paymentMethod: parsed.paymentMethod,
+        };
+        
+        await saveOrder(newOrder);
+        revalidatePath('/admin');
+
+        return { success: true, message: 'Your print request has been submitted successfully! We will contact you on WhatsApp to confirm the details.' };
+
+    } catch (error) {
+        console.error("Print Order Action Error:", error);
+        const message = error instanceof Error ? error.message : 'Failed to submit print request.';
+        if (error instanceof z.ZodError) {
+            return { success: false, message: error.errors[0].message };
+        }
+        return { success: false, message };
+    }
 }

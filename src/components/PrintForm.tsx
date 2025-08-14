@@ -1,8 +1,9 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useActionState, useEffect, useRef, useState } from 'react';
 import { useForm, Controller, useFieldArray } from 'react-hook-form';
+import { useFormStatus } from 'react-dom';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import { placePrintOrderAction } from '@/lib/actions';
 
 const PrintFormSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -25,15 +27,15 @@ const PrintFormSchema = z.object({
   isPdf: z.boolean(),
   paymentMethod: z.enum(['COD', 'UPI']),
   pdfUrl: z.string().optional(),
-  imageUrls: z.array(z.object({ value: z.string().min(1, 'URL cannot be empty.').url('Please enter a valid URL') })).optional(),
-}).refine(data => {
+  imageUrls: z.array(z.object({ value: z.string() })).optional(),
+}).refine((data) => {
     if (data.isPdf) {
-      return data.pdfUrl && data.pdfUrl.trim() !== '';
+        return !!data.pdfUrl && z.string().url("Please enter a valid PDF URL.").safeParse(data.pdfUrl).success;
     }
-    return data.imageUrls && data.imageUrls.length > 0;
+    return !!data.imageUrls && data.imageUrls.length > 0 && data.imageUrls.every(url => z.string().url("Each image link must be a valid URL.").safeParse(url.value).success);
 }, {
-    message: 'Please provide at least one URL for the selected format.',
-    path: ['isPdf'], // General error path
+    message: "Please provide a valid URL for the selected format.",
+    path: ['pdfUrl'],
 });
 
 type PrintFormInputs = z.infer<typeof PrintFormSchema>;
@@ -42,11 +44,22 @@ type PrintFormProps = {
     pricePerPage: number;
 }
 
+function SubmitButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending} className="w-full">
+            {pending ? 'Submitting...' : 'Submit for Printing'}
+        </Button>
+    );
+}
+
+
 export function PrintForm({ pricePerPage }: PrintFormProps) {
     const { toast } = useToast();
-    const [paymentMethod, setPaymentMethod] = useState<'COD' | 'UPI'>('COD');
+    const formRef = useRef<HTMLFormElement>(null);
+    const [state, formAction] = useActionState(placePrintOrderAction, { success: false, message: '' });
 
-    const { register, control, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<PrintFormInputs>({
+    const { register, control, handleSubmit, watch, formState: { errors } } = useForm<PrintFormInputs>({
         resolver: zodResolver(PrintFormSchema),
         defaultValues: {
             isPdf: true,
@@ -63,11 +76,21 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
         name: 'imageUrls',
     });
 
-    const processSubmit = (data: PrintFormInputs) => {
-        // Here you would typically send the data to a server action
-        console.log(data);
-        alert('Form submitted! Check console for data.');
-    };
+    useEffect(() => {
+        if (state.success) {
+            toast({
+                title: "Success!",
+                description: state.message,
+            });
+            formRef.current?.reset();
+        } else if (state.message) {
+            toast({
+                title: 'Error',
+                description: state.message,
+                variant: 'destructive',
+            });
+        }
+    }, [state, toast]);
     
     const copyToClipboard = () => {
         navigator.clipboard.writeText('nitish545454@ybl');
@@ -90,7 +113,16 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                 <CardDescription>Fill out your details and provide the link to your notes.</CardDescription>
             </CardHeader>
             <CardContent>
-                <form onSubmit={handleSubmit(processSubmit)} className="space-y-6">
+                <form 
+                    ref={formRef}
+                    action={(formData) => {
+                        const values = watch();
+                        formData.append('isPdf', String(values.isPdf));
+                        formData.append('imageUrls', JSON.stringify(values.imageUrls));
+                        formAction(formData);
+                    }}
+                    className="space-y-6"
+                >
                     {/* User Details */}
                     <div className="space-y-4">
                         <h3 className="font-semibold text-lg">Your Details</h3>
@@ -146,9 +178,7 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                                         )}
                                     </div>
                                 ))}
-                                {errors.imageUrls?.map((error, index) => (
-                                    error.value && <p key={index} className="text-sm text-destructive mt-1">{error.value.message}</p>
-                                ))}
+                                {errors.imageUrls && <p className="text-sm text-destructive mt-1">Please provide a valid URL for each image.</p>}
                                 <Button type="button" variant="outline" className="w-full" onClick={() => append({ value: '' })}>
                                     <PlusCircle className="mr-2 h-4 w-4" /> Add another image
                                 </Button>
@@ -168,10 +198,7 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                             render={({ field }) => (
                                 <RadioGroup
                                     value={field.value}
-                                    onValueChange={(value) => {
-                                        field.onChange(value);
-                                        setPaymentMethod(value as 'COD' | 'UPI');
-                                    }}
+                                    onValueChange={(value) => field.onChange(value as 'COD' | 'UPI')}
                                     className="flex gap-4 pt-2"
                                 >
                                     <div className="flex items-center space-x-2">
@@ -185,9 +212,10 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                                 </RadioGroup>
                             )}
                         />
+                         {errors.paymentMethod && <p className="text-sm text-destructive mt-1">{errors.paymentMethod.message}</p>}
                     </div>
 
-                    {paymentMethod === 'UPI' && (
+                    {watch('paymentMethod') === 'UPI' && (
                         <Alert>
                             <QrCode className="h-4 w-4" />
                             <AlertTitle>Pay with UPI</AlertTitle>
@@ -217,12 +245,11 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                         <Textarea id="instructions" {...register('instructions')} placeholder="e.g., Black & white print, spiral binding, etc." />
                     </div>
                     
-                    <Button type="submit" disabled={isSubmitting} className="w-full">
-                        {isSubmitting ? 'Submitting...' : 'Submit for Printing'}
-                    </Button>
+                    <SubmitButton />
                 </form>
             </CardContent>
         </Card>
     </>
   );
 }
+
