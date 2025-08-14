@@ -13,13 +13,12 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { IndianRupee, AlertCircle, CheckCircle, KeyRound } from 'lucide-react';
 import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { Separator } from './ui/separator';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending} className="w-full">
-      {pending ? 'Saving...' : 'Save Settings'}
+      {pending ? 'Saving...' : 'Save All Settings'}
     </Button>
   );
 }
@@ -43,18 +42,17 @@ export function SettingsManager({ settings }: SettingsManagerProps) {
   }, [state, toast]);
 
   return (
-    <Card className="max-w-2xl mx-auto">
-        <CardHeader>
-            <CardTitle>Site Settings</CardTitle>
-            <CardDescription>Manage global settings for the website.</CardDescription>
-        </CardHeader>
-        <CardContent>
-            <form action={formAction} className="space-y-6">
-                <div>
-                    <h3 className="text-lg font-semibold">Print on Demand</h3>
-                    <div className="mt-4">
+    <div className="max-w-2xl mx-auto">
+        <form action={formAction} className="space-y-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Print on Demand</CardTitle>
+                    <CardDescription>Manage pricing for the custom printing service.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div>
                         <Label htmlFor="printPricePerPage">Price Per Page (₹)</Label>
-                        <div className="relative">
+                        <div className="relative mt-2">
                             <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input 
                                 id="printPricePerPage" 
@@ -66,55 +64,57 @@ export function SettingsManager({ settings }: SettingsManagerProps) {
                             />
                         </div>
                     </div>
-                </div>
+                </CardContent>
+            </Card>
 
-                <Separator />
-
-                <div>
-                    <h3 className="text-lg font-semibold">Admin Security</h3>
-                    <p className="text-sm text-muted-foreground mt-1 mb-4">Leave these fields blank to keep your current passphrase.</p>
-                    <div className="space-y-4">
-                       <div>
-                            <Label htmlFor="newPassphrase">New Passphrase</Label>
-                             <div className="relative">
-                                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input 
-                                    id="newPassphrase" 
-                                    name="newPassphrase" 
-                                    type="password"
-                                    placeholder="Enter new passphrase"
-                                    className="pl-8"
-                                />
-                            </div>
-                        </div>
-                        <div>
-                            <Label htmlFor="confirmPassphrase">Confirm New Passphrase</Label>
-                             <div className="relative">
-                                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input 
-                                    id="confirmPassphrase" 
-                                    name="confirmPassphrase" 
-                                    type="password"
-                                    placeholder="Confirm new passphrase"
-                                    className="pl-8"
-                                />
-                            </div>
+            <Card>
+                 <CardHeader>
+                    <CardTitle>Admin Security</CardTitle>
+                    <CardDescription>
+                        Update the passphrase used to access the admin portal. Leave fields blank to keep the current one.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div>
+                        <Label htmlFor="newPassphrase">New Passphrase</Label>
+                         <div className="relative mt-2">
+                            <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input 
+                                id="newPassphrase" 
+                                name="newPassphrase" 
+                                type="password"
+                                placeholder="Enter new passphrase"
+                                className="pl-8"
+                            />
                         </div>
                     </div>
-                </div>
+                    <div>
+                        <Label htmlFor="confirmPassphrase">Confirm New Passphrase</Label>
+                         <div className="relative mt-2">
+                            <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input 
+                                id="confirmPassphrase" 
+                                name="confirmPassphrase" 
+                                type="password"
+                                placeholder="Confirm new passphrase"
+                                className="pl-8"
+                            />
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
 
 
-                {state.message && (
-                    <Alert variant={state.success ? 'default' : 'destructive'} className="mt-4">
-                        {state.success ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
-                        <AlertTitle>{state.success ? 'Success' : 'Error'}</AlertTitle>
-                        <AlertDescription>{state.message}</AlertDescription>
-                    </Alert>
-                )}
+            {state.message && (
+                <Alert variant={state.success ? 'default' : 'destructive'}>
+                    {state.success ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+                    <AlertTitle>{state.success ? 'Success' : 'Error'}</AlertTitle>
+                    <AlertDescription>{state.message}</AlertDescription>
+                </Alert>
+            )}
 
-                <SubmitButton />
-            </form>
-        </CardContent>
-    </Card>
+            <SubmitButton />
+        </form>
+    </div>
   )
 }
