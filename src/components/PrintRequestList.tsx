@@ -117,14 +117,9 @@ export function PrintRequestList({ orders, pricePerPage }: PrintRequestListProps
                             {url && (
                                 <div>
                                     <h4 className="text-sm font-semibold mb-2 flex items-center gap-2"><FileText className="h-4 w-4" /> Files to Print</h4>
-                                    <Button asChild variant="outline" className="w-full justify-start text-left h-auto">
-                                        <a href={url} target="_blank" rel="noopener noreferrer">
-                                            <div className="flex items-center gap-3">
-                                                <ExternalLink className="h-4 w-4 flex-shrink-0" />
-                                                <span className="truncate text-blue-600 dark:text-blue-400">{url}</span>
-                                            </div>
-                                        </a>
-                                    </Button>
+                                    <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline underline-offset-2 break-all flex items-center gap-1">
+                                      {url} <ExternalLink className="h-4 w-4 flex-shrink-0" />
+                                    </a>
                                 </div>
                             )}
                             
