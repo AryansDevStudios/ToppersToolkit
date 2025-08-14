@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, ShoppingCart, Search, Printer, Library as LibraryIcon, UserCog, BookUser } from 'lucide-react';
+import { Home, ShoppingCart, Search, Printer, Library as LibraryIcon, UserCog } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -13,7 +13,6 @@ const navItems = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/#subjects', label: 'Browse', icon: Search },
   { href: '/print', label: 'Print', icon: Printer },
-  { href: '/manual', label: 'Manual', icon: BookUser },
   { href: 'https://topperstoolkitviewer.netlify.app/', label: 'Library', icon: LibraryIcon },
 ];
 
@@ -89,7 +88,7 @@ export function Header() {
       {/* Mobile Bottom Nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur">
         <div className="container grid h-16 max-w-lg grid-cols-5 items-center">
-            {navItems.filter(i => i.label !== 'Library').map((item) => {
+            {navItems.map((item) => {
               const isActive = (item.href === '/' && pathname === item.href) || (item.label !== 'Home' && item.href !== '/' && pathname.startsWith(item.href));
               const Icon = item.icon;
               return (
