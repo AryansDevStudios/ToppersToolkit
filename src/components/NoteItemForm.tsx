@@ -64,7 +64,7 @@ export function NoteItemForm({ note, item, onSuccess }: NoteItemFormProps) {
       imageUrl: item?.imageUrl || '',
       pricePDF: item?.prices.pdf !== undefined ? String(item.prices.pdf) : '',
       pricePrinted: item?.prices.printed !== undefined ? String(item.prices.printed) : '',
-      status: item?.status === 'published',
+      status: item ? item.status === 'published' : true,
     }
   });
 
