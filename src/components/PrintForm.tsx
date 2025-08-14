@@ -22,9 +22,10 @@ const PrintFormSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   userClass: z.string().min(1, 'Class is required'),
   instructions: z.string().optional(),
-  paymentMethod: z.enum(['COD', 'UPI']),
+  paymentMethod: z.enum(['COD', 'UPI'], { required_error: "Please select a payment method." }),
   wormholeUrl: z.string().url("Please provide a valid Wormhole link."),
 });
+
 
 type PrintFormInputs = z.infer<typeof PrintFormSchema>;
 
@@ -46,11 +47,14 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
     const formRef = useRef<HTMLFormElement>(null);
     const [state, formAction] = useActionState(placePrintOrderAction, { success: false, message: '' });
 
-    const { register, control, handleSubmit, watch, formState: { errors } } = useForm<PrintFormInputs>({
+    const { control, handleSubmit, watch, register, formState: { errors } } = useForm<PrintFormInputs>({
         resolver: zodResolver(PrintFormSchema),
         defaultValues: {
             paymentMethod: 'COD',
             wormholeUrl: '',
+            name: '',
+            userClass: '',
+            instructions: '',
         }
     });
 
@@ -75,6 +79,18 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
         toast({ title: 'Copied!', description: 'UPI ID copied to clipboard.'});
     };
 
+    const processSubmit = (data: PrintFormInputs) => {
+        const formData = new FormData();
+        formData.append('name', data.name);
+        formData.append('userClass', data.userClass);
+        formData.append('paymentMethod', data.paymentMethod);
+        formData.append('wormholeUrl', data.wormholeUrl);
+        if (data.instructions) {
+            formData.append('instructions', data.instructions);
+        }
+        formAction(formData);
+    }
+
   return (
     <>
         <Alert className="mb-8 border-primary/50 bg-primary/10 text-primary-foreground">
@@ -93,7 +109,7 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
             <CardContent>
                 <form 
                     ref={formRef}
-                    action={formAction}
+                    onSubmit={handleSubmit(processSubmit)}
                     className="space-y-6"
                 >
                     {/* User Details */}
@@ -121,7 +137,7 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                                 <div>
                                     <p className="font-semibold text-base mb-2 text-foreground">Step 1: Upload Files</p>
                                     <p className="text-muted-foreground">Click the button below to open Wormhole in a new tab. Drag and drop your files there to generate a secure sharing link.</p>
-                                    <Button asChild variant="outline" className="mt-3">
+                                    <Button asChild variant="outline" className="mt-3" type="button">
                                         <a href="https://wormhole.app" target="_blank" rel="noopener noreferrer">
                                             <UploadCloud className="mr-2 h-4 w-4" /> Go to Wormhole.app
                                             <ExternalLink className="ml-2 h-3 w-3" />
@@ -152,8 +168,8 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                             control={control}
                             render={({ field }) => (
                                 <RadioGroup
+                                    onValueChange={field.onChange}
                                     value={field.value}
-                                    onValueChange={(value) => field.onChange(value as 'COD' | 'UPI')}
                                     className="flex gap-4 pt-2"
                                 >
                                     <div className="flex items-center space-x-2">

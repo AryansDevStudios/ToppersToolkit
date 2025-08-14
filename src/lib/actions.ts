@@ -547,11 +547,11 @@ export async function updateSettingsAction(prevState: any, formData: FormData) {
 }
 
 
-const PrintFormSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  userClass: z.string().min(1, 'Class is required'),
+const PrintOrderFormSchema = z.object({
+  name: z.string().min(1, 'Name is required.'),
+  userClass: z.string().min(1, 'Class is required.'),
   instructions: z.string().optional(),
-  paymentMethod: z.enum(['COD', 'UPI']),
+  paymentMethod: z.enum(['COD', 'UPI'], { required_error: 'Please select a payment method.' }),
   wormholeUrl: z.string().url("A valid Wormhole link is required."),
 });
 
@@ -559,7 +559,7 @@ export async function placePrintOrderAction(prevState: any, formData: FormData) 
     noStore();
     try {
         const rawData = Object.fromEntries(formData.entries());
-        const parsed = PrintFormSchema.parse(rawData);
+        const parsed = PrintOrderFormSchema.parse(rawData);
         
         let instructions = parsed.instructions || '';
         
