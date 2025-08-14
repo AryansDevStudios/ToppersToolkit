@@ -27,7 +27,7 @@ const PrintFormSchema = z.object({
   instructions: z.string().optional(),
   paymentMethod: z.enum(['COD', 'UPI'], { required_error: "Please select a payment method." }),
   wormholeUrl: z.string().url("Please provide a valid Wormhole link."),
-  terms: z.literal('on', { errorMap: () => ({ message: 'You must agree to the Terms and Conditions' }) }),
+  terms: z.literal<"on", any>('on', { errorMap: () => ({ message: 'You must agree to the Terms and Conditions' }) }),
 });
 
 
@@ -90,9 +90,9 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
     <>
         <Alert className="mb-8 border-primary/50 bg-primary/10 text-primary-foreground">
             <IndianRupee className="h-4 w-4 text-primary" />
-            <AlertTitle className="text-primary font-bold">Dynamic Pricing</AlertTitle>
+            <AlertTitle className="text-primary font-bold">₹{pricePerPage.toFixed(2)} per page</AlertTitle>
             <AlertDescription className="text-primary/90">
-                Our printing service costs <span className="font-bold">₹{pricePerPage.toFixed(2)} per page</span>. The final price will be calculated based on the total number of pages in your document(s) and confirmed with you via <a href="https://wa.me/917754000411" target="_blank" rel="noopener noreferrer" className="font-semibold underline hover:text-primary-foreground">WhatsApp</a>.
+                The final price will be calculated based on the total number of pages in your document(s) and confirmed with you via <a href="https://wa.me/917754000411" target="_blank" rel="noopener noreferrer" className="font-semibold underline hover:text-primary-foreground">WhatsApp</a>.
             </AlertDescription>
         </Alert>
         
@@ -243,3 +243,4 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
     </>
   );
 }
+
