@@ -51,9 +51,9 @@ export function OrderList({ orders }: OrderListProps) {
     if (activeOrders.length === 0) {
         return (
             <Card>
-                <CardHeader>
-                    <CardTitle>No Active Orders</CardTitle>
-                    <CardDescription>New orders will appear here. Completed orders are hidden.</CardDescription>
+                <CardHeader className="text-center">
+                    <CardTitle>No Active Note Orders</CardTitle>
+                    <CardDescription>New note orders will appear here. Completed orders are hidden.</CardDescription>
                 </CardHeader>
             </Card>
         )
@@ -62,12 +62,12 @@ export function OrderList({ orders }: OrderListProps) {
   return (
     <Card>
         <CardHeader>
-            <CardTitle>Active Orders</CardTitle>
-            <CardDescription>Manage and fulfill incoming orders.</CardDescription>
+            <CardTitle>Active Note Orders</CardTitle>
+            <CardDescription>Manage and fulfill incoming orders for notes.</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {activeOrders.map((order) => (
-                <Card key={order.id} className="flex flex-col">
+                <Card key={order.id} className="flex flex-col bg-muted/20">
                     <CardHeader>
                         <div className="flex justify-between items-start">
                             <div>
@@ -104,7 +104,7 @@ export function OrderList({ orders }: OrderListProps) {
                             </div>
                         )}
                     </CardContent>
-                    <CardFooter className="flex flex-col items-stretch space-y-3">
+                    <CardFooter className="flex flex-col items-stretch space-y-3 bg-background border-t">
                          <Separator />
                          <div className="flex justify-between items-center">
                             <div className="flex items-center text-sm text-muted-foreground gap-1.5">

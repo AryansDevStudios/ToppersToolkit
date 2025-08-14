@@ -4,7 +4,7 @@
 import { z } from 'zod';
 import { CartItem, Subject, SubCategory, NoteMaterial, NoteItem, Order, PriceInfo } from '@/types';
 import { db } from './firebase';
-import { saveOrder, saveNoteMaterial, updateOrderStatus, updateNoteMaterial } from './data';
+import { saveOrder, saveNoteMaterial, updateOrderStatus, updateNoteMaterial, getAdminSettings } from './data';
 import { Timestamp, arrayUnion, collection, doc, getDoc, getDocs, query, updateDoc, where, writeBatch, deleteDoc, setDoc } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
 import { unstable_noStore as noStore } from 'next/cache';
@@ -564,7 +564,11 @@ export async function placePrintOrderAction(prevState: any, formData: FormData) 
         let instructions = parsed.instructions || '';
         
         const noteLinks = `Wormhole Link: ${parsed.wormholeUrl}`;
-        instructions = `Print Request:\n${noteLinks}\n\nUser Instructions: ${instructions}`;
+        // We embed the price per page at the time of order in the instructions as well
+        const settings = await getAdminSettings();
+        const priceString = `Price per page at time of order: ${settings.printPricePerPage ?? 3.0}`;
+
+        instructions = `Print Request:\n${noteLinks}\n${priceString}\n\nUser Instructions: ${instructions}`;
         
         const printOrderItem: CartItem = {
             id: `print-${nanoid()}`,
