@@ -14,6 +14,7 @@ import { nanoid } from 'nanoid';
 const placeOrderSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   userClass: z.string().min(1, 'Class is required'),
+  whatsappNumber: z.string().min(10, 'Please enter a valid WhatsApp number.'),
   instructions: z.string().optional(),
   cartItems: z.string(),
   paymentMethod: z.enum(['COD', 'UPI'], { required_error: 'Please select a payment method' }),
@@ -26,6 +27,7 @@ export async function placeOrderAction(prevState: any, formData: FormData) {
     const parsed = placeOrderSchema.parse({
       name: formData.get('name'),
       userClass: formData.get('userClass'),
+      whatsappNumber: formData.get('whatsappNumber'),
       instructions: formData.get('instructions'),
       cartItems: formData.get('cartItems'),
       paymentMethod: formData.get('paymentMethod'),
@@ -39,6 +41,7 @@ export async function placeOrderAction(prevState: any, formData: FormData) {
     const newOrder = {
         name: parsed.name,
         userClass: parsed.userClass,
+        whatsappNumber: parsed.whatsappNumber,
         instructions: parsed.instructions,
         items: cartItems,
         createdAt: Timestamp.now(),

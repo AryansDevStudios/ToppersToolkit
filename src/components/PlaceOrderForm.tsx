@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { QrCode, Copy } from 'lucide-react';
+import { QrCode, Copy, MessageSquare } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useState } from 'react';
 import { Checkbox } from './ui/checkbox';
@@ -87,6 +87,13 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
                 <div>
                     <Label htmlFor="userClass">Class (e.g., 10th A)</Label>
                     <Input id="userClass" name="userClass" required />
+                </div>
+                 <div>
+                    <Label htmlFor="whatsappNumber">WhatsApp Number</Label>
+                    <div className="relative mt-1">
+                        <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input id="whatsappNumber" name="whatsappNumber" type="tel" placeholder="e.g., 9876543210" className="pl-10" required />
+                    </div>
                 </div>
 
                 <div>
