@@ -2,114 +2,118 @@
 'use client';
 
 import Link from 'next/link';
-import { Menu, ShoppingCart } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Home, ShoppingCart, Search, Printer, Library, UserCog } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
-import { getSubjects } from '@/lib/data';
-import { useEffect, useState } from 'react';
-import type { Subject } from '@/types';
-import { Badge } from './ui/badge';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
 import { ThemeToggle } from './ThemeToggle';
+import { Badge } from './ui/badge';
+
+const navItems = [
+  { href: '/', label: 'Home', icon: Home },
+  { href: '/#subjects', label: 'Browse', icon: Search },
+  { href: '/print', label: 'Print', icon: Printer },
+  { href: 'https://topperstoolkitviewer.netlify.app/', label: 'E-Library', icon: Library },
+];
 
 export function Header() {
   const { itemCount } = useCart();
-  const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    getSubjects().then(setSubjects);
-    setIsClient(true);
-  }, []);
-
-  const navLinks = (
-    <>
-      <Link href="/" className="text-muted-foreground transition-colors hover:text-foreground">
-        Home
-      </Link>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="p-0 h-auto text-muted-foreground transition-colors hover:text-foreground hover:bg-transparent" disabled={subjects.length === 0}>Browse</Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
-          {subjects.map((subject) => (
-            <Link key={subject.id} href={`/subjects/${subject.id}`} passHref>
-              <DropdownMenuItem>{subject.name}</DropdownMenuItem>
-            </Link>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-       <Link href="/print" className="text-muted-foreground transition-colors hover:text-foreground">
-        Custom Print
-      </Link>
-      <a href="https://topperstoolkitviewer.netlify.app/" className="text-muted-foreground transition-colors hover:text-foreground">
-        E-Library
-      </a>
-      <Link href="/admin" className="text-muted-foreground transition-colors hover:text-foreground">
-        Admin
-      </Link>
-    </>
-  );
+  const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center">
-        <div className="mr-4 hidden md:flex">
-          <Link href="/" className="mr-6 flex items-center space-x-2">
+    <>
+      {/* Desktop Header */}
+      <header className="sticky top-0 z-50 hidden w-full border-b border-border/60 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:block">
+        <div className="container flex h-16 items-center">
+          <Link href="/" className="mr-8 flex items-center space-x-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="https://raw.githubusercontent.com/AryansDevStudios/ToppersToolkit/main/icon/icon_app_128x128.png" alt="Topper's Toolkit Logo" className="h-8 w-8 rounded-lg" />
             <span className="font-black text-lg font-headline">Topper's Toolkit</span>
           </Link>
           <nav className="flex items-center space-x-6 text-sm font-medium">
-            {isClient && navLinks}
+            {navItems.map(item => (
+              <Link 
+                key={item.href} 
+                href={item.href} 
+                className={cn(
+                  "text-muted-foreground transition-colors hover:text-foreground",
+                  item.href === '/' && pathname === item.href && 'text-foreground'
+                )}
+                target={item.href.startsWith('http') ? '_blank' : undefined}
+                rel={item.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+              >
+                {item.label}
+              </Link>
+            ))}
           </nav>
-        </div>
 
-        <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-          <div className="md:hidden">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Toggle Menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-[300px] sm:w-[400px]">
-                <SheetHeader>
-                   <SheetTitle>
-                    <Link href="/" className="mr-6 flex items-center space-x-2">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src="https://raw.githubusercontent.com/AryansDevStudios/ToppersToolkit/main/icon/icon_app_128x128.png" alt="Topper's Toolkit Logo" className="h-8 w-8 rounded-lg" />
-                      <span className="font-bold font-headline">Topper's Toolkit</span>
-                    </Link>
-                  </SheetTitle>
-                </SheetHeader>
-                <nav className="flex flex-col gap-4 mt-8">
-                  {isClient && navLinks}
-                </nav>
-              </SheetContent>
-            </Sheet>
+          <div className="flex flex-1 items-center justify-end space-x-4">
+            <ThemeToggle />
+             <Link href="/admin" className="text-muted-foreground transition-colors hover:text-foreground">
+                <UserCog className="h-5 w-5" />
+                <span className="sr-only">Admin</span>
+            </Link>
+            <Link href="/cart">
+              <div className="relative">
+                <ShoppingCart className="h-5 w-5" />
+                {itemCount > 0 && (
+                  <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center rounded-full p-0 text-xs">{itemCount}</Badge>
+                )}
+                <span className="sr-only">Cart</span>
+              </div>
+            </Link>
           </div>
-           <div className="w-full flex-1 md:w-auto md:flex-none">
-             {/* Future Search Bar can go here */}
-          </div>
-          <ThemeToggle />
-          <Link href="/cart">
-            <Button variant="ghost" size="icon" aria-label="Cart" className="relative">
-              <ShoppingCart className="h-5 w-5" />
-              {itemCount > 0 && (
-                <Badge variant="destructive" className="absolute -top-2 -right-2 h-6 w-6 flex items-center justify-center p-0 text-xs">{itemCount}</Badge>
-              )}
-            </Button>
-          </Link>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* Mobile Header */}
+       <header className="md:hidden sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+         <div className="container flex h-16 items-center justify-between">
+           <Link href="/" className="flex items-center space-x-2">
+             <img src="https://raw.githubusercontent.com/AryansDevStudios/ToppersToolkit/main/icon/icon_app_128x128.png" alt="Topper's Toolkit Logo" className="h-8 w-8 rounded-lg" />
+            <span className="font-bold font-headline">Topper's Toolkit</span>
+           </Link>
+           <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Link href="/admin">
+              <UserCog className="h-5 w-5 text-muted-foreground" />
+              <span className="sr-only">Admin</span>
+            </Link>
+           </div>
+         </div>
+      </header>
+
+
+      {/* Mobile Bottom Nav */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur">
+        <div className="container grid h-16 max-w-lg grid-cols-5 items-center">
+            {navItems.map((item) => {
+              const isActive = (item.href === '/' && pathname === item.href) || (item.href !== '/' && pathname.startsWith(item.href));
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="flex flex-col items-center justify-center gap-1 text-xs font-medium text-muted-foreground"
+                  target={item.href.startsWith('http') ? '_blank' : undefined}
+                  rel={item.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                >
+                  <item.icon className={cn("h-6 w-6", isActive && "text-primary")} />
+                  <span className={cn(isActive && "text-primary")}>{item.label}</span>
+                </Link>
+              );
+            })}
+           <Link href="/cart" className="flex flex-col items-center justify-center gap-1 text-xs font-medium text-muted-foreground relative">
+              <ShoppingCart className={cn("h-6 w-6", pathname === '/cart' && 'text-primary')} />
+              <span className={cn(pathname === '/cart' && 'text-primary')}>Cart</span>
+               {itemCount > 0 && (
+                  <Badge variant="destructive" className="absolute top-0 right-3 h-5 w-5 flex items-center justify-center rounded-full p-0 text-xs">{itemCount}</Badge>
+                )}
+           </Link>
+        </div>
+      </nav>
+      
+      {/* Spacer for bottom nav */}
+      <div className="md:hidden h-16" />
+    </>
   );
 }
