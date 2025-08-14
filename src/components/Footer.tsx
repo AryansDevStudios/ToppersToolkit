@@ -1,5 +1,5 @@
 
-import { Mail, Send, Smartphone, Download } from 'lucide-react';
+import { Mail, Send, Smartphone, Download, BookUser } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
@@ -11,9 +11,12 @@ export function Footer() {
           <div>
             <h3 className="text-lg font-black mb-2">Topper's Toolkit</h3>
             <p className="text-muted-foreground text-sm">This site is for ordering notes. Purchased digital materials can be viewed on our <a href="https://topperstoolkitviewer.netlify.app/" className="text-primary hover:underline">Library platform</a>.</p>
-             <div className="mt-4">
+             <div className="mt-4 flex flex-col items-center md:items-start gap-2">
                 <Link href="/terms" className="text-sm text-primary underline underline-offset-4 hover:opacity-80 transition-opacity">
                     Terms & Conditions
+                </Link>
+                <Link href="/manual" className="text-sm text-primary underline underline-offset-4 hover:opacity-80 transition-opacity">
+                    User Manual
                 </Link>
             </div>
           </div>
