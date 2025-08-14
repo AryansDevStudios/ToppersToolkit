@@ -563,14 +563,10 @@ export async function placePrintOrderAction(prevState: any, formData: FormData) 
         const rawData = Object.fromEntries(formData.entries());
         const parsed = PrintOrderFormSchema.parse(rawData);
         
-        let instructions = parsed.instructions || '';
-        
-        const noteLinks = `Wormhole Link: ${parsed.wormholeUrl}`;
-        // We embed the price per page at the time of order in the instructions as well
-        const settings = await getAdminSettings();
-        const priceString = `Price per page at time of order: ${settings.printPricePerPage ?? 3.0}`;
-
-        instructions = `Print Request:\n${noteLinks}\n${priceString}\n\nUser Instructions: ${instructions}`;
+        let finalInstructions = parsed.wormholeUrl;
+        if (parsed.instructions) {
+            finalInstructions += `\n${parsed.instructions}`;
+        }
         
         const printOrderItem: CartItem = {
             id: `print-${nanoid()}`,
@@ -588,7 +584,7 @@ export async function placePrintOrderAction(prevState: any, formData: FormData) 
             name: parsed.name,
             userClass: parsed.userClass,
             whatsappNumber: parsed.whatsappNumber,
-            instructions: instructions,
+            instructions: finalInstructions,
             items: [printOrderItem],
             createdAt: Timestamp.now(),
             status: 'new',

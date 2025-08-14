@@ -29,13 +29,17 @@ type PrintRequestListProps = {
 const parseInstructions = (text: string | undefined) => {
     if (!text) return { url: null, userInstructions: null };
     
-    const urlRegex = /Wormhole Link: (https:\/\/wormhole\.app\/[a-zA-Z0-9-]+)/;
-    const urlMatch = text.match(urlRegex);
-    const url = urlMatch ? urlMatch[1] : null;
+    // Split the instructions string into lines
+    const lines = text.split('\n');
+    
+    // Find the line that starts with 'https://wormhole.app/'
+    const urlLine = lines.find(line => line.startsWith('https://wormhole.app/'));
+    const url = urlLine || null;
 
-    const userInstructions = text.replace(urlRegex, '').replace('Print Request:', '').replace('User Instructions:', '').trim();
+    // The rest of the lines are user instructions
+    const userInstructions = lines.filter(line => !line.startsWith('https://wormhole.app/')).join('\n').trim();
 
-    return { url, userInstructions };
+    return { url, userInstructions: userInstructions || null };
 };
 
 
@@ -84,7 +88,7 @@ export function PrintRequestList({ orders, pricePerPage }: PrintRequestListProps
             {activeOrders.map((order) => {
                 const { url, userInstructions } = parseInstructions(order.instructions);
                 const contactHref = order.whatsappNumber 
-                  ? `https://wa.me/${order.whatsappNumber.replace(/\D/g, '')}`
+                  ? `https://wa.me/91${order.whatsappNumber.replace(/\D/g, '')}`
                   : `https://wa.me/917754000411`; // Fallback to default number
 
                 return (
@@ -130,7 +134,7 @@ export function PrintRequestList({ orders, pricePerPage }: PrintRequestListProps
                                         <Info className="h-4 w-4" />
                                         User Instructions
                                     </h4>
-                                    <p className="text-sm text-muted-foreground italic border-l-2 pl-3">"{userInstructions}"</p>
+                                    <p className="text-sm text-muted-foreground italic border-l-2 pl-3 whitespace-pre-wrap">"{userInstructions}"</p>
                                 </div>
                             )}
                         </CardContent>
