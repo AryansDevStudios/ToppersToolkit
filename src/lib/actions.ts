@@ -553,6 +553,7 @@ const PrintOrderFormSchema = z.object({
   instructions: z.string().optional(),
   paymentMethod: z.enum(['COD', 'UPI'], { required_error: 'Please select a payment method.' }),
   wormholeUrl: z.string().url("A valid Wormhole link is required."),
+  terms: z.literal('on', { errorMap: () => ({ message: 'You must agree to the Terms and Conditions' }) }),
 });
 
 export async function placePrintOrderAction(prevState: any, formData: FormData) {
@@ -607,3 +608,5 @@ export async function placePrintOrderAction(prevState: any, formData: FormData) 
         return { success: false, message };
     }
 }
+
+    

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useActionState, useEffect, useRef } from 'react';
+import { useActionState, useEffect, useRef, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useFormStatus } from 'react-dom';
 import { z } from 'zod';
@@ -17,6 +17,8 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { placePrintOrderAction } from '@/lib/actions';
+import { Checkbox } from './ui/checkbox';
+import Link from 'next/link';
 
 const PrintFormSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -24,6 +26,7 @@ const PrintFormSchema = z.object({
   instructions: z.string().optional(),
   paymentMethod: z.enum(['COD', 'UPI'], { required_error: "Please select a payment method." }),
   wormholeUrl: z.string().url("Please provide a valid Wormhole link."),
+  terms: z.literal('on', { errorMap: () => ({ message: 'You must agree to the Terms and Conditions' }) }),
 });
 
 
@@ -33,10 +36,10 @@ type PrintFormProps = {
     pricePerPage: number;
 }
 
-function SubmitButton() {
+function SubmitButton({ disabled }: { disabled: boolean }) {
     const { pending } = useFormStatus();
     return (
-        <Button type="submit" disabled={pending} className="w-full">
+        <Button type="submit" disabled={pending || disabled} className="w-full">
             {pending ? 'Submitting...' : 'Submit for Printing'}
         </Button>
     );
@@ -46,6 +49,7 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
     const [state, formAction] = useActionState(placePrintOrderAction, { success: false, message: '' });
+    const [agreedToTerms, setAgreedToTerms] = useState(false);
 
     const { control, watch, register, formState: { errors } } = useForm<PrintFormInputs>({
         resolver: zodResolver(PrintFormSchema),
@@ -65,6 +69,7 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                 description: state.message,
             });
             formRef.current?.reset();
+            setAgreedToTerms(false);
         } else if (state.message) {
             toast({
                 title: 'Error',
@@ -203,11 +208,30 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                         <Label htmlFor="instructions">Special Instructions</Label>
                         <Textarea id="instructions" name="instructions" placeholder="e.g., Black & white print, spiral binding, etc." />
                     </div>
+
+                    <div className="flex items-start space-x-2 pt-2">
+                        <Checkbox 
+                            id="terms"
+                            name="terms"
+                            checked={agreedToTerms}
+                            onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
+                        />
+                        <Label htmlFor="terms" className="text-sm text-muted-foreground leading-normal">
+                            I have read and agree to the 
+                            <Link href="/terms" target="_blank" className="text-primary hover:underline underline-offset-2 ml-1">
+                                Terms and Conditions
+                            </Link>
+                            .
+                        </Label>
+                    </div>
+                    {errors.terms && <p className="text-sm text-destructive mt-1">{errors.terms.message}</p>}
                     
-                    <SubmitButton />
+                    <SubmitButton disabled={!agreedToTerms} />
                 </form>
             </CardContent>
         </Card>
     </>
   );
 }
+
+    
