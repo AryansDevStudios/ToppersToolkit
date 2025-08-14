@@ -10,7 +10,7 @@ export default function TermsPage() {
 
       <div className="space-y-6 text-foreground">
         <p className='text-muted-foreground'>
-            Welcome to <strong>Topper’s Toolkit Shop</strong> (<Link href="https://topperstoolkit.netlify.app" className="text-primary hover:underline" target="_blank">https://topperstoolkit.netlify.app</Link>), owned and operated by <strong>Aryan Gupta (AryansDevStudios)</strong>. By purchasing any product from this site — whether in <strong>digital</strong> or <strong>printed</strong> format — you agree to these Terms and Conditions.
+            Welcome to <strong>Topper’s Toolkit Shop</strong> (<Link href="https://topperstoolkit.netlify.app" className="text-primary hover:underline">https://topperstoolkit.netlify.app</Link>), owned and operated by <strong>Aryan Gupta (AryansDevStudios)</strong>. By purchasing any product from this site — whether in <strong>digital</strong> or <strong>printed</strong> format — you agree to these Terms and Conditions.
         </p>
 
         <Separator className="my-8" />
@@ -38,7 +38,7 @@ export default function TermsPage() {
         <div>
             <h2 className="text-2xl font-bold mt-8 mb-4">2. Relationship with Access Site</h2>
             <p className="text-muted-foreground">
-                All digital notes purchased here are accessed exclusively through our official viewer platform, <strong>Topper’s Toolkit Viewer</strong> (<Link href="https://topperstoolkitviewer.netlify.app" className="text-primary hover:underline" target="_blank">https://topperstoolkitviewer.netlify.app</Link>). Purchasing a note grants you <strong>view-only access</strong> via the Viewer platform once the transaction is verified.
+                All digital notes purchased here are accessed exclusively through our official viewer platform, <strong>Topper’s Toolkit Viewer</strong> (<Link href="https://topperstoolkitviewer.netlify.app" className="text-primary hover:underline">https://topperstoolkitviewer.netlify.app</Link>). Purchasing a note grants you <strong>view-only access</strong> via the Viewer platform once the transaction is verified.
             </p>
         </div>
 

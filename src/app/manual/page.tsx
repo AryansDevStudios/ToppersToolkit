@@ -61,7 +61,7 @@ export default function ManualPage() {
               <AlertTitle>PDF vs. Printed</AlertTitle>
               <AlertDescription>
                 <ul className="list-disc list-inside space-y-1">
-                  <li><strong>PDF:</strong> A digital version you can access online through our secure <a href="https://topperstoolkitviewer.netlify.app/" target="_blank" className="text-primary underline">Library</a>. You cannot download or print it.</li>
+                  <li><strong>PDF:</strong> A digital version you can access online through our secure <a href="https://topperstoolkitviewer.netlify.app/" className="text-primary underline">Library</a>. You cannot download or print it.</li>
                   <li><strong>Printed:</strong> A physical, hard-copy booklet that will be delivered to you.</li>
                 </ul>
               </AlertDescription>
@@ -117,7 +117,7 @@ export default function ManualPage() {
               <Separator />
                <h4 className="font-semibold">Accessing Digital Notes</h4>
               <p className="text-muted-foreground">
-                After your order for a digital (PDF) note is confirmed, you will be given access to view it on our secure <a href="https://topperstoolkitviewer.netlify.app/" className="text-primary font-semibold hover:underline" target="_blank">Library platform</a>. Please note that access may take 1-2 hours to be granted as it is a manual process.
+                After your order for a digital (PDF) note is confirmed, you will be given access to view it on our secure <a href="https://topperstoolkitviewer.netlify.app/" className="text-primary font-semibold hover:underline">Library platform</a>. Please note that access may take 1-2 hours to be granted as it is a manual process.
               </p>
                <Alert variant="destructive">
                   <AlertTitle>Important</AlertTitle>

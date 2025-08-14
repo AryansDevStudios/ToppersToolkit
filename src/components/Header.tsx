@@ -40,8 +40,6 @@ export function Header() {
                   item.href === '/' && pathname === item.href && 'text-foreground',
                   item.href !== '/' && pathname.startsWith(item.href) && 'text-foreground'
                 )}
-                target={item.href.startsWith('http') ? '_blank' : undefined}
-                rel={item.href.startsWith('http') ? 'noopener noreferrer' : undefined}
               >
                 {item.label}
               </Link>
@@ -96,8 +94,6 @@ export function Header() {
                   key={item.href}
                   href={item.href}
                   className="flex flex-col items-center justify-center gap-1 text-xs font-medium text-muted-foreground"
-                  target={item.href.startsWith('http') ? '_blank' : undefined}
-                  rel={item.href.startsWith('http') ? 'noopener noreferrer' : undefined}
                 >
                   <Icon className={cn("h-6 w-6", isActive && "text-primary")} />
                   <span className={cn(isActive && "text-primary")}>{item.label}</span>
