@@ -45,6 +45,9 @@ export function Header() {
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
+       <Link href="/print" className="text-muted-foreground transition-colors hover:text-foreground">
+        Custom Print
+      </Link>
       <a href="https://topperstoolkitviewer.netlify.app/" className="text-muted-foreground transition-colors hover:text-foreground">
         E-Library
       </a>
