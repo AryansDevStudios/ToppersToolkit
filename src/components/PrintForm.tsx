@@ -16,6 +16,7 @@ import { Trash2, PlusCircle, IndianRupee, QrCode, Copy } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
 
 const PrintFormSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -79,7 +80,7 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
             <IndianRupee className="h-4 w-4 text-primary" />
             <AlertTitle className="text-primary font-bold">Dynamic Pricing</AlertTitle>
             <AlertDescription className="text-primary/90">
-                Our printing service costs <span className="font-bold">₹{pricePerPage.toFixed(2)} per page</span>. The final price will be calculated based on the total number of pages in your document(s) and confirmed with you via WhatsApp.
+                Our printing service costs <span className="font-bold">₹{pricePerPage.toFixed(2)} per page</span>. The final price will be calculated based on the total number of pages in your document(s) and confirmed with you via <a href="https://wa.me/917754000411" target="_blank" rel="noopener noreferrer" className="font-semibold underline hover:text-primary-foreground">WhatsApp</a>.
             </AlertDescription>
         </Alert>
         
