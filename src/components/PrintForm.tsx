@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { IndianRupee, QrCode, Copy, UploadCloud, ExternalLink } from 'lucide-react';
+import { IndianRupee, QrCode, Copy, UploadCloud, ExternalLink, MessageSquare } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
@@ -23,6 +23,7 @@ import Link from 'next/link';
 const PrintFormSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   userClass: z.string().min(1, 'Class is required'),
+  whatsappNumber: z.string().min(10, "Please provide a valid 10-digit WhatsApp number."),
   instructions: z.string().optional(),
   paymentMethod: z.enum(['COD', 'UPI'], { required_error: "Please select a payment method." }),
   wormholeUrl: z.string().url("Please provide a valid Wormhole link."),
@@ -58,6 +59,7 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
             wormholeUrl: '',
             name: '',
             userClass: '',
+            whatsappNumber: '',
             instructions: '',
         }
     });
@@ -117,6 +119,14 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                             <Label htmlFor="userClass">Class</Label>
                             <Input id="userClass" name="userClass" placeholder="e.g., 10th A" />
                             {errors.userClass && <p className="text-sm text-destructive mt-1">{errors.userClass.message}</p>}
+                        </div>
+                         <div>
+                            <Label htmlFor="whatsappNumber">WhatsApp Number</Label>
+                             <div className="relative mt-1">
+                                <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input id="whatsappNumber" name="whatsappNumber" type="tel" placeholder="e.g., 9876543210" className="pl-10" />
+                            </div>
+                            {errors.whatsappNumber && <p className="text-sm text-destructive mt-1">{errors.whatsappNumber.message}</p>}
                         </div>
                     </div>
 
@@ -233,5 +243,3 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
     </>
   );
 }
-
-    

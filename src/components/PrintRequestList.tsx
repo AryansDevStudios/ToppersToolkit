@@ -83,6 +83,9 @@ export function PrintRequestList({ orders, pricePerPage }: PrintRequestListProps
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {activeOrders.map((order) => {
                 const { url, userInstructions } = parseInstructions(order.instructions);
+                const contactHref = order.whatsappNumber 
+                  ? `https://wa.me/${order.whatsappNumber.replace(/\D/g, '')}`
+                  : `https://wa.me/917754000411`; // Fallback to default number
 
                 return (
                     <Card key={order.id} className="flex flex-col bg-muted/20">
@@ -91,6 +94,12 @@ export function PrintRequestList({ orders, pricePerPage }: PrintRequestListProps
                                 <div>
                                     <CardTitle className="text-xl">{order.name}</CardTitle>
                                     <CardDescription>{order.userClass}</CardDescription>
+                                    {order.whatsappNumber && (
+                                        <a href={contactHref} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1 mt-1">
+                                            <MessageSquare className="h-3 w-3" />
+                                            {order.whatsappNumber}
+                                        </a>
+                                    )}
                                     <p className="text-xs text-muted-foreground mt-1">
                                         {isClient ? `${format(new Date(order.createdAt), 'PPP p')}` : ''}
                                     </p>
@@ -139,7 +148,7 @@ export function PrintRequestList({ orders, pricePerPage }: PrintRequestListProps
                             </div>
                             <div className="grid grid-cols-2 gap-2">
                                 <Button asChild size="sm" variant="secondary">
-                                    <a href="https://wa.me/917754000411" target="_blank" rel="noopener noreferrer">
+                                    <a href={contactHref} target="_blank" rel="noopener noreferrer">
                                         <MessageSquare className="mr-2 h-4 w-4"/> Contact User
                                     </a>
                                 </Button>
@@ -160,4 +169,3 @@ export function PrintRequestList({ orders, pricePerPage }: PrintRequestListProps
     </Card>
   );
 }
-

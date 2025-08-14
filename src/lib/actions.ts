@@ -550,6 +550,7 @@ export async function updateSettingsAction(prevState: any, formData: FormData) {
 const PrintOrderFormSchema = z.object({
   name: z.string().min(1, 'Name is required.'),
   userClass: z.string().min(1, 'Class is required.'),
+  whatsappNumber: z.string().min(10, 'Please enter a valid WhatsApp number.'),
   instructions: z.string().optional(),
   paymentMethod: z.enum(['COD', 'UPI'], { required_error: 'Please select a payment method.' }),
   wormholeUrl: z.string().url("A valid Wormhole link is required."),
@@ -586,6 +587,7 @@ export async function placePrintOrderAction(prevState: any, formData: FormData) 
         const newOrder: Omit<Order, 'id'> = {
             name: parsed.name,
             userClass: parsed.userClass,
+            whatsappNumber: parsed.whatsappNumber,
             instructions: instructions,
             items: [printOrderItem],
             createdAt: Timestamp.now(),
@@ -608,5 +610,3 @@ export async function placePrintOrderAction(prevState: any, formData: FormData) 
         return { success: false, message };
     }
 }
-
-    

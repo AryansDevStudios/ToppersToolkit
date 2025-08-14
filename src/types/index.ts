@@ -65,6 +65,7 @@ export type Order = {
   id:string;
   name: string;
   userClass: string;
+  whatsappNumber?: string;
   instructions?: string;
   items: CartItem[];
   createdAt: Timestamp | string;
