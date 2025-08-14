@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm, useFieldArray, Controller } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
@@ -12,14 +12,17 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import { Trash2, PlusCircle, AlertCircle, IndianRupee } from 'lucide-react';
+import { Trash2, PlusCircle, AlertCircle, IndianRupee, QrCode, Copy } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useToast } from '@/hooks/use-toast';
 
 const PrintFormSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   userClass: z.string().min(1, 'Class is required'),
   instructions: z.string().optional(),
   isPdf: z.boolean(),
+  paymentMethod: z.enum(['COD', 'UPI']),
   pdfUrl: z.string().optional(),
   imageUrls: z.array(z.object({ value: z.string().url('Please enter a valid URL') })).optional(),
 }).refine(data => {
@@ -37,12 +40,16 @@ type PrintFormInputs = z.infer<typeof PrintFormSchema>;
 const PRICE_PER_PAGE = 3.00;
 
 export default function PrintPage() {
+    const { toast } = useToast();
+    const [paymentMethod, setPaymentMethod] = useState<'COD' | 'UPI'>('COD');
+
     const { register, control, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<PrintFormInputs>({
         resolver: zodResolver(PrintFormSchema),
         defaultValues: {
             isPdf: true,
             pdfUrl: '',
             imageUrls: [{ value: '' }],
+            paymentMethod: 'COD',
         }
     });
 
@@ -57,6 +64,11 @@ export default function PrintPage() {
         // Here you would typically send the data to a server action
         console.log(data);
         alert('Form submitted! Check console for data.');
+    };
+    
+    const copyToClipboard = () => {
+        navigator.clipboard.writeText('nitish545454@ybl');
+        toast({ title: 'Copied!', description: 'UPI ID copied to clipboard.'});
     };
 
   return (
@@ -147,6 +159,58 @@ export default function PrintPage() {
 
                         <Separator />
                         
+                        {/* Payment Method */}
+                        <div>
+                            <Label>Payment Method</Label>
+                            <Controller
+                                name="paymentMethod"
+                                control={control}
+                                render={({ field }) => (
+                                    <RadioGroup
+                                        value={field.value}
+                                        onValueChange={(value) => {
+                                            field.onChange(value);
+                                            setPaymentMethod(value as 'COD' | 'UPI');
+                                        }}
+                                        className="flex gap-4 pt-2"
+                                    >
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="COD" id="cod" />
+                                            <Label htmlFor="cod">Cash on Delivery (COD)</Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="UPI" id="upi" />
+                                            <Label htmlFor="upi">UPI</Label>
+                                        </div>
+                                    </RadioGroup>
+                                )}
+                            />
+                        </div>
+
+                        {paymentMethod === 'UPI' && (
+                            <Alert>
+                                <QrCode className="h-4 w-4" />
+                                <AlertTitle>Pay with UPI</AlertTitle>
+                                <AlertDescription className="space-y-4">
+                                    <p>Scan the QR code or use the UPI ID below to complete your payment.</p>
+                                    <div className="flex justify-center">
+                                        <img src="/images/payment_qr.png" alt="UPI QR Code" data-ai-hint="qr code" className="rounded-md w-48 h-48 object-contain" />
+                                    </div>
+                                    <div className="flex items-center justify-between p-2 rounded-md bg-muted">
+                                        <span className="font-mono text-sm">nitish545454@ybl</span>
+                                        <Button type="button" variant="ghost" size="sm" onClick={copyToClipboard}>
+                                            <Copy className="h-4 w-4 mr-2" />
+                                            Copy
+                                        </Button>
+                                    </div>
+                                    <p className="text-xs text-center text-muted-foreground">After payment, please proceed with placing the order.</p>
+                                </AlertDescription>
+                            </Alert>
+                        )}
+
+
+                        <Separator />
+
                         {/* Instructions */}
                          <div>
                             <Label htmlFor="instructions">Special Instructions</Label>
