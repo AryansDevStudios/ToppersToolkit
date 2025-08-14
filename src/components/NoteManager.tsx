@@ -6,8 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { 
     deleteNoteItemAction,
-    updateNoteItemStatusAction,
-    migrateNotesAction
+    updateNoteItemStatusAction
 } from '@/lib/actions';
 import type { NoteMaterial, NoteItem } from '@/types';
 import {
@@ -18,7 +17,7 @@ import {
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Edit, Eye, EyeOff, ChevronDown, BookOpen, PlusCircle, FilePenLine, DatabaseZap, AlertCircle } from 'lucide-react';
+import { Trash2, Edit, Eye, EyeOff, ChevronDown, BookOpen, PlusCircle, FilePenLine } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import {
@@ -37,7 +36,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { NoteItemForm } from './NoteItemForm';
 import { ChapterEditForm } from './ChapterEditForm';
 import { Separator } from './ui/separator';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 
 type GroupedNote = NoteMaterial & {
@@ -52,7 +50,6 @@ export function NoteManager({ notes }: NoteManagerProps) {
   const { toast } = useToast();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [migrationState, setMigrationState] = useState<{ type: 'success' | 'error', message: string } | null>(null);
   const [openCollapsibleId, setOpenCollapsibleId] = useState<string | null>(null);
   
   // State for dialogs
@@ -124,22 +121,6 @@ export function NoteManager({ notes }: NoteManagerProps) {
       }
     });
   };
-  
-  const handleMigration = () => {
-    startTransition(async () => {
-        setMigrationState(null);
-        const result = await migrateNotesAction();
-        if (result.success) {
-            setMigrationState({ type: 'success', message: result.message });
-            toast({ title: 'Migration Complete', description: result.message });
-            router.refresh();
-        } else {
-            setMigrationState({ type: 'error', message: result.message });
-            toast({ title: 'Migration Failed', description: result.message, variant: 'destructive' });
-        }
-    });
-  }
-
 
   if (notes.length === 0) {
     return (
@@ -205,44 +186,6 @@ export function NoteManager({ notes }: NoteManagerProps) {
             </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-             {/* Migration Section */}
-            <div className="p-4 border rounded-lg bg-muted/30">
-                <h3 className="text-lg font-semibold">Data Migration</h3>
-                <p className="text-sm text-muted-foreground mt-1 mb-4">
-                    Use this one-time utility to update all old note items to the new data format which includes a creation timestamp.
-                </p>
-                
-                {migrationState && (
-                    <Alert variant={migrationState.type === 'error' ? 'destructive' : 'default'} className="mb-4 bg-background">
-                         <AlertCircle className="h-4 w-4" />
-                         <AlertTitle>{migrationState.type === 'error' ? 'Migration Failed' : 'Migration Result'}</AlertTitle>
-                         <AlertDescription>{migrationState.message}</AlertDescription>
-                    </Alert>
-                )}
-
-                <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                        <Button variant="outline">
-                            <DatabaseZap className="mr-2 h-4 w-4" />
-                            Migrate Old Notes to New Format
-                        </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Confirm Data Migration</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                This will scan all your notes and add a `createdAt` timestamp to any items that are missing one. This action is safe to run multiple times, but is only necessary once. Are you sure you want to proceed?
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleMigration} disabled={isPending}>
-                                {isPending ? 'Migrating...' : 'Yes, start migration'}
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
-            </div>
             {Object.entries(groupedBySubjectAndSubcategory).map(([subjectName, subcategories]) => (
                 <div key={subjectName} className="space-y-4">
                     <h2 className="text-2xl font-bold font-headline tracking-tight">{subjectName}</h2>

@@ -437,62 +437,6 @@ export async function deleteChapterAction(noteIds: string[]) {
     }
 }
 
-export async function migrateNotesAction() {
-    noStore();
-    try {
-        const notesQuery = query(collection(db, 'noteMaterials'));
-        const querySnapshot = await getDocs(notesQuery);
-
-        if (querySnapshot.empty) {
-            return { success: true, message: 'No notes found to migrate.' };
-        }
-        
-        const batch = writeBatch(db);
-        let itemsMigrated = 0;
-
-        querySnapshot.forEach(docSnapshot => {
-            const noteRef = docSnapshot.ref;
-            const noteData = docSnapshot.data() as NoteMaterial;
-            
-            let hasChanges = false;
-            const updatedItems = noteData.items.map(item => {
-                // If item already has a createdAt timestamp, don't change it.
-                if (item.createdAt) {
-                    return item;
-                }
-                // Otherwise, add the parent document's createdAt timestamp.
-                itemsMigrated++;
-                hasChanges = true;
-                return {
-                    ...item,
-                    createdAt: noteData.createdAt || Timestamp.now(), // Fallback to now() if parent is missing it
-                };
-            });
-
-            // Only write to the batch if there were actual changes.
-            if (hasChanges) {
-                batch.update(noteRef, { items: updatedItems });
-            }
-        });
-
-        if (itemsMigrated === 0) {
-            return { success: true, message: 'All notes are already up to date. No migration needed.' };
-        }
-
-        await batch.commit();
-        
-        revalidatePath('/');
-        revalidatePath('/admin');
-
-        return { success: true, message: `Successfully migrated ${itemsMigrated} note items.` };
-
-    } catch (error) {
-        console.error("Migration Error:", error);
-        const message = error instanceof Error ? error.message : 'An unexpected error occurred during migration.';
-        return { success: false, message };
-    }
-}
-
 const SettingsSchema = z.object({
   printPricePerPage: z.preprocess(
     (val) => (val === "" ? undefined : Number(val)),
