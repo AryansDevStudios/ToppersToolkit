@@ -10,9 +10,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { IndianRupee, AlertCircle, CheckCircle } from 'lucide-react';
+import { IndianRupee, AlertCircle, CheckCircle, KeyRound } from 'lucide-react';
 import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { Separator } from './ui/separator';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -67,8 +68,44 @@ export function SettingsManager({ settings }: SettingsManagerProps) {
                     </div>
                 </div>
 
+                <Separator />
+
+                <div>
+                    <h3 className="text-lg font-semibold">Admin Security</h3>
+                    <p className="text-sm text-muted-foreground mt-1 mb-4">Leave these fields blank to keep your current passphrase.</p>
+                    <div className="space-y-4">
+                       <div>
+                            <Label htmlFor="newPassphrase">New Passphrase</Label>
+                             <div className="relative">
+                                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input 
+                                    id="newPassphrase" 
+                                    name="newPassphrase" 
+                                    type="password"
+                                    placeholder="Enter new passphrase"
+                                    className="pl-8"
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <Label htmlFor="confirmPassphrase">Confirm New Passphrase</Label>
+                             <div className="relative">
+                                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input 
+                                    id="confirmPassphrase" 
+                                    name="confirmPassphrase" 
+                                    type="password"
+                                    placeholder="Confirm new passphrase"
+                                    className="pl-8"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
                 {state.message && (
-                    <Alert variant={state.success ? 'default' : 'destructive'}>
+                    <Alert variant={state.success ? 'default' : 'destructive'} className="mt-4">
                         {state.success ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
                         <AlertTitle>{state.success ? 'Success' : 'Error'}</AlertTitle>
                         <AlertDescription>{state.message}</AlertDescription>

@@ -495,7 +495,13 @@ const SettingsSchema = z.object({
     (val) => (val === "" ? undefined : Number(val)),
     z.number().min(0, "Price must be a non-negative number.").optional()
   ),
+  newPassphrase: z.string().optional(),
+  confirmPassphrase: z.string().optional(),
+}).refine(data => data.newPassphrase === data.confirmPassphrase, {
+    message: "Passphrases do not match.",
+    path: ["confirmPassphrase"],
 });
+
 
 export async function updateSettingsAction(prevState: any, formData: FormData) {
   noStore();
@@ -504,14 +510,32 @@ export async function updateSettingsAction(prevState: any, formData: FormData) {
     const parsed = SettingsSchema.parse(rawData);
 
     const settingsRef = doc(db, 'settings', 'admin');
-    await setDoc(settingsRef, { 
-      printPricePerPage: parsed.printPricePerPage 
-    }, { merge: true });
+    const updateData: { printPricePerPage?: number; passphrase?: string } = {};
+    let message = 'Settings updated successfully.';
+
+    if (parsed.printPricePerPage !== undefined) {
+      updateData.printPricePerPage = parsed.printPricePerPage;
+    }
+
+    if (parsed.newPassphrase) {
+        if(parsed.newPassphrase.length < 6) {
+            return { success: false, message: 'Passphrase must be at least 6 characters long.'}
+        }
+        updateData.passphrase = parsed.newPassphrase;
+        message = 'Settings and passphrase updated successfully.'
+    }
+
+    if (Object.keys(updateData).length > 0) {
+        await setDoc(settingsRef, updateData, { merge: true });
+    } else {
+        message = 'No changes were made.'
+    }
+
 
     revalidatePath('/admin');
     revalidatePath('/print');
 
-    return { success: true, message: 'Settings updated successfully.' };
+    return { success: true, message };
   } catch (error) {
     console.error("Action Error:", error);
     if (error instanceof z.ZodError) {
