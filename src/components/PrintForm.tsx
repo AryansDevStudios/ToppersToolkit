@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { IndianRupee, QrCode, Copy, UploadCloud, ArrowRight } from 'lucide-react';
+import { IndianRupee, QrCode, Copy, UploadCloud, ExternalLink } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
@@ -117,23 +117,26 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                     <div className="space-y-4">
                         <h3 className="font-semibold text-lg">Upload Your Notes</h3>
                         <div className="p-4 rounded-lg border bg-muted/50 space-y-3 text-sm">
-                            <p className="flex items-start gap-2"><span className="font-bold text-primary">1.</span> <span>Drag & drop your files (PDF, images, etc.) into the box below.</span></p>
-                            <p className="flex items-start gap-2"><span className="font-bold text-primary">2.</span> <span>Wait for Wormhole to generate a share link.</span></p>
-                            <p className="flex items-start gap-2"><span className="font-bold text-primary">3.</span> <span>Click the "Copy" button to copy the link.</span></p>
-                            <p className="flex items-start gap-2"><span className="font-bold text-primary">4.</span> <span>Paste the link into the "Wormhole Link" field below.</span></p>
-                        </div>
-
-                        <div className="aspect-video w-full rounded-lg overflow-hidden border">
-                            <iframe 
-                                src="https://wormhole.app/"
-                                width="100%"
-                                height="100%"
-                                className="border-0"
-                            ></iframe>
+                           <div className="flex flex-col gap-4">
+                                <div>
+                                    <p className="font-semibold text-base mb-2 text-foreground">Step 1: Upload Files</p>
+                                    <p className="text-muted-foreground">Click the button below to open Wormhole in a new tab. Drag and drop your files there to generate a secure sharing link.</p>
+                                    <Button asChild variant="outline" className="mt-3">
+                                        <a href="https://wormhole.app" target="_blank" rel="noopener noreferrer">
+                                            <UploadCloud className="mr-2 h-4 w-4" /> Go to Wormhole.app
+                                            <ExternalLink className="ml-2 h-3 w-3" />
+                                        </a>
+                                    </Button>
+                                </div>
+                                 <div>
+                                    <p className="font-semibold text-base mb-2 text-foreground">Step 2: Paste Link</p>
+                                    <p className="text-muted-foreground">Once your upload is complete, copy the generated link and paste it into the field below.</p>
+                                </div>
+                           </div>
                         </div>
 
                         <div>
-                            <Label htmlFor="wormholeUrl">Wormhole Link</Label>
+                            <Label htmlFor="wormholeUrl">Wormhole Share Link</Label>
                             <Input id="wormholeUrl" {...register('wormholeUrl')} placeholder="https://wormhole.app/..." />
                             {errors.wormholeUrl && <p className="text-sm text-destructive mt-1">{errors.wormholeUrl.message}</p>}
                         </div>
