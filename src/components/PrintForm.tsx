@@ -47,7 +47,7 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
     const formRef = useRef<HTMLFormElement>(null);
     const [state, formAction] = useActionState(placePrintOrderAction, { success: false, message: '' });
 
-    const { control, handleSubmit, watch, register, formState: { errors } } = useForm<PrintFormInputs>({
+    const { control, watch, register, formState: { errors } } = useForm<PrintFormInputs>({
         resolver: zodResolver(PrintFormSchema),
         defaultValues: {
             paymentMethod: 'COD',
@@ -79,18 +79,6 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
         toast({ title: 'Copied!', description: 'UPI ID copied to clipboard.'});
     };
 
-    const processSubmit = (data: PrintFormInputs) => {
-        const formData = new FormData();
-        formData.append('name', data.name);
-        formData.append('userClass', data.userClass);
-        formData.append('paymentMethod', data.paymentMethod);
-        formData.append('wormholeUrl', data.wormholeUrl);
-        if (data.instructions) {
-            formData.append('instructions', data.instructions);
-        }
-        formAction(formData);
-    }
-
   return (
     <>
         <Alert className="mb-8 border-primary/50 bg-primary/10 text-primary-foreground">
@@ -109,7 +97,7 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
             <CardContent>
                 <form 
                     ref={formRef}
-                    onSubmit={handleSubmit(processSubmit)}
+                    action={formAction}
                     className="space-y-6"
                 >
                     {/* User Details */}
@@ -117,12 +105,12 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                         <h3 className="font-semibold text-lg">Your Details</h3>
                         <div>
                             <Label htmlFor="name">Name</Label>
-                            <Input id="name" {...register('name')} />
+                            <Input id="name" name="name" />
                             {errors.name && <p className="text-sm text-destructive mt-1">{errors.name.message}</p>}
                         </div>
                         <div>
                             <Label htmlFor="userClass">Class</Label>
-                            <Input id="userClass" {...register('userClass')} placeholder="e.g., 10th A" />
+                            <Input id="userClass" name="userClass" placeholder="e.g., 10th A" />
                             {errors.userClass && <p className="text-sm text-destructive mt-1">{errors.userClass.message}</p>}
                         </div>
                     </div>
@@ -153,7 +141,7 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
 
                         <div>
                             <Label htmlFor="wormholeUrl">Wormhole Share Link</Label>
-                            <Input id="wormholeUrl" {...register('wormholeUrl')} placeholder="https://wormhole.app/..." />
+                            <Input id="wormholeUrl" name="wormholeUrl" placeholder="https://wormhole.app/..." />
                             {errors.wormholeUrl && <p className="text-sm text-destructive mt-1">{errors.wormholeUrl.message}</p>}
                         </div>
                     </div>
@@ -171,6 +159,7 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                                     onValueChange={field.onChange}
                                     value={field.value}
                                     className="flex gap-4 pt-2"
+                                    name={field.name}
                                 >
                                     <div className="flex items-center space-x-2">
                                         <RadioGroupItem value="COD" id="cod" />
@@ -212,7 +201,7 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                     {/* Instructions */}
                      <div>
                         <Label htmlFor="instructions">Special Instructions</Label>
-                        <Textarea id="instructions" {...register('instructions')} placeholder="e.g., Black & white print, spiral binding, etc." />
+                        <Textarea id="instructions" name="instructions" placeholder="e.g., Black & white print, spiral binding, etc." />
                     </div>
                     
                     <SubmitButton />
