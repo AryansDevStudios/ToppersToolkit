@@ -25,15 +25,15 @@ const PrintFormSchema = z.object({
   isPdf: z.boolean(),
   paymentMethod: z.enum(['COD', 'UPI']),
   pdfUrl: z.string().optional(),
-  imageUrls: z.array(z.object({ value: z.string().url('Please enter a valid URL') })).optional(),
+  imageUrls: z.array(z.object({ value: z.string().min(1, 'URL cannot be empty.').url('Please enter a valid URL') })).optional(),
 }).refine(data => {
     if (data.isPdf) {
-        return !!data.pdfUrl && z.string().url().safeParse(data.pdfUrl).success;
+      return data.pdfUrl && data.pdfUrl.trim() !== '';
     }
-    return data.imageUrls && data.imageUrls.length > 0 && data.imageUrls.every(url => url.value !== '');
+    return data.imageUrls && data.imageUrls.length > 0;
 }, {
-    message: 'Please provide a valid URL for the selected format.',
-    path: ['pdfUrl'], // Point error to the most likely field
+    message: 'Please provide at least one URL for the selected format.',
+    path: ['isPdf'], // General error path
 });
 
 type PrintFormInputs = z.infer<typeof PrintFormSchema>;
@@ -131,6 +131,7 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                             <div>
                                 <Label htmlFor="pdfUrl">PDF URL</Label>
                                 <Input id="pdfUrl" {...register('pdfUrl')} placeholder="https://example.com/notes.pdf" />
+                                {errors.pdfUrl && <p className="text-sm text-destructive mt-1">{errors.pdfUrl.message}</p>}
                             </div>
                         ) : (
                             <div className="space-y-3">
@@ -145,13 +146,15 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                                         )}
                                     </div>
                                 ))}
+                                {errors.imageUrls?.map((error, index) => (
+                                    error.value && <p key={index} className="text-sm text-destructive mt-1">{error.value.message}</p>
+                                ))}
                                 <Button type="button" variant="outline" className="w-full" onClick={() => append({ value: '' })}>
                                     <PlusCircle className="mr-2 h-4 w-4" /> Add another image
                                 </Button>
                             </div>
                         )}
-                        {errors.pdfUrl && <p className="text-sm text-destructive mt-1">{errors.pdfUrl.message}</p>}
-                         {errors.imageUrls && <p className="text-sm text-destructive mt-1">Please provide a valid URL for each image.</p>}
+                        {errors.isPdf && <p className="text-sm text-destructive mt-1">{errors.isPdf.message}</p>}
                     </div>
 
                     <Separator />
