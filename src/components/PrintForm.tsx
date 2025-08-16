@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { IndianRupee, QrCode, Copy, UploadCloud, ExternalLink, MessageSquare } from 'lucide-react';
+import { IndianRupee, QrCode, Copy, UploadCloud, ExternalLink, MessageSquare, Loader2 } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
@@ -41,6 +41,7 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
     const { pending } = useFormStatus();
     return (
         <Button type="submit" disabled={pending || disabled} className="w-full">
+            {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {pending ? 'Submitting...' : 'Submit for Printing'}
         </Button>
     );
@@ -52,7 +53,7 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
     const [state, formAction] = useActionState(placePrintOrderAction, { success: false, message: '' });
     const [agreedToTerms, setAgreedToTerms] = useState(false);
 
-    const { control, watch, register, formState: { errors } } = useForm<PrintFormInputs>({
+    const { control, watch, register, handleSubmit, formState: { errors } } = useForm<PrintFormInputs>({
         resolver: zodResolver(PrintFormSchema),
         defaultValues: {
             paymentMethod: 'COD',
@@ -104,7 +105,13 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
             <CardContent>
                 <form 
                     ref={formRef}
-                    action={formAction}
+                    action={handleSubmit(data => {
+                        const formData = new FormData();
+                        Object.keys(data).forEach(key => {
+                            formData.append(key, data[key as keyof typeof data]);
+                        });
+                        formAction(formData);
+                    })}
                     className="space-y-6"
                 >
                     {/* User Details */}
@@ -112,19 +119,19 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                         <h3 className="font-semibold text-lg">Your Details</h3>
                         <div>
                             <Label htmlFor="name">Name</Label>
-                            <Input id="name" name="name" />
+                            <Input id="name" {...register('name')} />
                             {errors.name && <p className="text-sm text-destructive mt-1">{errors.name.message}</p>}
                         </div>
                         <div>
                             <Label htmlFor="userClass">Class</Label>
-                            <Input id="userClass" name="userClass" placeholder="e.g., 10th A" />
+                            <Input id="userClass" {...register('userClass')} placeholder="e.g., 10th A" />
                             {errors.userClass && <p className="text-sm text-destructive mt-1">{errors.userClass.message}</p>}
                         </div>
                          <div>
                             <Label htmlFor="whatsappNumber">WhatsApp Number</Label>
                              <div className="relative mt-1">
                                 <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input id="whatsappNumber" name="whatsappNumber" type="tel" placeholder="e.g., 9876543210" className="pl-10" />
+                                <Input id="whatsappNumber" {...register('whatsappNumber')} type="tel" placeholder="e.g., 9876543210" className="pl-10" />
                             </div>
                             {errors.whatsappNumber && <p className="text-sm text-destructive mt-1">{errors.whatsappNumber.message}</p>}
                         </div>
@@ -156,7 +163,7 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
 
                         <div>
                             <Label htmlFor="wormholeUrl">Wormhole Share Link</Label>
-                            <Input id="wormholeUrl" name="wormholeUrl" placeholder="https://wormhole.app/..." autoComplete="off" />
+                            <Input id="wormholeUrl" {...register('wormholeUrl')} placeholder="https://wormhole.app/..." autoComplete="off" />
                             {errors.wormholeUrl && <p className="text-sm text-destructive mt-1">{errors.wormholeUrl.message}</p>}
                         </div>
                     </div>
@@ -174,7 +181,6 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                                     onValueChange={field.onChange}
                                     value={field.value}
                                     className="flex gap-4 pt-2"
-                                    name={field.name}
                                 >
                                     <div className="flex items-center space-x-2">
                                         <RadioGroupItem value="COD" id="cod" />
@@ -216,19 +222,27 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                     {/* Instructions */}
                      <div>
                         <Label htmlFor="instructions">Special Instructions</Label>
-                        <Textarea id="instructions" name="instructions" placeholder="e.g., Black & white print, spiral binding, etc." />
+                        <Textarea id="instructions" {...register('instructions')} placeholder="e.g., Black & white print, spiral binding, etc." />
                     </div>
 
                     <div className="flex items-start space-x-2 pt-2">
-                        <Checkbox 
-                            id="terms"
+                        <Controller
                             name="terms"
-                            checked={agreedToTerms}
-                            onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
+                            control={control}
+                            render={({ field }) => (
+                                <Checkbox 
+                                    id="terms"
+                                    checked={field.value === 'on'}
+                                    onCheckedChange={(checked) => {
+                                        field.onChange(checked ? 'on' : 'off');
+                                        setAgreedToTerms(checked as boolean);
+                                    }}
+                                />
+                            )}
                         />
                         <Label htmlFor="terms" className="text-sm text-muted-foreground leading-normal">
                             I have read and agree to the 
-                            <Link href="/terms" className="text-primary hover:underline underline-offset-2 ml-1">
+                            <Link href="/terms" target="_blank" className="text-primary hover:underline underline-offset-2 ml-1">
                                 Terms and Conditions
                             </Link>
                             .
@@ -243,5 +257,3 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
     </>
   );
 }
-
-    

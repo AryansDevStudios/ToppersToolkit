@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { QrCode, Copy, MessageSquare } from 'lucide-react';
+import { QrCode, Copy, MessageSquare, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useState } from 'react';
 import { Checkbox } from './ui/checkbox';
@@ -24,6 +24,7 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
     const { pending } = useFormStatus();
     return (
       <Button type="submit" disabled={pending || disabled} className="w-full">
+        {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         {pending ? 'Placing Order...' : 'Place Order'}
       </Button>
     );
@@ -71,9 +72,11 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
              <form
               ref={formRef}
               action={(formData) => {
-                if (totalPrice === 0) {
-                    toast({ title: 'Error', description: 'Your cart is empty.', variant: 'destructive'});
-                    return;
+                if (totalPrice === 0 && cartItems.length > 0 && cartItems.every(i => i.price === 0)) {
+                  // Allow placing order if total is 0 but there are free items
+                } else if (totalPrice === 0) {
+                  toast({ title: 'Error', description: 'Your cart is empty.', variant: 'destructive' });
+                  return;
                 }
                 formData.append('cartItems', JSON.stringify(cartItems));
                 formAction(formData);
