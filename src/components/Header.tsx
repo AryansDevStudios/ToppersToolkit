@@ -34,7 +34,7 @@ export function Header() {
             {navItems.map(item => (
               <Link 
                 key={item.href} 
-                href={item.href} 
+                href={item.href}
                 className={cn(
                   "text-muted-foreground transition-colors hover:text-foreground",
                   item.href === '/' && pathname === item.href && 'text-foreground',
@@ -48,7 +48,7 @@ export function Header() {
 
           <div className="flex flex-1 items-center justify-end space-x-4">
             <ThemeToggle />
-             <Link href="/admin" className="text-muted-foreground transition-colors hover:text-foreground">
+             <Link href="/admin" className="transition-colors hover:text-foreground">
                 <UserCog className="h-5 w-5" />
                 <span className="sr-only">Admin</span>
             </Link>
@@ -75,7 +75,7 @@ export function Header() {
            <div className="flex items-center gap-2">
             <ThemeToggle />
             <Link href="/admin">
-              <UserCog className="h-5 w-5 text-muted-foreground" />
+              <UserCog className="h-5 w-5" />
               <span className="sr-only">Admin</span>
             </Link>
            </div>
