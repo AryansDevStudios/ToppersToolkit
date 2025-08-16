@@ -145,8 +145,8 @@ export function PrintRequestList({ orders, pricePerPage }: PrintRequestListProps
                                     <span className="text-xs text-muted-foreground">(₹{pricePerPage.toFixed(2)} / page)</span>
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-2">
-                                <Button asChild size="sm" variant="secondary">
+                            <div className="flex flex-col sm:flex-row gap-2">
+                                <Button asChild size="sm" variant="secondary" className="w-full">
                                     <a href={contactHref} target="_blank" rel="noopener noreferrer">
                                         <MessageSquare className="mr-2 h-4 w-4"/> Contact User
                                     </a>
@@ -155,6 +155,7 @@ export function PrintRequestList({ orders, pricePerPage }: PrintRequestListProps
                                     size="sm"
                                     onClick={() => handleCompleteOrder(order.id)}
                                     disabled={isPending}
+                                    className="w-full"
                                 >
                                     <CheckCircle className="mr-2 h-4 w-4" />
                                     {isPending ? 'Completing...' : 'Mark as Done'}

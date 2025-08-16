@@ -285,7 +285,7 @@ export function NoteManager({ notes }: NoteManagerProps) {
                                                             
                                                             <div className="border-t pt-4">
                                                                 <h4 className="font-semibold text-center mb-2">Chapter Actions</h4>
-                                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                                <div className="flex flex-col sm:flex-row gap-2">
                                                                     <Button variant="outline" className="w-full" onClick={() => setAddingToNote(note)}>
                                                                         <PlusCircle className="mr-2 h-4 w-4" /> Add Item
                                                                     </Button>
