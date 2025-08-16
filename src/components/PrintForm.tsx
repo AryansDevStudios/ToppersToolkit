@@ -19,6 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { placePrintOrderAction } from '@/lib/actions';
 import { Checkbox } from './ui/checkbox';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 const PrintFormSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -51,6 +52,7 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
 
 export function PrintForm({ pricePerPage }: PrintFormProps) {
     const { toast } = useToast();
+    const router = useRouter();
     const formRef = useRef<HTMLFormElement>(null);
     const [state, formAction] = useActionState(placePrintOrderAction, { success: false, message: '' });
     
@@ -76,6 +78,10 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                 description: state.message,
             });
             reset();
+            const timer = setTimeout(() => {
+                router.push('/');
+            }, 3000);
+            return () => clearTimeout(timer);
         } else if (state.message) {
             toast({
                 title: 'Error',
@@ -83,7 +89,7 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                 variant: 'destructive',
             });
         }
-    }, [state, toast, reset]);
+    }, [state, toast, reset, router]);
     
     const copyToClipboard = () => {
         navigator.clipboard.writeText('nitish545454@ybl');
@@ -236,7 +242,7 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                         />
                         <Label htmlFor="terms" className="text-sm text-muted-foreground leading-normal">
                             I have read and agree to the 
-                            <Link href="/terms" target="_blank" className="text-primary hover:underline underline-offset-2 ml-1">
+                            <Link href="/terms" className="text-primary hover:underline underline-offset-2 ml-1">
                                 Terms and Conditions
                             </Link>
                             .

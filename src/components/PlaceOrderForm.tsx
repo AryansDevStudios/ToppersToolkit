@@ -18,6 +18,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useState } from 'react';
 import { Checkbox } from './ui/checkbox';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 
 function SubmitButton({ disabled }: { disabled: boolean }) {
@@ -35,6 +36,7 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
   const { clearCart, totalPrice } = useCart();
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
+  const router = useRouter();
   const [paymentMethod, setPaymentMethod] = useState<'COD' | 'UPI'>('COD');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
@@ -48,6 +50,12 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
       formRef.current?.reset();
       setPaymentMethod('COD');
       setAgreedToTerms(false);
+      
+      const timer = setTimeout(() => {
+        router.push('/');
+      }, 3000);
+
+      return () => clearTimeout(timer);
     } else if (state.message) {
       toast({
         title: 'Error',
@@ -55,7 +63,7 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
         variant: 'destructive',
       });
     }
-  }, [state, clearCart, toast]);
+  }, [state, clearCart, toast, router]);
   
   const copyToClipboard = () => {
     navigator.clipboard.writeText('nitish545454@ybl');
