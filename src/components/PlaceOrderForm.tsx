@@ -71,18 +71,12 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
         <CardContent>
              <form
               ref={formRef}
-              action={(formData) => {
-                if (totalPrice === 0 && cartItems.length > 0 && cartItems.every(i => i.price === 0)) {
-                  // Allow placing order if total is 0 but there are free items
-                } else if (totalPrice === 0) {
-                  toast({ title: 'Error', description: 'Your cart is empty.', variant: 'destructive' });
-                  return;
-                }
-                formData.append('cartItems', JSON.stringify(cartItems));
-                formAction(formData);
-              }}
+              action={formAction}
               className="space-y-4"
             >
+                {/* Add a hidden input to pass cartItems JSON */}
+                <input type="hidden" name="cartItems" value={JSON.stringify(cartItems)} />
+
                 <div>
                     <Label htmlFor="name">Name</Label>
                     <Input id="name" name="name" required minLength={2} />
@@ -151,6 +145,7 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
                         name="terms"
                         checked={agreedToTerms}
                         onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
+                        required
                     />
                     <Label htmlFor="terms" className="text-sm text-muted-foreground leading-normal">
                         I have read and agree to the 

@@ -27,7 +27,9 @@ const PrintFormSchema = z.object({
   instructions: z.string().optional(),
   paymentMethod: z.enum(['COD', 'UPI'], { required_error: "Please select a payment method." }),
   wormholeUrl: z.string().url("Please provide a valid Wormhole link."),
-  terms: z.literal<"on", any>('on', { errorMap: () => ({ message: 'You must agree to the Terms and Conditions' }) }),
+  terms: z.literal(true, {
+    error_map: () => ({ message: "You must agree to the Terms and Conditions." })
+  }),
 });
 
 
@@ -51,9 +53,8 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
     const [state, formAction] = useActionState(placePrintOrderAction, { success: false, message: '' });
-    const [agreedToTerms, setAgreedToTerms] = useState(false);
-
-    const { control, watch, register, handleSubmit, formState: { errors } } = useForm<PrintFormInputs>({
+    
+    const { control, watch, register, handleSubmit, reset, formState: { errors } } = useForm<PrintFormInputs>({
         resolver: zodResolver(PrintFormSchema),
         defaultValues: {
             paymentMethod: 'COD',
@@ -62,8 +63,11 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
             userClass: '',
             whatsappNumber: '',
             instructions: '',
+            terms: false,
         }
     });
+
+    const agreedToTerms = watch('terms');
 
     useEffect(() => {
         if (state.success) {
@@ -71,8 +75,7 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                 title: "Success!",
                 description: state.message,
             });
-            formRef.current?.reset();
-            setAgreedToTerms(false);
+            reset();
         } else if (state.message) {
             toast({
                 title: 'Error',
@@ -80,7 +83,7 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                 variant: 'destructive',
             });
         }
-    }, [state, toast]);
+    }, [state, toast, reset]);
     
     const copyToClipboard = () => {
         navigator.clipboard.writeText('nitish545454@ybl');
@@ -105,13 +108,7 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
             <CardContent>
                 <form 
                     ref={formRef}
-                    action={handleSubmit(data => {
-                        const formData = new FormData();
-                        Object.keys(data).forEach(key => {
-                            formData.append(key, data[key as keyof typeof data]);
-                        });
-                        formAction(formData);
-                    })}
+                    action={formAction}
                     className="space-y-6"
                 >
                     {/* User Details */}
@@ -232,11 +229,8 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                             render={({ field }) => (
                                 <Checkbox 
                                     id="terms"
-                                    checked={field.value === 'on'}
-                                    onCheckedChange={(checked) => {
-                                        field.onChange(checked ? 'on' : 'off');
-                                        setAgreedToTerms(checked as boolean);
-                                    }}
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
                                 />
                             )}
                         />

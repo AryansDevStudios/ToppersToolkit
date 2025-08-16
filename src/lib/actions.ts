@@ -24,30 +24,32 @@ const placeOrderSchema = z.object({
 export async function placeOrderAction(prevState: any, formData: FormData) {
   noStore();
   try {
-    const parsed = placeOrderSchema.parse({
-      name: formData.get('name'),
-      userClass: formData.get('userClass'),
-      whatsappNumber: formData.get('whatsappNumber'),
-      instructions: formData.get('instructions'),
-      cartItems: formData.get('cartItems'),
-      paymentMethod: formData.get('paymentMethod'),
-      terms: formData.get('terms'),
-    });
+    const rawData = Object.fromEntries(formData.entries());
+    const parsed = placeOrderSchema.safeParse(rawData);
+    
+    if (!parsed.success) {
+      const firstError = parsed.error.errors[0];
+      return { success: false, message: `${firstError.path.join('.')}: ${firstError.message}` };
+    }
 
-    const cartItems: CartItem[] = JSON.parse(parsed.cartItems);
+    const { name, userClass, whatsappNumber, instructions, cartItems: cartItemsJSON, paymentMethod } = parsed.data;
+
+    const cartItems: CartItem[] = JSON.parse(cartItemsJSON);
+    if (!cartItems || cartItems.length === 0) {
+      return { success: false, message: 'Your cart is empty.' };
+    }
     const totalPrice = cartItems.reduce((sum, item) => sum + item.price, 0);
 
-
     const newOrder = {
-        name: parsed.name,
-        userClass: parsed.userClass,
-        whatsappNumber: parsed.whatsappNumber,
-        instructions: parsed.instructions,
+        name,
+        userClass,
+        whatsappNumber,
+        instructions,
         items: cartItems,
         createdAt: Timestamp.now(),
         status: 'new' as const,
         totalPrice,
-        paymentMethod: parsed.paymentMethod,
+        paymentMethod,
     };
     
     await saveOrder(newOrder);
@@ -57,9 +59,6 @@ export async function placeOrderAction(prevState: any, formData: FormData) {
   } catch (error) {
     console.error(error);
     const message = error instanceof Error ? error.message : 'Failed to place order.';
-    if (error instanceof z.ZodError) {
-        return { success: false, message: error.errors[0].message };
-    }
     return { success: false, message };
   }
 }
@@ -501,14 +500,19 @@ const PrintOrderFormSchema = z.object({
   instructions: z.string().optional(),
   paymentMethod: z.enum(['COD', 'UPI'], { required_error: 'Please select a payment method.' }),
   wormholeUrl: z.string().url("A valid Wormhole link is required."),
-  terms: z.string().refine(val => val === 'on', { message: 'You must agree to the Terms and Conditions' }),
+  terms: z.literal(true, {
+    error_map: () => ({ message: "You must agree to the Terms and Conditions." })
+  }),
 });
 
 export async function placePrintOrderAction(prevState: any, formData: FormData) {
     noStore();
     try {
         const rawData = Object.fromEntries(formData.entries());
-        const parsed = PrintOrderFormSchema.parse(rawData);
+        const parsed = PrintOrderFormSchema.parse({
+            ...rawData,
+            terms: rawData.terms === 'on',
+        });
         
         let finalInstructions = parsed.wormholeUrl;
         if (parsed.instructions) {
