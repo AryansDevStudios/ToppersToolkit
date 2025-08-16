@@ -90,9 +90,9 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
     <>
         <Alert className="mb-8 border-primary/50 bg-primary/10 text-primary-foreground">
             <IndianRupee className="h-4 w-4 text-primary" />
-            <AlertTitle className="text-primary font-bold">₹{pricePerPage.toFixed(2)} per page</AlertTitle>
+            <AlertTitle className="text-primary font-bold">₹{pricePerPage.toFixed(2)} per A4 Sheet (both sides)</AlertTitle>
             <AlertDescription className="text-primary/90">
-                The final price will be calculated based on the total number of pages in your document(s) and confirmed with you via <a href="https://wa.me/917754000411" target="_blank" rel="noopener noreferrer" className="font-semibold underline hover:text-primary-foreground">WhatsApp</a>.
+                The final price will be calculated based on the total number of A4 sheets used for printing and confirmed with you via <a href="https://wa.me/917754000411" className="font-semibold underline hover:text-primary-foreground">WhatsApp</a>.
             </AlertDescription>
         </Alert>
         
@@ -228,7 +228,7 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                         />
                         <Label htmlFor="terms" className="text-sm text-muted-foreground leading-normal">
                             I have read and agree to the 
-                            <Link href="/terms" target="_blank" className="text-primary hover:underline underline-offset-2 ml-1">
+                            <Link href="/terms" className="text-primary hover:underline underline-offset-2 ml-1">
                                 Terms and Conditions
                             </Link>
                             .
@@ -244,3 +244,4 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
   );
 }
 
+    
