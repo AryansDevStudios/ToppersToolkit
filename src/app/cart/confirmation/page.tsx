@@ -14,7 +14,7 @@ const SELLER_WHATSAPP_NUMBER = '7754000411';
 function ConfirmationPageContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
-    const [countdown, setCountdown] = useState(5);
+    const [countdown, setCountdown] = useState(10);
     const [order, setOrder] = useState<Omit<Order, 'id' | 'createdAt' | 'status'> | null>(null);
     const [isPrintRequest, setIsPrintRequest] = useState(false);
     const [whatsAppUrl, setWhatsAppUrl] = useState('');
@@ -139,21 +139,29 @@ Note: This message can be edited or changed. Please visit https://topperstoolkit
 
     return (
         <div className="flex items-center justify-center min-h-[calc(100vh-200px)] container">
-            <Card className="w-full max-w-md text-center">
+            <Card className="w-full max-w-lg text-center">
                 <CardHeader>
                     <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/50">
                         <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
                     </div>
                     <CardTitle className="mt-4">Order Confirmed!</CardTitle>
-                    <CardDescription>
-                        Next, you'll be redirected to WhatsApp to send the order details to the seller. Please just press send.
-                    </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
+                    <div className="text-left bg-muted/50 p-4 rounded-lg">
+                        <p className="font-bold">What's Next?</p>
+                        <ul className="list-disc list-inside mt-2 text-sm space-y-1 text-muted-foreground">
+                            <li>You will be redirected to WhatsApp in a moment.</li>
+                            <li>A message with your order details will be pre-filled.</li>
+                            <li><strong className="text-foreground">Please do not edit the message.</strong></li>
+                            <li>Simply press the <strong className="text-foreground">Send</strong> button to finalize your order with the seller.</li>
+                        </ul>
+                    </div>
+
                     <div>
-                        <p className="text-sm text-muted-foreground">Opening WhatsApp in...</p>
+                        <p className="text-sm text-muted-foreground">Redirecting to WhatsApp in...</p>
                         <p className="text-4xl font-bold">{countdown}</p>
                     </div>
+                    
                     <div className="flex flex-col gap-2">
                         <Button onClick={handleOpenWhatsApp}>
                             Send on WhatsApp Now
