@@ -63,27 +63,27 @@ function ConfirmationPageContent() {
                 specialInstructions = order.instructions || 'None';
             }
 
-            const messageTemplate = `🌟 Hello Kuldeep! You got a new order from Topper's Toolkit Shop. 🌟
+            const messageTemplate = `Hello Kuldeep! You got a new order from Topper's Toolkit Shop.
 
-🧑 Customer Details:
+Customer Details:
 Name: ${customerName}
 Class: ${customerClass}
 WhatsApp: wa.me/${customerWhatsapp.replace(/\D/g, '')}
 Special Instructions: ${specialInstructions}
 
-📚 Here are the ordered materials:
+Here are the ordered materials:
 ${itemsList}
 
-💰 Total price: ${totalPrice}
-💳 Payment mode: ${paymentMode}
+Total price: ${totalPrice}
+Payment mode: ${paymentMode}
 
-ℹ️ Note: This message can be edited or changed. Please visit https://topperstoolkit.netlify.app/admin for viewing verified details.`;
+Note: This message can be edited or changed. Please visit https://topperstoolkit.netlify.app/admin for viewing verified details.`;
 
             return messageTemplate;
         };
 
         const message = generateWhatsAppMessage();
-        setWhatsAppUrl(`https://wa.me/${SELLER_WHATSAPP_NUMBER}?text=${message}`);
+        setWhatsAppUrl(`https://wa.me/${SELLER_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`);
 
     }, [order, isPrintRequest]);
 
