@@ -79,7 +79,7 @@ ${itemsList}
 
 ℹ️ Note: This message can be edited or changed. Please visit https://topperstoolkit.netlify.app/admin for viewing verified details.`;
 
-            return encodeURIComponent(messageTemplate);
+            return messageTemplate;
         };
 
         const message = generateWhatsAppMessage();
