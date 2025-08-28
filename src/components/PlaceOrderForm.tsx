@@ -74,6 +74,7 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
         isOpen={isDialogOpen}
         onClose={() => {
           setIsDialogOpen(false);
+          setLastOrder(null);
           router.push('/');
         }}
         order={lastOrder}

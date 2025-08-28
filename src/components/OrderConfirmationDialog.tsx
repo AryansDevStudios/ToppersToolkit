@@ -14,7 +14,7 @@ type OrderConfirmationDialogProps = {
   isPrintRequest?: boolean;
 };
 
-const SELLER_WHATSAPP_NUMBER = '917754000411';
+const SELLER_WHATSAPP_NUMBER = '7754000411';
 
 export function OrderConfirmationDialog({ isOpen, onClose, order, isPrintRequest = false }: OrderConfirmationDialogProps) {
   const [countdown, setCountdown] = useState(5);
@@ -25,15 +25,16 @@ export function OrderConfirmationDialog({ isOpen, onClose, order, isPrintRequest
     const customerName = order.name;
     const customerClass = order.userClass;
     const customerWhatsapp = order.whatsappNumber || 'N/A';
-    const specialInstructions = order.instructions || 'None';
     const totalPrice = isPrintRequest ? 'To be confirmed' : `₹${order.totalPrice.toFixed(2)}`;
     const paymentMode = order.paymentMethod;
 
     let itemsList = '';
+    let specialInstructions = '';
+
     if (isPrintRequest) {
-      // Special formatting for print requests
       const { url, userInstructions } = parseInstructions(order.instructions);
-      itemsList = `Custom Print Request: ${url}\n   Instructions: ${userInstructions || 'None'}`;
+      itemsList = `Custom Print Request: ${url || 'Link not provided'}`;
+      specialInstructions = userInstructions || 'None';
     } else {
       itemsList = order.items.map((item, index) => 
         `${index + 1}. ${item.type} - ${item.chapter}\n` +
@@ -41,6 +42,7 @@ export function OrderConfirmationDialog({ isOpen, onClose, order, isPrintRequest
         `   Format: ${item.selectedFormat}\n` +
         `   Price: ${item.price === 0 ? 'Free' : `₹${item.price.toFixed(2)}`}`
       ).join('\n\n');
+      specialInstructions = order.instructions || 'None';
     }
 
     const messageTemplate = `🌟 Hello Kuldeep! You got a new order from Topper's Toolkit Shop. 🌟
@@ -49,7 +51,7 @@ export function OrderConfirmationDialog({ isOpen, onClose, order, isPrintRequest
 Name: ${customerName}
 Class: ${customerClass}
 WhatsApp: wa.me/${customerWhatsapp.replace(/\D/g, '')}
-Special Instructions: ${isPrintRequest ? parseInstructions(order.instructions).userInstructions : specialInstructions}
+Special Instructions: ${specialInstructions}
 
 📚 Here are the ordered materials:
 ${itemsList}
@@ -74,15 +76,16 @@ ${itemsList}
   const whatsAppUrl = `https://wa.me/${SELLER_WHATSAPP_NUMBER}?text=${generateWhatsAppMessage()}`;
 
   useEffect(() => {
+    let timer: NodeJS.Timeout;
     if (isOpen && countdown > 0) {
-      const timer = setInterval(() => {
+      timer = setInterval(() => {
         setCountdown((prev) => prev - 1);
       }, 1000);
-      return () => clearInterval(timer);
     } else if (isOpen && countdown === 0) {
       window.location.href = whatsAppUrl;
       onClose();
     }
+    return () => clearInterval(timer);
   }, [isOpen, countdown, onClose, whatsAppUrl]);
 
   // Reset countdown when dialog opens
@@ -101,8 +104,8 @@ ${itemsList}
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md text-center">
         <DialogHeader>
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-            <CheckCircle className="h-6 w-6 text-green-600" />
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/50">
+            <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
           </div>
           <DialogTitle className="mt-4">Order Confirmed!</DialogTitle>
           <DialogDescription>

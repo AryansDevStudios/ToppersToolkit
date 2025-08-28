@@ -55,7 +55,6 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
 export function PrintForm({ pricePerPage }: PrintFormProps) {
     const { toast } = useToast();
     const router = useRouter();
-    const formRef = useRef<HTMLFormElement>(null);
     const [state, formAction] = useActionState(placePrintOrderAction, { success: false, message: '' });
     const [lastOrder, setLastOrder] = useState<Omit<Order, 'id' | 'createdAt' | 'status'> | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -104,6 +103,7 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
             isOpen={isDialogOpen}
             onClose={() => {
               setIsDialogOpen(false);
+              setLastOrder(null);
               router.push('/');
             }}
             order={lastOrder}
@@ -125,7 +125,6 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
             </CardHeader>
             <CardContent>
                 <form 
-                    ref={formRef}
                     action={formAction}
                     className="space-y-6"
                 >
@@ -134,19 +133,19 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                         <h3 className="font-semibold text-lg">Your Details</h3>
                         <div>
                             <Label htmlFor="name">Name</Label>
-                            <Input id="name" {...register('name')} />
+                            <Input id="name" name="name" />
                             {errors.name && <p className="text-sm text-destructive mt-1">{errors.name.message}</p>}
                         </div>
                         <div>
                             <Label htmlFor="userClass">Class</Label>
-                            <Input id="userClass" {...register('userClass')} placeholder="e.g., 10th A" />
+                            <Input id="userClass" name="userClass" placeholder="e.g., 10th A" />
                             {errors.userClass && <p className="text-sm text-destructive mt-1">{errors.userClass.message}</p>}
                         </div>
                          <div>
                             <Label htmlFor="whatsappNumber">WhatsApp Number</Label>
                              <div className="relative mt-1">
                                 <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input id="whatsappNumber" {...register('whatsappNumber')} type="tel" placeholder="e.g., 9876543210" className="pl-10" />
+                                <Input id="whatsappNumber" name="whatsappNumber" type="tel" placeholder="e.g., 9876543210" className="pl-10" />
                             </div>
                             {errors.whatsappNumber && <p className="text-sm text-destructive mt-1">{errors.whatsappNumber.message}</p>}
                         </div>
@@ -178,7 +177,7 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
 
                         <div>
                             <Label htmlFor="wormholeUrl">Wormhole Share Link</Label>
-                            <Input id="wormholeUrl" {...register('wormholeUrl')} placeholder="https://wormhole.app/..." autoComplete="off" />
+                            <Input id="wormholeUrl" name="wormholeUrl" placeholder="https://wormhole.app/..." autoComplete="off" />
                             {errors.wormholeUrl && <p className="text-sm text-destructive mt-1">{errors.wormholeUrl.message}</p>}
                         </div>
                     </div>
@@ -194,7 +193,8 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                             render={({ field }) => (
                                 <RadioGroup
                                     onValueChange={field.onChange}
-                                    value={field.value}
+                                    name="paymentMethod"
+                                    defaultValue={field.value}
                                     className="flex gap-4 pt-2"
                                 >
                                     <div className="flex items-center space-x-2">
@@ -237,16 +237,17 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                     {/* Instructions */}
                      <div>
                         <Label htmlFor="instructions">Special Instructions</Label>
-                        <Textarea id="instructions" {...register('instructions')} placeholder="e.g., Black & white print, spiral binding, etc." />
+                        <Textarea id="instructions" name="instructions" placeholder="e.g., Black & white print, spiral binding, etc." />
                     </div>
 
                     <div className="flex items-start space-x-2 pt-2">
-                        <Controller
+                         <Controller
                             name="terms"
                             control={control}
                             render={({ field }) => (
-                                <Checkbox 
+                                <Checkbox
                                     id="terms"
+                                    name="terms"
                                     checked={field.value}
                                     onCheckedChange={field.onChange}
                                 />
@@ -254,7 +255,7 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                         />
                         <Label htmlFor="terms" className="text-sm text-muted-foreground leading-normal">
                             I have read and agree to the 
-                            <Link href="/terms" className="text-primary hover:underline underline-offset-2 ml-1">
+                            <Link href="/terms" target="_blank" className="text-primary hover:underline underline-offset-2 ml-1">
                                 Terms and Conditions
                             </Link>
                             .
