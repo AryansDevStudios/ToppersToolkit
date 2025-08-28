@@ -1,12 +1,12 @@
 
 'use client';
 
-import { useActionState, useEffect, useRef } from 'react';
+import { useActionState, useEffect, useRef, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { placeOrderAction } from '@/lib/actions';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
-import type { CartItem } from '@/types';
+import type { CartItem, Order } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,10 +15,10 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { QrCode, Copy, MessageSquare, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useState } from 'react';
 import { Checkbox } from './ui/checkbox';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { OrderConfirmationDialog } from './OrderConfirmationDialog';
 
 
 function SubmitButton({ disabled }: { disabled: boolean }) {
@@ -33,30 +33,28 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
 
 export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
   const [state, formAction] = useActionState(placeOrderAction, { success: false, message: '' });
-  const { clearCart, totalPrice } = useCart();
+  const { clearCart } = useCart();
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
   const [paymentMethod, setPaymentMethod] = useState<'COD' | 'UPI'>('COD');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [lastOrder, setLastOrder] = useState<Omit<Order, 'id' | 'createdAt' | 'status'> | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
-    if (state.success) {
+    if (state.success && state.order) {
       toast({
           title: "Order Placed!",
-          description: state.message,
+          description: "Your order has been successfully placed.",
       });
       clearCart();
+      setLastOrder(state.order);
+      setIsDialogOpen(true);
       formRef.current?.reset();
       setPaymentMethod('COD');
       setAgreedToTerms(false);
-      
-      const timer = setTimeout(() => {
-        router.push('/');
-      }, 3000);
-
-      return () => clearTimeout(timer);
-    } else if (state.message) {
+    } else if (state.message && !state.success) {
       toast({
         title: 'Error',
         description: state.message,
@@ -71,102 +69,111 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
   };
   
   return (
-    <Card className="w-full max-w-lg mx-auto">
-        <CardHeader>
-            <CardTitle>Place Your Order</CardTitle>
-            <CardDescription>Provide your details for hand-to-hand delivery.</CardDescription>
-        </CardHeader>
-        <CardContent>
-             <form
-              ref={formRef}
-              action={formAction}
-              className="space-y-4"
-            >
-                {/* Add a hidden input to pass cartItems JSON */}
-                <input type="hidden" name="cartItems" value={JSON.stringify(cartItems)} />
+    <>
+      <OrderConfirmationDialog
+        isOpen={isDialogOpen}
+        onClose={() => {
+          setIsDialogOpen(false);
+          router.push('/');
+        }}
+        order={lastOrder}
+      />
+      <Card className="w-full max-w-lg mx-auto">
+          <CardHeader>
+              <CardTitle>Place Your Order</CardTitle>
+              <CardDescription>Provide your details for hand-to-hand delivery.</CardDescription>
+          </CardHeader>
+          <CardContent>
+              <form
+                ref={formRef}
+                action={formAction}
+                className="space-y-4"
+              >
+                  {/* Add a hidden input to pass cartItems JSON */}
+                  <input type="hidden" name="cartItems" value={JSON.stringify(cartItems)} />
 
-                <div>
-                    <Label htmlFor="name">Name</Label>
-                    <Input id="name" name="name" required minLength={2} />
-                </div>
-                <div>
-                    <Label htmlFor="userClass">Class (e.g., 10th A)</Label>
-                    <Input id="userClass" name="userClass" required />
-                </div>
-                 <div>
-                    <Label htmlFor="whatsappNumber">WhatsApp Number</Label>
-                    <div className="relative mt-1">
-                        <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input id="whatsappNumber" name="whatsappNumber" type="tel" placeholder="e.g., 9876543210" className="pl-10" required />
-                    </div>
-                </div>
+                  <div>
+                      <Label htmlFor="name">Name</Label>
+                      <Input id="name" name="name" required minLength={2} />
+                  </div>
+                  <div>
+                      <Label htmlFor="userClass">Class (e.g., 10th A)</Label>
+                      <Input id="userClass" name="userClass" required />
+                  </div>
+                  <div>
+                      <Label htmlFor="whatsappNumber">WhatsApp Number</Label>
+                      <div className="relative mt-1">
+                          <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input id="whatsappNumber" name="whatsappNumber" type="tel" placeholder="e.g., 9876543210" className="pl-10" required />
+                      </div>
+                  </div>
 
-                <div>
-                    <Label htmlFor="instructions">Special Instructions</Label>
-                    <Textarea id="instructions" name="instructions" placeholder="e.g. Printed format, specific binding..." />
-                </div>
+                  <div>
+                      <Label htmlFor="instructions">Special Instructions</Label>
+                      <Textarea id="instructions" name="instructions" placeholder="e.g. Printed format, specific binding..." />
+                  </div>
 
-                 <div>
-                    <Label>Payment Method</Label>
-                     <RadioGroup
-                        name="paymentMethod"
-                        value={paymentMethod}
-                        onValueChange={(val: 'COD' | 'UPI') => setPaymentMethod(val)}
-                        className="flex gap-4 pt-2"
-                    >
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="COD" id="cod" />
-                            <Label htmlFor="cod">Cash on Delivery (COD)</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="UPI" id="upi" />
-                            <Label htmlFor="upi">UPI</Label>
-                        </div>
-                    </RadioGroup>
-                </div>
-            
+                  <div>
+                      <Label>Payment Method</Label>
+                      <RadioGroup
+                          name="paymentMethod"
+                          value={paymentMethod}
+                          onValueChange={(val: 'COD' | 'UPI') => setPaymentMethod(val)}
+                          className="flex gap-4 pt-2"
+                      >
+                          <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="COD" id="cod" />
+                              <Label htmlFor="cod">Cash on Delivery (COD)</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="UPI" id="upi" />
+                              <Label htmlFor="upi">UPI</Label>
+                          </div>
+                      </RadioGroup>
+                  </div>
+              
+                  {paymentMethod === 'UPI' && (
+                      <Alert>
+                          <QrCode className="h-4 w-4" />
+                          <AlertTitle>Pay with UPI</AlertTitle>
+                          <AlertDescription className="space-y-4">
+                              <p>Scan the QR code or use the UPI ID below to complete your payment.</p>
+                              <div className="flex justify-center">
+                                  <img src="/images/payment_qr.png" alt="UPI QR Code" data-ai-hint="qr code" className="rounded-md w-48 h-48 object-contain" />
+                              </div>
+                              <div className="flex items-center justify-between p-2 rounded-md bg-muted">
+                                  <span className="font-mono text-sm">nitish545454@ybl</span>
+                                  <Button type="button" variant="ghost" size="sm" onClick={copyToClipboard}>
+                                      <Copy className="h-4 w-4 mr-2" />
+                                      Copy
+                                  </Button>
+                              </div>
+                              <p className="text-xs text-center text-muted-foreground">After payment, please proceed with placing the order.</p>
+                          </AlertDescription>
+                      </Alert>
+                  )}
 
-                {paymentMethod === 'UPI' && (
-                    <Alert>
-                        <QrCode className="h-4 w-4" />
-                        <AlertTitle>Pay with UPI</AlertTitle>
-                        <AlertDescription className="space-y-4">
-                            <p>Scan the QR code or use the UPI ID below to complete your payment.</p>
-                             <div className="flex justify-center">
-                                <img src="/images/payment_qr.png" alt="UPI QR Code" data-ai-hint="qr code" className="rounded-md w-48 h-48 object-contain" />
-                            </div>
-                            <div className="flex items-center justify-between p-2 rounded-md bg-muted">
-                                <span className="font-mono text-sm">nitish545454@ybl</span>
-                                <Button type="button" variant="ghost" size="sm" onClick={copyToClipboard}>
-                                    <Copy className="h-4 w-4 mr-2" />
-                                    Copy
-                                </Button>
-                            </div>
-                            <p className="text-xs text-center text-muted-foreground">After payment, please proceed with placing the order.</p>
-                        </AlertDescription>
-                    </Alert>
-                )}
+                  <div className="flex items-start space-x-2 pt-2">
+                      <Checkbox 
+                          id="terms"
+                          name="terms"
+                          checked={agreedToTerms}
+                          onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
+                          required
+                      />
+                      <Label htmlFor="terms" className="text-sm text-muted-foreground leading-normal">
+                          I have read and agree to the 
+                          <Link href="/terms" target="_blank" className="text-primary hover:underline underline-offset-2 ml-1">
+                              Terms and Conditions
+                          </Link>
+                          .
+                      </Label>
+                  </div>
 
-                <div className="flex items-start space-x-2 pt-2">
-                    <Checkbox 
-                        id="terms"
-                        name="terms"
-                        checked={agreedToTerms}
-                        onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
-                        required
-                    />
-                    <Label htmlFor="terms" className="text-sm text-muted-foreground leading-normal">
-                        I have read and agree to the 
-                        <Link href="/terms" target="_blank" className="text-primary hover:underline underline-offset-2 ml-1">
-                            Terms and Conditions
-                        </Link>
-                        .
-                    </Label>
-                </div>
-
-                <SubmitButton disabled={!agreedToTerms} />
-            </form>
-        </CardContent>
-    </Card>
+                  <SubmitButton disabled={!agreedToTerms} />
+              </form>
+          </CardContent>
+      </Card>
+    </>
   );
 }

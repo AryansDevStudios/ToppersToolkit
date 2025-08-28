@@ -21,7 +21,7 @@ const placeOrderSchema = z.object({
   terms: z.literal('on', { errorMap: () => ({ message: 'You must agree to the Terms and Conditions' }) }),
 });
 
-export async function placeOrderAction(prevState: any, formData: FormData) {
+export async function placeOrderAction(prevState: any, formData: FormData): Promise<{success: boolean, message: string, order?: Omit<Order, 'id' | 'createdAt' | 'status'>}> {
   noStore();
   try {
     const rawData = Object.fromEntries(formData.entries());
@@ -46,16 +46,14 @@ export async function placeOrderAction(prevState: any, formData: FormData) {
         whatsappNumber,
         instructions,
         items: cartItems,
-        createdAt: Timestamp.now(),
-        status: 'new' as const,
         totalPrice,
         paymentMethod,
     };
     
-    await saveOrder(newOrder);
+    await saveOrder({...newOrder, createdAt: Timestamp.now(), status: 'new'});
     revalidatePath('/admin');
 
-    return { success: true, message: 'Order placed successfully!' };
+    return { success: true, message: 'Order placed successfully!', order: newOrder };
   } catch (error) {
     console.error(error);
     const message = error instanceof Error ? error.message : 'Failed to place order.';
@@ -505,7 +503,7 @@ const PrintOrderFormSchema = z.object({
   }),
 });
 
-export async function placePrintOrderAction(prevState: any, formData: FormData) {
+export async function placePrintOrderAction(prevState: any, formData: FormData): Promise<{success: boolean, message: string, order?: Omit<Order, 'id' | 'createdAt' | 'status'>}> {
     noStore();
     try {
         const rawData = Object.fromEntries(formData.entries());
@@ -531,22 +529,20 @@ export async function placePrintOrderAction(prevState: any, formData: FormData) 
             selectedFormat: 'Printed',
         };
 
-        const newOrder: Omit<Order, 'id'> = {
+        const newOrder: Omit<Order, 'id' | 'createdAt' | 'status'> = {
             name: parsed.name,
             userClass: parsed.userClass,
             whatsappNumber: parsed.whatsappNumber,
             instructions: finalInstructions,
             items: [printOrderItem],
-            createdAt: Timestamp.now(),
-            status: 'new',
             totalPrice: 0, // Price is determined offline
             paymentMethod: parsed.paymentMethod,
         };
         
-        await saveOrder(newOrder);
+        await saveOrder({...newOrder, createdAt: Timestamp.now(), status: 'new' });
         revalidatePath('/admin');
 
-        return { success: true, message: 'Your print request has been submitted successfully! We will contact you on WhatsApp to confirm the details.' };
+        return { success: true, message: 'Your print request has been submitted successfully! We will contact you on WhatsApp to confirm the details.', order: newOrder };
 
     } catch (error) {
         console.error("Print Order Action Error:", error);

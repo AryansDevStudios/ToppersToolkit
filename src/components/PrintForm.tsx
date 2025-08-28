@@ -20,6 +20,8 @@ import { placePrintOrderAction } from '@/lib/actions';
 import { Checkbox } from './ui/checkbox';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { OrderConfirmationDialog } from './OrderConfirmationDialog';
+import { Order } from '@/types';
 
 const PrintFormSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -55,7 +57,9 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
     const router = useRouter();
     const formRef = useRef<HTMLFormElement>(null);
     const [state, formAction] = useActionState(placePrintOrderAction, { success: false, message: '' });
-    
+    const [lastOrder, setLastOrder] = useState<Omit<Order, 'id' | 'createdAt' | 'status'> | null>(null);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+
     const { control, watch, register, handleSubmit, reset, formState: { errors } } = useForm<PrintFormInputs>({
         resolver: zodResolver(PrintFormSchema),
         defaultValues: {
@@ -72,24 +76,22 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
     const agreedToTerms = watch('terms');
 
     useEffect(() => {
-        if (state.success) {
+        if (state.success && state.order) {
             toast({
                 title: "Success!",
-                description: state.message,
+                description: "Your print request has been submitted.",
             });
             reset();
-            const timer = setTimeout(() => {
-                router.push('/');
-            }, 3000);
-            return () => clearTimeout(timer);
-        } else if (state.message) {
+            setLastOrder(state.order);
+            setIsDialogOpen(true);
+        } else if (state.message && !state.success) {
             toast({
                 title: 'Error',
                 description: state.message,
                 variant: 'destructive',
             });
         }
-    }, [state, toast, reset, router]);
+    }, [state, toast, reset]);
     
     const copyToClipboard = () => {
         navigator.clipboard.writeText('nitish545454@ybl');
@@ -98,6 +100,16 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
 
   return (
     <>
+        <OrderConfirmationDialog
+            isOpen={isDialogOpen}
+            onClose={() => {
+              setIsDialogOpen(false);
+              router.push('/');
+            }}
+            order={lastOrder}
+            isPrintRequest={true}
+        />
+
         <Alert className="mb-8 border-primary/50 bg-primary/10 text-primary-foreground">
             <IndianRupee className="h-4 w-4 text-primary" />
             <AlertTitle className="text-primary font-bold">₹{pricePerPage.toFixed(2)} per A4 Sheet (both sides)</AlertTitle>
