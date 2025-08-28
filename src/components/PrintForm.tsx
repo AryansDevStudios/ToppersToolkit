@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useActionState, useEffect, useRef, useState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useFormStatus } from 'react-dom';
 import { z } from 'zod';
@@ -20,7 +20,6 @@ import { placePrintOrderAction } from '@/lib/actions';
 import { Checkbox } from './ui/checkbox';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { OrderConfirmationDialog } from './OrderConfirmationDialog';
 import { Order } from '@/types';
 
 const PrintFormSchema = z.object({
@@ -56,10 +55,8 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
     const { toast } = useToast();
     const router = useRouter();
     const [state, formAction] = useActionState(placePrintOrderAction, { success: false, message: '' });
-    const [lastOrder, setLastOrder] = useState<Omit<Order, 'id' | 'createdAt' | 'status'> | null>(null);
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-    const { control, watch, register, handleSubmit, reset, formState: { errors } } = useForm<PrintFormInputs>({
+    const { control, watch, handleSubmit, reset, formState: { errors } } = useForm<PrintFormInputs>({
         resolver: zodResolver(PrintFormSchema),
         defaultValues: {
             paymentMethod: 'COD',
@@ -78,11 +75,14 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
         if (state.success && state.order) {
             toast({
                 title: "Success!",
-                description: "Your print request has been submitted.",
+                description: "Your print request has been submitted. Redirecting...",
             });
             reset();
-            setLastOrder(state.order);
-            setIsDialogOpen(true);
+            const query = new URLSearchParams({
+                order: JSON.stringify(state.order),
+                isPrintRequest: 'true'
+            }).toString();
+            router.push(`/cart/confirmation?${query}`);
         } else if (state.message && !state.success) {
             toast({
                 title: 'Error',
@@ -90,7 +90,7 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                 variant: 'destructive',
             });
         }
-    }, [state, toast, reset]);
+    }, [state, toast, reset, router]);
     
     const copyToClipboard = () => {
         navigator.clipboard.writeText('nitish545454@ybl');
@@ -99,17 +99,6 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
 
   return (
     <>
-        <OrderConfirmationDialog
-            isOpen={isDialogOpen}
-            onClose={() => {
-              setIsDialogOpen(false);
-              setLastOrder(null);
-              router.push('/');
-            }}
-            order={lastOrder}
-            isPrintRequest={true}
-        />
-
         <Alert className="mb-8 border-primary/50 bg-primary/10 text-primary-foreground">
             <IndianRupee className="h-4 w-4 text-primary" />
             <AlertTitle className="text-primary font-bold">₹{pricePerPage.toFixed(2)} per A4 Sheet (both sides)</AlertTitle>
@@ -124,8 +113,19 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                 <CardDescription>Upload your files, provide the link, and we'll handle the rest.</CardDescription>
             </CardHeader>
             <CardContent>
-                <form 
-                    action={formAction}
+                 <form 
+                    action={handleSubmit((data) => {
+                        const formData = new FormData();
+                        Object.keys(data).forEach(key => {
+                            const value = data[key as keyof typeof data];
+                            if (typeof value === 'boolean') {
+                                formData.append(key, value ? 'on' : '');
+                            } else if (value) {
+                                formData.append(key, value);
+                            }
+                        });
+                        formAction(formData);
+                    })}
                     className="space-y-6"
                 >
                     {/* User Details */}
@@ -133,19 +133,19 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                         <h3 className="font-semibold text-lg">Your Details</h3>
                         <div>
                             <Label htmlFor="name">Name</Label>
-                            <Input id="name" name="name" />
+                            <Controller name="name" control={control} render={({ field }) => <Input {...field} id="name" />} />
                             {errors.name && <p className="text-sm text-destructive mt-1">{errors.name.message}</p>}
                         </div>
                         <div>
                             <Label htmlFor="userClass">Class</Label>
-                            <Input id="userClass" name="userClass" placeholder="e.g., 10th A" />
+                            <Controller name="userClass" control={control} render={({ field }) => <Input {...field} id="userClass" placeholder="e.g., 10th A" />} />
                             {errors.userClass && <p className="text-sm text-destructive mt-1">{errors.userClass.message}</p>}
                         </div>
                          <div>
                             <Label htmlFor="whatsappNumber">WhatsApp Number</Label>
                              <div className="relative mt-1">
                                 <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input id="whatsappNumber" name="whatsappNumber" type="tel" placeholder="e.g., 9876543210" className="pl-10" />
+                                <Controller name="whatsappNumber" control={control} render={({ field }) => <Input {...field} type="tel" id="whatsappNumber" placeholder="e.g., 9876543210" className="pl-10" />} />
                             </div>
                             {errors.whatsappNumber && <p className="text-sm text-destructive mt-1">{errors.whatsappNumber.message}</p>}
                         </div>
@@ -177,7 +177,7 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
 
                         <div>
                             <Label htmlFor="wormholeUrl">Wormhole Share Link</Label>
-                            <Input id="wormholeUrl" name="wormholeUrl" placeholder="https://wormhole.app/..." autoComplete="off" />
+                            <Controller name="wormholeUrl" control={control} render={({ field }) => <Input {...field} id="wormholeUrl" placeholder="https://wormhole.app/..." autoComplete="off" />} />
                             {errors.wormholeUrl && <p className="text-sm text-destructive mt-1">{errors.wormholeUrl.message}</p>}
                         </div>
                     </div>
@@ -193,7 +193,6 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                             render={({ field }) => (
                                 <RadioGroup
                                     onValueChange={field.onChange}
-                                    name="paymentMethod"
                                     defaultValue={field.value}
                                     className="flex gap-4 pt-2"
                                 >
@@ -237,7 +236,7 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                     {/* Instructions */}
                      <div>
                         <Label htmlFor="instructions">Special Instructions</Label>
-                        <Textarea id="instructions" name="instructions" placeholder="e.g., Black & white print, spiral binding, etc." />
+                        <Controller name="instructions" control={control} render={({ field }) => <Textarea {...field} id="instructions" placeholder="e.g., Black & white print, spiral binding, etc." />} />
                     </div>
 
                     <div className="flex items-start space-x-2 pt-2">
@@ -247,7 +246,6 @@ export function PrintForm({ pricePerPage }: PrintFormProps) {
                             render={({ field }) => (
                                 <Checkbox
                                     id="terms"
-                                    name="terms"
                                     checked={field.value}
                                     onCheckedChange={field.onChange}
                                 />

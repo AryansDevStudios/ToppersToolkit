@@ -18,7 +18,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Checkbox } from './ui/checkbox';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { OrderConfirmationDialog } from './OrderConfirmationDialog';
 
 
 function SubmitButton({ disabled }: { disabled: boolean }) {
@@ -39,18 +38,18 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
   const router = useRouter();
   const [paymentMethod, setPaymentMethod] = useState<'COD' | 'UPI'>('COD');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
-  const [lastOrder, setLastOrder] = useState<Omit<Order, 'id' | 'createdAt' | 'status'> | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
     if (state.success && state.order) {
       toast({
           title: "Order Placed!",
-          description: "Your order has been successfully placed.",
+          description: "Redirecting to confirmation...",
       });
       clearCart();
-      setLastOrder(state.order);
-      setIsDialogOpen(true);
+      const query = new URLSearchParams({
+        order: JSON.stringify(state.order)
+      }).toString();
+      router.push(`/cart/confirmation?${query}`);
       formRef.current?.reset();
       setPaymentMethod('COD');
       setAgreedToTerms(false);
@@ -70,15 +69,6 @@ export function PlaceOrderForm({ cartItems }: { cartItems: CartItem[] }) {
   
   return (
     <>
-      <OrderConfirmationDialog
-        isOpen={isDialogOpen}
-        onClose={() => {
-          setIsDialogOpen(false);
-          setLastOrder(null);
-          router.push('/');
-        }}
-        order={lastOrder}
-      />
       <Card className="w-full max-w-lg mx-auto">
           <CardHeader>
               <CardTitle>Place Your Order</CardTitle>
