@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+Disallow: /api/
+Disallow: /_next/
+Disallow: /static/
+Disallow: /admin
+Disallow: /secret
+
+Sitemap: https://topperstoolkit.netlify.app/sitemap.xml

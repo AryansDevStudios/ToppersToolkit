@@ -1,0 +1,26 @@
+/* TEAM */
+Developer: Aryan Gupta
+Seller: Kuldeep Singh
+Site: https://topperstoolkit.netlify.app
+Contact: aryan0106gupta@gmail.com
+Location: India
+
+/* THANKS */
+Content: NCERT textbooks (for study material references)
+Tools: Next.js, Netlify, OpenAI GPT
+Community: Friends & educators who inspired the Toolkit
+
+/* FUN FACT */
+Coffee consumed during development: ∞
+Bug fixes at 2 AM: confirmed ✅
+
+/* SECRET */
+Konami Code: ↑ ↑ ↓ ↓ ← → ← → B A
+Achievement Unlocked: You found the humans.txt!
+
+/* MESSAGE */
+Built with ❤️ in India.
+If you’re reading this, you’re awesome!
+
+/* TREASURE */
+Hidden reward: https://topperstoolkit.netlify.app/secret
