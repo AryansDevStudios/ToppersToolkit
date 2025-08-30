@@ -1,11 +1,6 @@
 
 const CACHE_NAME = 'toppers-toolkit-cache-v1';
 const urlsToCache = [
-  '/',
-  '/manifest.json',
-  '/icon/icon_app.ico',
-  '/icon/icon_main.png',
-  '/fallback' // A fallback page for offline viewing
 ];
 
 self.addEventListener('install', (event) => {

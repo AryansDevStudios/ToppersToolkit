@@ -1,20 +1,22 @@
-
 {
   "name": "Topper's Toolkit",
   "short_name": "Topper's Toolkit",
+  "description": "A library and learning toolkit for students",
   "start_url": "/",
-  "display": "standalone",
-  "background_color": "#ffffff",
+  "scope": "/",
+  "display": "fullscreen",
+  "background_color": "#28afdb",
   "theme_color": "#0d6efd",
-  "description": "High-quality, chapter-wise notes for Science, SST, Maths, and more.",
+  "orientation": "any",
+  "lang": "en-US",
   "icons": [
     {
-      "src": "/icon/icon_main.png",
+      "src": "/icon/logo 128x.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/icon/icon_main.png",
+      "src": "/icon/logo 512x.png",
       "sizes": "512x512",
       "type": "image/png"
     }
