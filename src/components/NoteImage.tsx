@@ -17,22 +17,20 @@ export function NoteImage({ src, alt, fallbackIcon }: NoteImageProps) {
   useEffect(() => {
     setError(false);
   }, [src]);
-
-  const defaultImage = 'https://github.com/AryansDevStudios/ToppersToolkit/blob/main/icon/background.png?raw=true';
-  const imageSrc = src && !error ? src : defaultImage;
-
+  
   if (!src || error) {
     return <>{fallbackIcon}</>;
   }
 
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={imageSrc}
+    <Image
+      src={src}
       alt={alt}
-      className="h-full w-full object-cover"
+      fill
+      className="object-cover"
       data-ai-hint="note education"
       onError={() => setError(true)}
+      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
     />
   );
 }
