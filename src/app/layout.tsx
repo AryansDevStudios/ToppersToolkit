@@ -26,9 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} h-full`} suppressHydrationWarning>
-      <head>
-        <link rel="icon" href="/icon/icon_app.ico" type="image/x-icon" />
-      </head>
+      <head />
       <body className="font-body antialiased h-full flex flex-col bg-background">
         <Providers>
           <div className="flex flex-col min-h-screen">
