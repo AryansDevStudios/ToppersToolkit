@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import { Providers } from '@/components/Providers';
 import { Header } from '@/components/Header';
@@ -12,6 +13,9 @@ export const metadata: Metadata = {
   description: 'Your one-stop shop for chapter-wise school notes.',
   icons: {
     icon: '/icon/icon_app.ico',
+  },
+  verification: {
+    google: "HhYE_EaRl3a-lakYfgYJNTwiSP22eQX_QUafQRqd0nw",
   }
 };
 
