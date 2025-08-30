@@ -26,7 +26,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} h-full`} suppressHydrationWarning>
-      <head />
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#0d6efd" />
+      </head>
       <body className="font-body antialiased h-full flex flex-col bg-background">
         <Providers>
           <div className="flex flex-col min-h-screen">
