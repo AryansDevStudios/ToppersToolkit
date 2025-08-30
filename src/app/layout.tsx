@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   title: "Topper's Toolkit - Quality School Notes",
   description: 'Your one-stop shop for chapter-wise school notes.',
   icons: {
-    icon: 'https://topperstoolkitviewer.netlify.app/favicon.ico',
+    icon: '/icon/icon_app.ico',
   },
   verification: {
     google: "HhYE_EaRl3a-lakYfgYJNTwiSP22eQX_QUafQRqd0nw",

@@ -27,7 +27,7 @@ export function Header() {
         <div className="container flex h-16 items-center">
           <Link href="/" className="mr-8 flex items-center space-x-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="https://raw.githubusercontent.com/AryansDevStudios/ToppersToolkit/main/icon/icon_app_128x128.png" alt="Topper's Toolkit Logo" className="h-8 w-8 rounded-lg" />
+            <img src="/icon/icon_main.png" alt="Topper's Toolkit Logo" className="h-8 w-8 rounded-lg" />
             <span className="font-black text-lg font-headline">Topper's Toolkit</span>
           </Link>
           <nav className="flex items-center space-x-6 text-sm font-medium">
@@ -69,7 +69,7 @@ export function Header() {
        <header className="md:hidden sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
          <div className="container flex h-16 items-center justify-between">
            <Link href="/" className="flex items-center space-x-2">
-             <img src="https://raw.githubusercontent.com/AryansDevStudios/ToppersToolkit/main/icon/icon_app_128x128.png" alt="Topper's Toolkit Logo" className="h-8 w-8 rounded-lg" />
+             <img src="/icon/icon_main.png" alt="Topper's Toolkit Logo" className="h-8 w-8 rounded-lg" />
             <span className="font-bold font-headline">Topper's Toolkit</span>
            </Link>
            <div className="flex items-center gap-2">
