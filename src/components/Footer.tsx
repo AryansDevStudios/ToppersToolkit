@@ -55,9 +55,9 @@ export function Footer() {
             </Button>
           </div>
         </div>
-        <div className="mt-8 border-t pt-4 text-center text-sm text-muted-foreground">
+          <div className="mt-8 border-t pt-4 text-center text-sm text-muted-foreground">
           <p>© {new Date().getFullYear()} Topper's Toolkit Viewer. Products by Kuldeep Singh.</p>
-          <p>Website built under AryansDevStudios.</p>
+          <p className="sm:mb-0 mb-8">Website built under AryansDevStudios.</p>
         </div>
       </div>
     </footer>
