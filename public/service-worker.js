@@ -1,6 +1,10 @@
 
 const CACHE_NAME = 'toppers-toolkit-cache-v1';
 const urlsToCache = [
+  '/',
+  '/fallback',
+  '/manifest.json',
+  '/icon/icon_main.png',
 ];
 
 self.addEventListener('install', (event) => {
@@ -22,7 +26,7 @@ self.addEventListener('fetch', (event) => {
           return response;
         }
 
-        // Clone the request because it's a stream and can only be consumed once.
+        // Clone the request to use it both for the cache and for the network
         const fetchRequest = event.request.clone();
 
         return fetch(fetchRequest).then(
@@ -32,7 +36,6 @@ self.addEventListener('fetch', (event) => {
               return response;
             }
 
-            // Clone the response because it's a stream and can only be consumed once.
             const responseToCache = response.clone();
 
             caches.open(CACHE_NAME)
@@ -42,11 +45,12 @@ self.addEventListener('fetch', (event) => {
 
             return response;
           }
-        );
-      }).catch(() => {
-          // If the network request fails and there's no cache,
-          // you can return a fallback page.
-          return caches.match('/fallback');
+        ).catch(() => {
+            // Network request failed, try to serve the fallback page
+            if (event.request.mode === 'navigate') {
+                return caches.match('/fallback');
+            }
+        });
       })
   );
 });
