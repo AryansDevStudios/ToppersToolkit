@@ -1,63 +1,80 @@
+const CACHE_NAME = 'toppers-toolkit-cache-v1';
 
-const CACHE_NAME = 'toppers-toolkit-v1';
+// These are the files that will be cached upon installation.
 const urlsToCache = [
-  '/',
-  '/fallback',
-  '/manifest.json',
-  '/icon/icon_main.png',
-  // Add other critical assets here
+    '/',
+    '/fallback',
+    '/manifest.json',
+    '/icon/icon_main.png'
 ];
 
-// Install a service worker
-self.addEventListener('install', event => {
-  // Perform install steps
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(function(cache) {
-        console.log('Opened cache');
-        return cache.addAll(urlsToCache);
-      })
-  );
-});
-
-// Cache and return requests
-self.addEventListener('fetch', event => {
-  // For navigation requests, use a network-first strategy.
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request).catch(() => {
-        return caches.match('/fallback');
-      })
+// Install the service worker and cache the initial resources
+self.addEventListener('install', (event) => {
+    event.waitUntil(
+        caches.open(CACHE_NAME)
+            .then((cache) => {
+                console.log('Opened cache');
+                // Add all the assets to the cache
+                return cache.addAll(urlsToCache);
+            })
     );
-    return;
-  }
-
-  // For other requests (CSS, JS, images), use a cache-first strategy.
-  event.respondWith(
-    caches.match(event.request)
-      .then(function(response) {
-        // Cache hit - return response
-        if (response) {
-          return response;
-        }
-        return fetch(event.request);
-      }
-    )
-  );
 });
 
-// Update a service worker
-self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME];
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            return caches.delete(cacheName);
-          }
+// Activate event: clean up old caches
+self.addEventListener('activate', (event) => {
+    event.waitUntil(
+        caches.keys().then((cacheNames) => {
+            return Promise.all(
+                cacheNames.map((cacheName) => {
+                    if (cacheName !== CACHE_NAME) {
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
         })
-      );
-    })
-  );
+    );
+});
+
+// Fetch event: serve cached content or fetch from network
+self.addEventListener('fetch', (event) => {
+    // We only want to cache GET requests
+    if (event.request.method !== 'GET') {
+        return;
+    }
+
+    // For images, use a "cache-first" strategy
+    if (event.request.destination === 'image') {
+        event.respondWith(
+            caches.open(CACHE_NAME).then((cache) => {
+                return cache.match(event.request).then((cachedResponse) => {
+                    // Return from cache if available
+                    if (cachedResponse) {
+                        return cachedResponse;
+                    }
+                    // Otherwise, fetch from the network, cache it, and return it
+                    return fetch(event.request).then((networkResponse) => {
+                        cache.put(event.request, networkResponse.clone());
+                        return networkResponse;
+                    });
+                });
+            })
+        );
+        return; // End execution for images
+    }
+
+    // For all other requests (HTML, CSS, JS, etc.), go to the network first.
+    // This ensures the user always gets the latest pages and code.
+    event.respondWith(
+        fetch(event.request)
+            .catch(() => {
+                // If the network request fails (e.g., offline),
+                // try to serve a fallback page from the cache.
+                return caches.open(CACHE_NAME).then((cache) => {
+                    if (event.request.mode === 'navigate') {
+                         return cache.match('/fallback');
+                    }
+                    return cache.match(event.request);
+                });
+            })
+    );
 });
