@@ -1,7 +1,6 @@
 
 const CACHE_NAME = 'toppers-toolkit-cache-v1';
 const urlsToCache = [
-  '/',
   '/fallback',
   '/manifest.json',
   '/icon/icon_main.png',
