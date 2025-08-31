@@ -9,7 +9,10 @@ import { useEffect } from 'react';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    // Service worker registration has been removed to disable caching during development.
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/service-worker.js")
+        .then(() => console.log("Service Worker Registered"));
+    }
   }, []);
 
   return (
