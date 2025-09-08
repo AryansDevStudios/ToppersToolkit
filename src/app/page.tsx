@@ -16,7 +16,7 @@ export default async function Home() {
       {/* Hero Section */}
       <section className="relative py-24 md:py-32 bg-gradient-to-b from-card to-background">
         <div className="container text-center">
-          <h1 className="text-4xl md:text-6xl font-black font-headline tracking-tighter">
+          <h1 className="text-4xl md:text-6xl font-black font-headline tracking-tighter bg-gradient-to-r from-fuchsia-500 to-cyan-500 bg-clip-text text-transparent">
             Unlock Your Academic Potential
           </h1>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
