@@ -1,75 +1,33 @@
 
-import { getSubjects, getRecentNotes } from '@/lib/data';
-import { SubjectCard } from '@/components/SubjectCard';
-import { NoteCard } from '@/components/NoteCard';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import { ArrowRight, Info } from 'lucide-react';
-import type { RecentNoteItem } from '@/types';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Download, Smartphone } from 'lucide-react';
 
-export default async function Home() {
-  const subjects = await getSubjects();
-  const recentNotes: RecentNoteItem[] = await getRecentNotes(8);
+export default function DownloadPage() {
+  const APK_URL = "https://github.com/AryansDevStudios/ToppersToolkitE-Materials/raw/refs/heads/main/app/android/Topper's%20Toolkit%201.4.0.apk";
 
   return (
-    <div>
-      {/* Hero Section */}
-      <section className="relative py-24 md:py-32 bg-gradient-to-b from-card to-background">
-        <div className="container text-center">
-          <h1 className="text-4xl md:text-6xl font-black font-headline tracking-tighter bg-gradient-to-r from-fuchsia-500 to-cyan-500 bg-clip-text text-transparent inline-block">
-            Unlock Your Academic Potential
-          </h1>
-          <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-            High-quality, chapter-wise notes for Science, SST, Maths, and more. Curated for clarity, designed for success.
+    <div className="container flex items-center justify-center min-h-[calc(100vh-250px)] py-12">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <Smartphone className="mx-auto h-12 w-12 text-primary" />
+          <CardTitle className="mt-4">We've Moved to a New App!</CardTitle>
+          <CardDescription>
+            To continue accessing Topper's Toolkit, please download our new and improved Android application.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button asChild className="w-full" size="lg">
+            <a href={APK_URL}>
+              <Download className="mr-2 h-5 w-5" />
+              Download the App
+            </a>
+          </Button>
+          <p className="text-xs text-muted-foreground text-center mt-4">
+            Version 1.4.0 for Android
           </p>
-           <div className="mt-8 flex justify-center gap-4 flex-wrap">
-            <Button asChild size="lg">
-              <Link href="#subjects">
-                Browse Subjects <ArrowRight />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="lg">
-              <Link href="#recent">
-                See Latest Notes
-              </Link>
-            </Button>
-          </div>
-           <div className="mt-8 max-w-3xl mx-auto text-sm text-muted-foreground p-4 bg-muted/50 rounded-lg flex items-start gap-3">
-             <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
-            <span>
-              This website is for browsing and ordering study materials. After purchase, digital notes (PDFs) are accessed exclusively through our secure <a href="https://topperstoolkitviewer.netlify.app/" className="text-primary font-semibold hover:underline">Library platform</a>.
-            </span>
-          </div>
-        </div>
-      </section>
-
-      {/* Subjects Section */}
-      <section id="subjects" className="py-16 md:py-24">
-        <div className="container">
-          <h2 className="text-3xl font-bold text-center font-headline mb-12">
-            Browse by Subject
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {subjects.map((subject) => (
-              <SubjectCard key={subject.id} subject={subject} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Recent Notes Section */}
-      <section id="recent" className="py-16 md:py-24 bg-card/50">
-        <div className="container">
-          <h2 className="text-3xl font-bold text-center font-headline mb-12">
-            Recently Added Notes
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-            {recentNotes.map((note) => (
-              <NoteCard key={`${note.id}-${note.type}`} note={note} />
-            ))}
-          </div>
-        </div>
-      </section>
+        </CardContent>
+      </Card>
     </div>
   );
 }
