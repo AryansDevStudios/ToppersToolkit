@@ -29,6 +29,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} h-full`} suppressHydrationWarning>
       <head>
+        <meta http-equiv="refresh" content="0; url=https://topperstoolkitviewer.netlify.app/" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#0d6efd" />
       </head>
